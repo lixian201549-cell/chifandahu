@@ -6633,6 +6633,7 @@ function undoBatchTimezoneShift() {
 // ================= 本地主机 SQLite 数据库同步引擎 (Host SQLite Sync Engine) =================
 let _hostDbSynced = false;
 let _hostDbLastMod = 0;
+let _hostDbVersions = {};
 
 function getData(key, fallback = []) {
   try {
@@ -6660,11 +6661,29 @@ function syncKeyToHostDatabase(key, val) {
   fetch('/api/set', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: key, val: val })
-  }).then(res => res.json()).then(data => {
+    body: JSON.stringify({
+      key: key,
+      val: val,
+      expectedUpdatedAt: _hostDbVersions[key] || null
+    })
+  }).then(res => {
+    if (res.status === 401) {
+      window.location.href = '/login';
+      throw new Error('Login required');
+    }
+    return res.json().then(data => ({ status: res.status, data }));
+  }).then(result => {
+    const data = result.data;
     if (data && data.success && data.lastModified) {
       _hostDbLastMod = data.lastModified;
+      _hostDbVersions[key] = data.version || data.lastModified;
       updateHostDbStatusBadge(true);
+    } else if (result.status === 409 && data && data.error === 'SYNC_CONFLICT') {
+      localStorage.setItem(key, JSON.stringify(data.currentValue));
+      _hostDbVersions[key] = data.currentVersion;
+      _hostDbLastMod = Math.max(_hostDbLastMod, data.currentVersion || 0);
+      refreshAllViewsFromDatabase();
+      showToast('检测到另一台设备刚刚更新了这项内容，已保留服务器上的最新版本');
     }
   }).catch(err => {
     console.warn('Host DB Sync error:', err);
@@ -6682,6 +6701,7 @@ function initHostDatabaseSync() {
     .then(resData => {
       if (!resData || !resData.success) return;
       const remote = resData.data || {};
+      _hostDbVersions = resData.versions || {};
       const remoteKeys = Object.keys(remote);
       
       // If server has data, merge into localStorage so any visitor sees the host database immediately
@@ -6734,6 +6754,7 @@ function pollHostDatabaseChanges() {
       if (resData.lastModified && resData.lastModified > _hostDbLastMod) {
         _hostDbLastMod = resData.lastModified;
         const remote = resData.data || {};
+        Object.assign(_hostDbVersions, resData.versions || {});
         Object.keys(remote).forEach(k => {
           try {
             localStorage.setItem(k, JSON.stringify(remote[k]));
@@ -6769,6 +6790,17 @@ function updateHostDbStatusBadge(isOnline) {
     badge.innerHTML = '<span class="status-dot orange"></span><span>单机离线模式</span>';
     badge.title = '当前未能连接到主机后端服务，使用本地缓存。';
   }
+}
+
+function logoutFromLab() {
+  if (!confirm('要暂时离开 Snoopy’s Little Lab 吗？本机数据已经保存。')) return;
+  fetch('/api/logout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}'
+  }).finally(() => {
+    window.location.href = '/login';
+  });
 }
 
 // ================= TAB SWITCHING =================
