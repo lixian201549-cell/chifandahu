@@ -12924,6 +12924,313 @@ console.log("Snoopy's Little Lab loaded successfully with smart calendar import,
 </html>
 """
 
+login_template = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>回到 Snoopy’s Little Lab</title>
+<style>
+  :root {
+    --ink: #171717;
+    --paper: #fffdf8;
+    --cream: #f8f0df;
+    --red: #d9383a;
+    --yellow: #f5bf36;
+    --muted: #6b655d;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    overflow-x: hidden;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(245,191,54,.28) 0 8px, transparent 9px),
+      radial-gradient(circle at 88% 78%, rgba(217,56,58,.14) 0 7px, transparent 8px),
+      linear-gradient(135deg, #fffaf0 0%, #f7ecd7 48%, #fffdf8 100%);
+  }
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    width: 230px;
+    height: 230px;
+    border: 2px solid rgba(23,23,23,.08);
+    border-radius: 48% 52% 46% 54%;
+    transform: rotate(18deg);
+    pointer-events: none;
+  }
+  body::before { left: -90px; top: -90px; }
+  body::after { right: -100px; bottom: -105px; transform: rotate(-22deg); }
+  .login-shell {
+    width: min(940px, calc(100% - 32px));
+    min-height: 570px;
+    display: grid;
+    grid-template-columns: 1.08fr .92fr;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 28px;
+    box-shadow: 12px 12px 0 var(--ink);
+    overflow: hidden;
+    position: relative;
+  }
+  .illustration {
+    min-height: 570px;
+    padding: 42px 42px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(rgba(255,255,255,.22) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.22) 1px, transparent 1px),
+      var(--yellow);
+    background-size: 26px 26px;
+    border-right: 2px solid var(--ink);
+  }
+  .eyebrow {
+    width: fit-content;
+    padding: 7px 12px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: var(--paper);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .12em;
+  }
+  .illustration h1 {
+    margin: 16px 0 8px;
+    max-width: 410px;
+    font-family: Georgia, "Songti SC", serif;
+    font-size: clamp(38px, 5vw, 64px);
+    line-height: 1.02;
+    letter-spacing: -.045em;
+  }
+  .illustration p {
+    margin: 0;
+    max-width: 380px;
+    color: #38342e;
+    font-size: 15px;
+    font-weight: 650;
+  }
+  .snoopy-stage {
+    height: 285px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .snoopy-stage::before {
+    content: "Z · Z · Z";
+    position: absolute;
+    right: 4px;
+    top: 20px;
+    font-family: Georgia, serif;
+    font-weight: 900;
+    font-size: 21px;
+    transform: rotate(-8deg);
+  }
+  .snoopy-stage img {
+    width: min(100%, 390px);
+    max-height: 275px;
+    object-fit: contain;
+    filter: drop-shadow(7px 8px 0 rgba(255,255,255,.8));
+    animation: floaty 3.4s ease-in-out infinite;
+  }
+  .woodstock {
+    position: absolute;
+    width: 74px !important;
+    height: 74px;
+    object-fit: contain;
+    right: 10px;
+    bottom: 16px;
+    filter: none !important;
+    animation-delay: -.8s !important;
+  }
+  .login-panel {
+    padding: 56px 48px 42px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .mini-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 34px;
+    font-size: 13px;
+    font-weight: 850;
+  }
+  .mini-brand img { width: 44px; height: 44px; object-fit: contain; }
+  .login-panel h2 { margin: 0; font-size: 29px; letter-spacing: -.03em; }
+  .login-panel .welcome { margin: 8px 0 30px; color: var(--muted); font-size: 14px; }
+  label { display: block; margin-bottom: 9px; font-size: 13px; font-weight: 800; }
+  .password-wrap { position: relative; }
+  input {
+    width: 100%;
+    height: 52px;
+    padding: 0 52px 0 15px;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    outline: none;
+    transition: box-shadow .18s, transform .18s;
+  }
+  input:focus { box-shadow: 4px 4px 0 var(--yellow); transform: translate(-1px, -1px); }
+  .peek {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 38px;
+    height: 36px;
+    border: 0;
+    border-radius: 9px;
+    background: var(--cream);
+    cursor: pointer;
+    font-size: 17px;
+  }
+  .submit {
+    width: 100%;
+    min-height: 52px;
+    margin-top: 16px;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    background: var(--red);
+    color: #fff;
+    box-shadow: 4px 4px 0 var(--ink);
+    font: inherit;
+    font-weight: 850;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s, background .15s;
+  }
+  .submit:hover { background: #bd2d30; transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--ink); }
+  .submit:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+  .submit:disabled { opacity: .65; cursor: wait; }
+  .error {
+    min-height: 21px;
+    margin-top: 14px;
+    color: #b42324;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .privacy-note {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed #c9c2b7;
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.6;
+  }
+  @keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(1deg); } }
+  @media (prefers-reduced-motion: reduce) { .snoopy-stage img { animation: none; } }
+  @media (max-width: 760px) {
+    body { padding: 16px 0 28px; place-items: start center; }
+    .login-shell { grid-template-columns: 1fr; box-shadow: 7px 7px 0 var(--ink); }
+    .illustration { min-height: 310px; padding: 28px 28px 12px; border-right: 0; border-bottom: 2px solid var(--ink); }
+    .illustration h1 { font-size: 40px; max-width: 330px; }
+    .illustration p { font-size: 13px; }
+    .snoopy-stage { position: absolute; right: 14px; bottom: 4px; width: 220px; height: 180px; opacity: .96; }
+    .snoopy-stage::before, .woodstock { display: none; }
+    .login-panel { padding: 34px 28px 30px; }
+    .mini-brand { margin-bottom: 24px; }
+  }
+</style>
+</head>
+<body>
+  <main class="login-shell">
+    <section class="illustration" aria-label="Snoopy 欢迎插画">
+      <div>
+        <div class="eyebrow">PRIVATE LITTLE LAB</div>
+        <h1>欢迎回到<br>Snoopy 的小实验室</h1>
+        <p>任务、会议、灵感和旅行计划，都安静地等你回来。</p>
+      </div>
+      <div class="snoopy-stage" aria-hidden="true">
+        <img src="__IMG_ORDINARY_DOGHOUSE__" alt="">
+        <img class="woodstock" src="__IMG_WOODSTOCK__" alt="">
+      </div>
+    </section>
+    <section class="login-panel">
+      <div class="mini-brand">
+        <img src="__IMG_CANONICAL__" alt="Snoopy">
+        <span>Snoopy’s Little Lab · Sanyli.</span>
+      </div>
+      <h2>输入秘密口令</h2>
+      <p class="welcome">只有你和 Snoopy 知道的那一句。</p>
+      <form id="loginForm" novalidate>
+        <label for="password">登录密码</label>
+        <div class="password-wrap">
+          <input id="password" name="password" type="password" autocomplete="current-password" required autofocus aria-describedby="loginError">
+          <button class="peek" id="peekButton" type="button" aria-label="显示密码" title="显示或隐藏密码">👀</button>
+        </div>
+        <button class="submit" id="submitButton" type="submit">🐾 打开我的小实验室</button>
+        <div class="error" id="loginError" role="alert" aria-live="polite"></div>
+      </form>
+      <div class="privacy-note">🔐 密码只发送给你的主机验证；登录会话使用安全 Cookie，页面不会保存密码。</div>
+    </section>
+  </main>
+<script>
+  const form = document.getElementById('loginForm');
+  const passwordInput = document.getElementById('password');
+  const submitButton = document.getElementById('submitButton');
+  const loginError = document.getElementById('loginError');
+  document.getElementById('peekButton').addEventListener('click', function() {
+    const showing = passwordInput.type === 'text';
+    passwordInput.type = showing ? 'password' : 'text';
+    this.textContent = showing ? '👀' : '🙈';
+    this.setAttribute('aria-label', showing ? '显示密码' : '隐藏密码');
+    passwordInput.focus();
+  });
+  form.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const password = passwordInput.value;
+    if (!password) {
+      loginError.textContent = 'Snoopy 还没听到口令呢。';
+      passwordInput.focus();
+      return;
+    }
+    submitButton.disabled = true;
+    submitButton.textContent = '正在确认口令…';
+    loginError.textContent = '';
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        submitButton.textContent = '欢迎回来！🐾';
+        window.location.replace('/');
+        return;
+      }
+      if (response.status === 429) {
+        loginError.textContent = '尝试次数有点多，Snoopy 需要休息 15 分钟。';
+      } else {
+        loginError.textContent = '口令不对，再想想看？';
+      }
+      passwordInput.select();
+    } catch (error) {
+      loginError.textContent = '暂时联系不上小实验室，请稍后重试。';
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = '🐾 打开我的小实验室';
+    }
+  });
+</script>
+</body>
+</html>
+"""
+
 replacements = {
     '__IMG_ORDINARY_DOGHOUSE__': img_ordinary_doghouse,
     '__IMG_BORDER_SNOOPY__': img_border_snoopy,
@@ -12941,12 +13248,17 @@ replacements = {
 }
 
 output_html = html_template
+output_login_html = login_template
 for placeholder, value in replacements.items():
     output_html = output_html.replace(placeholder, value)
+    output_login_html = output_login_html.replace(placeholder, value)
 
 output_path = 'index.html'
 with open(output_path, 'w', encoding='utf-8') as out_f:
     out_f.write(output_html)
+
+with open('login.html', 'w', encoding='utf-8') as out_f:
+    out_f.write(output_login_html)
 
 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
 print(f"Step 2: Compiled standalone {output_path} successfully! Size: {file_size_mb:.2f} MB")
