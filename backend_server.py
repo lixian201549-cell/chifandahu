@@ -82,6 +82,31 @@ def verify_password(password):
     return hmac.compare_digest(candidate, _password_hash)
 
 
+def valid_new_password(password):
+    if not isinstance(password, str) or len(password) > 256:
+        return False
+    return (len(password) == 6 and password.isascii() and password.isdigit()) or len(password) >= 10
+
+
+def update_password(password):
+    global _password_salt, _password_hash
+    salt = secrets.token_bytes(16)
+    password_hash = _hash_password(password, salt)
+    temp_path = AUTH_PATH + ".tmp"
+    with open(temp_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "salt": salt.hex(),
+            "hash": password_hash.hex(),
+            "iterations": PASSWORD_ITERATIONS,
+        }, f, ensure_ascii=False, indent=2)
+    os.chmod(temp_path, 0o600)
+    os.replace(temp_path, AUTH_PATH)
+    if os.path.exists(INITIAL_PASSWORD_PATH):
+        os.remove(INITIAL_PASSWORD_PATH)
+    _password_salt = salt
+    _password_hash = password_hash
+
+
 def init_db():
     os.makedirs(DATA_DIR, exist_ok=True)
     with sqlite3.connect(DB_PATH, timeout=10) as conn:
@@ -312,6 +337,11 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
             self._redirect("/login")
             return
 
+        if path in ("/favicon.ico", "/favicon.png"):
+            self.path = path
+            super().do_GET()
+            return
+
         if path.startswith("/api/"):
             if not self._require_api_auth():
                 return
@@ -377,6 +407,41 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
             return
 
         if not self._require_api_auth():
+            return
+
+        if path == "/api/change-password":
+            if os.environ.get("PLATFORM_PASSWORD", "").strip():
+                self._json_response(409, {
+                    "success": False,
+                    "error": "PASSWORD_MANAGED_BY_ENV",
+                })
+                return
+            current_password = request_data.get("currentPassword")
+            new_password = request_data.get("newPassword")
+            if not isinstance(current_password, str) or not verify_password(current_password):
+                self._json_response(401, {
+                    "success": False,
+                    "error": "CURRENT_PASSWORD_INCORRECT",
+                })
+                return
+            if not valid_new_password(new_password):
+                self._json_response(400, {
+                    "success": False,
+                    "error": "INVALID_NEW_PASSWORD",
+                })
+                return
+            if hmac.compare_digest(current_password, new_password):
+                self._json_response(400, {
+                    "success": False,
+                    "error": "PASSWORD_UNCHANGED",
+                })
+                return
+            update_password(new_password)
+            with _state_lock:
+                _sessions.clear()
+            self._json_response(200, {"success": True}, {
+                "Set-Cookie": "snoopy_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0",
+            })
             return
 
         if path == "/api/set":

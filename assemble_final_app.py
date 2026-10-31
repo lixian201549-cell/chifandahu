@@ -2,6 +2,8 @@
 # Compiles the standalone Snoopy's Little Lab index.html with all requested enhancements
 import json
 import os
+import shutil
+import struct
 
 print("Step 1: Reading base64 assets and English curriculum data...")
 with open('assets_b64.json', 'r', encoding='utf-8') as f:
@@ -34,6 +36,8 @@ html_template = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snoopy’s Little Lab · Sanyli.</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon.png">
 <style>
   :root {
     --bg: #f8f7f4;
@@ -925,6 +929,89 @@ html_template = """<!DOCTYPE html>
     border: 1px dashed var(--border);
     border-radius: var(--radius-sm);
   }
+
+  .profile-menu { position: relative; }
+  .profile-trigger {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 4px 10px 4px 5px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+  }
+  .profile-trigger:hover, .profile-trigger[aria-expanded="true"] {
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+  }
+  .profile-avatar {
+    width: 32px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--woodstock-soft);
+  }
+  .profile-name { font-size: 12px; font-weight: 750; }
+  .profile-chevron { font-size: 10px; color: var(--text-muted); transition: transform .18s ease; }
+  .profile-trigger[aria-expanded="true"] .profile-chevron { transform: rotate(180deg); }
+  .profile-dropdown {
+    position: absolute;
+    top: calc(100% + 9px);
+    right: 0;
+    z-index: 300;
+    width: 238px;
+    padding: 8px;
+    border: 1.5px solid var(--border-hover);
+    border-radius: 14px;
+    background: var(--card);
+    box-shadow: 0 16px 40px rgba(0,0,0,.14);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px) scale(.98);
+    transform-origin: top right;
+    transition: opacity .16s ease, transform .16s ease, visibility .16s;
+  }
+  .profile-dropdown.is-open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+  .profile-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 10px;
+    background: var(--woodstock-soft);
+  }
+  .profile-summary img { width: 42px; height: 42px; object-fit: contain; }
+  .profile-summary strong { display: block; font-size: 13px; }
+  .profile-summary span { display: block; margin-top: 2px; color: var(--text-muted); font-size: 10.5px; }
+  .profile-action {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 11px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    text-align: left;
+    cursor: pointer;
+  }
+  .profile-action:hover { background: var(--card-subtle); }
+  .profile-action.is-danger { color: var(--accent-red); }
+  .profile-divider { height: 1px; margin: 5px 4px; background: var(--border); }
+  .password-help { margin-top: 5px; color: var(--text-muted); font-size: 11px; }
+  .password-error { min-height: 20px; margin-top: 10px; color: var(--accent-red); font-size: 12px; font-weight: 650; }
   .weekly-decision-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
@@ -4265,10 +4352,23 @@ html_template = """<!DOCTYPE html>
           💾 导出数据
         </button>
 
-        <!-- Secure Logout -->
-        <button class="theme-btn" onclick="logoutFromLab()" title="安全退出 Snoopy’s Little Lab">
-          🔒 退出
-        </button>
+        <!-- Personal Profile & Security -->
+        <div class="profile-menu" id="profileMenu">
+          <button class="profile-trigger" id="profileTrigger" type="button" aria-haspopup="menu" aria-expanded="false" onclick="toggleProfileMenu(event)">
+            <img class="profile-avatar" src="__IMG_CANONICAL__" alt="Sanyli">
+            <span class="profile-name">Sanyli</span>
+            <span class="profile-chevron">▼</span>
+          </button>
+          <div class="profile-dropdown" id="profileDropdown" role="menu" aria-label="个人信息与安全设置">
+            <div class="profile-summary">
+              <img src="__IMG_CANONICAL__" alt="">
+              <div><strong>Sanyli</strong><span>Snoopy’s Little Lab 管理员</span></div>
+            </div>
+            <button class="profile-action" type="button" role="menuitem" onclick="openPasswordSettings()"><span>🔑</span><span>密码管理</span></button>
+            <div class="profile-divider"></div>
+            <button class="profile-action is-danger" type="button" role="menuitem" onclick="logoutFromLab()"><span>🔒</span><span>安全退出</span></button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -4767,6 +4867,42 @@ html_template = """<!DOCTYPE html>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
   </footer>
+
+  <!-- ================= MODAL: UNIVERSAL SMART CALENDAR & TABLE IMPORT ================= -->
+  <div class="modal-overlay" id="passwordSettingsModal">
+    <div class="modal-box" style="max-width: 450px;">
+      <div class="modal-header">
+        <div class="modal-title">🔑 密码管理</div>
+        <button class="btn btn-sm btn-ghost" type="button" onclick="closePasswordSettings()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:16px;border:1px solid var(--border);border-radius:12px;background:var(--woodstock-soft);">
+          <img src="__IMG_CANONICAL__" alt="Snoopy" style="width:52px;height:52px;object-fit:contain;">
+          <div><div style="font-size:13px;font-weight:750;">更新登录口令</div><div style="font-size:11px;color:var(--text-muted);">修改成功后，所有设备都需要重新登录。</div></div>
+        </div>
+        <form id="passwordSettingsForm" onsubmit="submitPasswordChange(event)">
+          <div class="form-group">
+            <label for="currentAccountPassword">当前密码</label>
+            <input id="currentAccountPassword" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="form-group">
+            <label for="newAccountPassword">新密码</label>
+            <input id="newAccountPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required>
+            <div class="password-help">可以设置为 6 位纯数字，或至少 10 个字符的强密码。</div>
+          </div>
+          <div class="form-group">
+            <label for="confirmAccountPassword">再次输入新密码</label>
+            <input id="confirmAccountPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required>
+          </div>
+          <div class="password-error" id="passwordSettingsError" role="alert" aria-live="polite"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closePasswordSettings()">取消</button>
+        <button class="btn btn-primary" id="savePasswordButton" type="submit" form="passwordSettingsForm">保存新密码</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= MODAL: UNIVERSAL SMART CALENDAR & TABLE IMPORT ================= -->
   <div class="modal-overlay" id="importCalendarModal">
@@ -6790,6 +6926,97 @@ function updateHostDbStatusBadge(isOnline) {
     badge.innerHTML = '<span class="status-dot orange"></span><span>单机离线模式</span>';
     badge.title = '当前未能连接到主机后端服务，使用本地缓存。';
   }
+}
+
+function setProfileMenuOpen(isOpen) {
+  const trigger = document.getElementById('profileTrigger');
+  const dropdown = document.getElementById('profileDropdown');
+  if (!trigger || !dropdown) return;
+  trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  dropdown.classList.toggle('is-open', isOpen);
+}
+
+function toggleProfileMenu(event) {
+  if (event) event.stopPropagation();
+  const trigger = document.getElementById('profileTrigger');
+  setProfileMenuOpen(!(trigger && trigger.getAttribute('aria-expanded') === 'true'));
+}
+
+function openPasswordSettings() {
+  setProfileMenuOpen(false);
+  const form = document.getElementById('passwordSettingsForm');
+  const error = document.getElementById('passwordSettingsError');
+  if (form) form.reset();
+  if (error) error.textContent = '';
+  openModal('passwordSettingsModal');
+  setTimeout(() => {
+    const input = document.getElementById('currentAccountPassword');
+    if (input) input.focus();
+  }, 80);
+}
+
+function closePasswordSettings() {
+  closeModal('passwordSettingsModal');
+  const form = document.getElementById('passwordSettingsForm');
+  const error = document.getElementById('passwordSettingsError');
+  if (form) form.reset();
+  if (error) error.textContent = '';
+}
+
+function submitPasswordChange(event) {
+  if (event) event.preventDefault();
+  const currentInput = document.getElementById('currentAccountPassword');
+  const newInput = document.getElementById('newAccountPassword');
+  const confirmInput = document.getElementById('confirmAccountPassword');
+  const error = document.getElementById('passwordSettingsError');
+  const button = document.getElementById('savePasswordButton');
+  const currentPassword = currentInput ? currentInput.value : '';
+  const newPassword = newInput ? newInput.value : '';
+  const confirmation = confirmInput ? confirmInput.value : '';
+  const isSixDigitPin = /^\d{6}$/.test(newPassword);
+  const isStrongPassword = newPassword.length >= 10 && newPassword.length <= 256;
+  if (!isSixDigitPin && !isStrongPassword) {
+    error.textContent = '请输入 6 位纯数字，或至少 10 个字符的密码。';
+    if (newInput) newInput.focus();
+    return;
+  }
+  if (newPassword !== confirmation) {
+    error.textContent = '两次输入的新密码不一致。';
+    if (confirmInput) confirmInput.focus();
+    return;
+  }
+  if (currentPassword === newPassword) {
+    error.textContent = '新密码不能与当前密码相同。';
+    return;
+  }
+  error.textContent = '';
+  if (button) {
+    button.disabled = true;
+    button.textContent = '正在保存…';
+  }
+  fetch('/api/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currentPassword, newPassword })
+  }).then(async response => {
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      if (result.error === 'CURRENT_PASSWORD_INCORRECT') throw new Error('当前密码不正确。');
+      if (result.error === 'PASSWORD_MANAGED_BY_ENV') throw new Error('当前密码由服务器环境配置，请在服务器端修改。');
+      if (result.error === 'PASSWORD_UNCHANGED') throw new Error('新密码不能与当前密码相同。');
+      throw new Error('密码修改失败，请稍后重试。');
+    }
+    closePasswordSettings();
+    showToast('✅ 密码已更新，请使用新密码重新登录');
+    setTimeout(() => { window.location.href = '/login'; }, 900);
+  }).catch(err => {
+    error.textContent = err.message || '密码修改失败，请稍后重试。';
+  }).finally(() => {
+    if (button) {
+      button.disabled = false;
+      button.textContent = '保存新密码';
+    }
+  });
 }
 
 function logoutFromLab() {
@@ -12905,6 +13132,12 @@ document.addEventListener('click', function(e) {
   if (e && e.target && !e.target.closest('.time-picker-wrapper')) {
     closeAllTimePickers();
   }
+  if (e && e.target && !e.target.closest('#profileMenu')) {
+    setProfileMenuOpen(false);
+  }
+});
+document.addEventListener('keydown', function(e) {
+  if (e && e.key === 'Escape') setProfileMenuOpen(false);
 });
 applyModuleHeaderSettings();
 renderMeetings();
@@ -12931,6 +13164,8 @@ login_template = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>回到 Snoopy’s Little Lab</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon.png">
 <style>
   :root {
     --ink: #171717;
@@ -13259,6 +13494,16 @@ with open(output_path, 'w', encoding='utf-8') as out_f:
 
 with open('login.html', 'w', encoding='utf-8') as out_f:
     out_f.write(output_login_html)
+
+# Browser tab and home-screen icons use the canonical Snoopy artwork.
+favicon_png_path = os.path.join('assets', 'snoopy_canonical.png')
+shutil.copyfile(favicon_png_path, 'favicon.png')
+with open(favicon_png_path, 'rb') as icon_source:
+    png_bytes = icon_source.read()
+icon_header = struct.pack('<HHH', 0, 1, 1)
+icon_entry = struct.pack('<BBBBHHII', 173, 200, 0, 0, 1, 32, len(png_bytes), 22)
+with open('favicon.ico', 'wb') as icon_file:
+    icon_file.write(icon_header + icon_entry + png_bytes)
 
 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
 print(f"Step 2: Compiled standalone {output_path} successfully! Size: {file_size_mb:.2f} MB")

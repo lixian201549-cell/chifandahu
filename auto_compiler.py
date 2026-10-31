@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import shutil
 import subprocess
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -15,41 +16,21 @@ WATCH_TARGETS = [
 def get_mtimes():
     return {f: os.path.getmtime(f) for f in WATCH_TARGETS if os.path.exists(f)}
 
-def git_auto_commit_and_push():
-    try:
-        # Check if git repo exists
-        if not os.path.exists(os.path.join(BASE_DIR, ".git")):
-            return
-        status = subprocess.run(["git", "status", "--porcelain"], cwd=BASE_DIR, capture_output=True, text=True)
-        if status.stdout.strip():
-            subprocess.run(["git", "add", "."], cwd=BASE_DIR)
-            commit_msg = f"auto-update: code change at {time.strftime('%Y-%m-%d %H:%M:%S')}"
-            subprocess.run(["git", "commit", "-m", commit_msg], cwd=BASE_DIR, capture_output=True)
-            print(f"[{time.strftime('%H:%M:%S')}] ✓ Git auto-committed locally: {commit_msg}")
-            
-            # Check if remote origin is configured
-            remotes = subprocess.run(["git", "remote"], cwd=BASE_DIR, capture_output=True, text=True).stdout
-            if "origin" in remotes.split():
-                push_res = subprocess.run(["git", "push", "origin", "main"], cwd=BASE_DIR, capture_output=True, text=True)
-                if push_res.returncode == 0:
-                    print(f"[{time.strftime('%H:%M:%S')}] 🚀 Successfully auto-pushed to remote Git repository!")
-                else:
-                    print(f"[{time.strftime('%H:%M:%S')}] ⚠️ Git push skipped/error: {push_res.stderr.strip()}")
-    except Exception as e:
-        print(f"Git auto-sync warning: {e}")
-
 def build():
     print(f"[{time.strftime('%H:%M:%S')}] Detected code changes. Auto-recompiling...")
     res = subprocess.run([sys.executable, "assemble_final_app.py"], cwd=BASE_DIR, capture_output=True, text=True)
     if res.returncode == 0:
-        subprocess.run(["cp", "index.html", "dist/index.html"], cwd=BASE_DIR)
-        print(f"[{time.strftime('%H:%M:%S')}] ✓ Recompile succeeded! dist/index.html updated. Live immediately!")
-        git_auto_commit_and_push()
+        os.makedirs(os.path.join(BASE_DIR, "dist"), exist_ok=True)
+        shutil.copy2(os.path.join(BASE_DIR, "index.html"), os.path.join(BASE_DIR, "dist/index.html"))
+        shutil.copy2(os.path.join(BASE_DIR, "login.html"), os.path.join(BASE_DIR, "dist/login.html"))
+        shutil.copy2(os.path.join(BASE_DIR, "favicon.ico"), os.path.join(BASE_DIR, "dist/favicon.ico"))
+        shutil.copy2(os.path.join(BASE_DIR, "favicon.png"), os.path.join(BASE_DIR, "dist/favicon.png"))
+        print(f"[{time.strftime('%H:%M:%S')}] ✓ Recompile succeeded. Login page and app are live.")
     else:
         print(f"[{time.strftime('%H:%M:%S')}] ❌ Recompile error:\n", res.stderr)
 
 def main():
-    print("Auto-compiler & Git Sync started. Watching source code for instant updates & auto-push...")
+    print("Auto-compiler started. Watching source code for local rebuilds (Git is never changed automatically).")
     last_mtimes = get_mtimes()
     while True:
         time.sleep(1)

@@ -324,10 +324,11 @@ assertEq(document.getElementById('currentViewModeTag').textContent, '决策卡�
 print('✓ All 4 view modes switched and verified');
 
 print('--- Testing All Free Slots Display in Weekly Board ---');
-// Insert 1 meeting at 10:00 - 11:00 on future date 2026-10-28
+// Always use a future date so this regression test remains valid after its authoring date.
+const freeSlotFutureDate = formatDateToStr(new Date(Date.now() + 7 * 86400000));
 setData(STORAGE_KEYS.MEETINGS, [{{
   id: 12345,
-  date: '2026-10-28',
+  date: freeSlotFutureDate,
   startTime: '10:00',
   endTime: '11:00',
   time: '10:00',
@@ -339,7 +340,7 @@ setData(STORAGE_KEYS.MEETINGS, [{{
   decision: '批准Q4预算方案'
 }}]);
 
-const freeSlotResult = calculateDayFreeSlots(getData(STORAGE_KEYS.MEETINGS), '2026-10-28');
+const freeSlotResult = calculateDayFreeSlots(getData(STORAGE_KEYS.MEETINGS), freeSlotFutureDate);
 print('Free slots count: ' + freeSlotResult.freeSlots.length);
 assertEq(freeSlotResult.freeSlots.length >= 2, true, 'At least 2 free slots detected outside 10:00-11:00 and lunch on future date');
 
@@ -354,10 +355,12 @@ for (let s of todayFreeSlotResult.freeSlots) {{
 print('✓ Passed slots for today filtered and real-time available slots calculated');
 
 // Render weekly board and verify all free slots are generated
+currentWeekOffset = 1;
 renderSupervisorWeeklyBoard();
 const weeklyHtml = document.getElementById('supervisorWeeklyBoardContainer').innerHTML;
 assertEq(weeklyHtml.includes('weekly-free-slots-wrap'), true, 'weekly-free-slots-wrap rendered in weekly board');
 assertEq(weeklyHtml.includes('可用空档') || weeklyHtml.includes('今日空档'), true, 'Free slots header rendered in weekly board');
+currentWeekOffset = 0;
 
 print('--- Testing Pending Meeting in Weekly Board & Weekly Decision Overview ---');
 // Insert a pending meeting

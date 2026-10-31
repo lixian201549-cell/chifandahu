@@ -120,9 +120,14 @@ assertEq(weekHtml.indexOf('09:00 - 12:00 无排期') === -1, true, 'No 09:00 - 1
 assertEq(weekHtml.indexOf('下午 (14:00 - 18:00)') === -1, true, 'No 14:00 - 18:00 in afternoon divider');
 assertEq(weekHtml.indexOf('14:00 - 18:00 无排期') === -1, true, 'No 14:00 - 18:00 in afternoon empty slot');
 
-// 5. Test empty morning and empty afternoon display on upcoming days
-const tomorrowDate = formatDateToStr(new Date(Date.now() + 86400000));
-const dayAfterDate = formatDateToStr(new Date(Date.now() + 86400000 * 2));
+// 5. Test empty periods in the next complete week. This avoids failing on
+// Saturday when "tomorrow" belongs to a different week than the current board.
+currentWeekOffset = 1;
+const todayForNextWeek = new Date();
+const nextSunday = new Date(todayForNextWeek);
+nextSunday.setDate(todayForNextWeek.getDate() - todayForNextWeek.getDay() + 7);
+const tomorrowDate = formatDateToStr(nextSunday);
+const dayAfterDate = formatDateToStr(new Date(nextSunday.getTime() + 86400000));
 const partialMeetings = [
   {{
     id: 601,
