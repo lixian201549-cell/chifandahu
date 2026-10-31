@@ -1,0 +1,20 @@
+# Dependencies & Binaries
+node_env/
+bin/
+*.tgz
+*.tar.gz
+
+# Local Database & User Private Data
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Temporary / Runtime logs
+tunnel_url.txt
+*.log
+.DS_Store
+
+# Virtual environments & cache
+__pycache__/
+*.pyc

@@ -1,0 +1,1565 @@
+# -*- coding: utf-8 -*-
+"""
+Generate 31 days of Simple, Spoken, Everyday Nordic Travel English & Cultural Tips.
+No long difficult sentences. Pure spoken English for daily life, travel, and communication.
+"""
+
+import json
+
+curriculum = [
+    {
+        "day": 1,
+        "topic": "🌌 极光追猎与夜空观测 (Chasing the Northern Lights)",
+        "words": [
+            {
+                "word": "Aurora Borealis",
+                "phonetic": "/ɔːˌrɔːrə ˌbɔːriˈælɪs/",
+                "pos": "n. 短语",
+                "def": "北极光；极光现象",
+                "exampleEn": "Look! The Aurora Borealis is out tonight.",
+                "exampleCn": "看！今晚有北极光。"
+            },
+            {
+                "word": "KP Index",
+                "phonetic": "/keɪ piː ˈɪndeks/",
+                "pos": "n. 短语",
+                "def": "地磁极光指数（0-9级，数值越高极光越强）",
+                "exampleEn": "The KP index is 5 today. That's very high!",
+                "exampleCn": "今天极光指数是5，非常高！"
+            },
+            {
+                "word": "Tripod",
+                "phonetic": "/ˈtraɪpɒd/",
+                "pos": "n. 名词",
+                "def": "摄影三脚架",
+                "exampleEn": "Do you have a tripod for your camera?",
+                "exampleCn": "你的相机带三脚架了吗？"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "询问导游今晚能不能看到极光",
+                "en": "Can we see the Northern Lights tonight?",
+                "cn": "我们今晚能看到北极光吗？",
+                "tip": "【北欧旅行Tips】看极光最关键是看云层厚度。如果内陆晴朗，导游会开车带大家避开海岸云层追寻晴空。"
+            },
+            {
+                "scenario": "在极光营地要一杯热饮暖身",
+                "en": "Could I have a cup of hot tea, please?",
+                "cn": "可以给我一杯热茶吗？",
+                "tip": "【北欧生活习惯】零下二十度看极光时，当地人一定会围在木屋帐篷的篝火旁喝热越橘汁(glögi)暖手。"
+            },
+            {
+                "scenario": "请同伴帮忙拍张合影",
+                "en": "Could you take a photo of me with the lights?",
+                "cn": "能帮我和极光拍张合影吗？",
+                "tip": "【拍摄小技巧】拍极光人像需要人静止站立3到5秒，曝光快结束时用手机屏幕微弱照亮一下脸部补光即可。"
+            }
+        ]
+    },
+    {
+        "day": 2,
+        "topic": "🧖 芬兰正宗桑拿与冰湖跳水 (Finnish Sauna & Ice Dipping)",
+        "words": [
+            {
+                "word": "Sauna",
+                "phonetic": "/ˈsɔːnə/",
+                "pos": "n. 名词",
+                "def": "芬兰传统桑拿浴室；蒸汽浴",
+                "exampleEn": "Is the sauna ready?",
+                "exampleCn": "桑拿房准备好了吗？"
+            },
+            {
+                "word": "Löyly",
+                "phonetic": "/ˈlœy.ly/",
+                "pos": "n. 芬兰语借词",
+                "def": "桑拿蒸汽（水浇在滚烫桑拿石上腾起的温润蒸汽）",
+                "exampleEn": "Can I throw more water on the rocks?",
+                "exampleCn": "我可以在石头上浇点水吗？"
+            },
+            {
+                "word": "Avanto",
+                "phonetic": "/ˈɑ.vɑn.to/",
+                "pos": "n. 芬兰语借词",
+                "def": "冰湖冰洞（冬泳跳水用的冰窟窿）",
+                "exampleEn": "Are you going into the ice hole?",
+                "exampleCn": "你要跳进冰湖冰洞里吗？"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "进公共桑拿房前询问更衣与洗澡规矩",
+                "en": "Should I shower before entering the sauna?",
+                "cn": "进桑拿房之前需要先冲澡吗？",
+                "tip": "【生活习惯】北欧人对桑拿卫生要求极高，进桑拿前必须先在淋浴间彻底冲洗净身，并垫上干净浴巾坐下。"
+            },
+            {
+                "scenario": "询问水温或者冰水跳水安全",
+                "en": "Is the water too cold for a dip?",
+                "cn": "这水跳下去会太冰吗？",
+                "tip": "【冰湖跳水Tips】蒸得全身发烫后快速跳入冰水(Avanto)浸泡十几秒，再回桑拿房，能激活全身血液循环，是北欧经典的放松方式！"
+            },
+            {
+                "scenario": "表达桑拿后的舒服放松感",
+                "en": "That was so relaxing! I feel great.",
+                "cn": "太舒服了！我感觉整个人神清气爽。",
+                "tip": "【芬兰文化】芬兰有550万人口却有300多万间桑拿房。桑拿是平等的社交空间，大家不谈身份压力，只专注身心放松。"
+            }
+        ]
+    },
+    {
+        "day": 3,
+        "topic": "☕ 瑞典 Fika 慢咖啡时光 (Swedish Fika Culture)",
+        "words": [
+            {
+                "word": "Fika",
+                "phonetic": "/ˈfiːkə/",
+                "pos": "n./v. 瑞典语",
+                "def": "瑞典咖啡闲暇时光；慢享咖啡与糕点",
+                "exampleEn": "Let's take a break and have a fika!",
+                "exampleCn": "我们休息一下，来个fika咖啡茶歇吧！"
+            },
+            {
+                "word": "Cinnamon Bun",
+                "phonetic": "/ˈsɪnəmən bʌn/ (Kanelbulle)",
+                "pos": "n. 短语",
+                "def": "肉桂卷（瑞典国民级传统甜点）",
+                "exampleEn": "One cinnamon bun, please.",
+                "exampleCn": "请给我一个肉桂卷。"
+            },
+            {
+                "word": "Filter Coffee",
+                "phonetic": "/ˈfɪltər ˈkɒfi/",
+                "pos": "n. 短语",
+                "def": "滴滤黑咖啡（北欧人最爱的日常咖啡）",
+                "exampleEn": "Do you have fresh filter coffee?",
+                "exampleCn": "你们有新鲜的滴滤黑咖啡吗？"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在咖啡馆点单经典北欧下午茶",
+                "en": "Can I get a black coffee and a cinnamon bun?",
+                "cn": "请给我一杯黑咖啡和一个肉桂卷。",
+                "tip": "【Fika文化】在瑞典，Fika不仅是喝咖啡，更是每天上午和下午放下手机与工作、与朋友同事面对面慢享甜点的法定社交仪式。"
+            },
+            {
+                "scenario": "询问是否可以免费续杯咖啡",
+                "en": "Is the coffee refill free?",
+                "cn": "咖啡可以免费续杯吗？",
+                "tip": "【省钱常识】北欧许多咖啡馆有‘Påtår’习俗，滴滤黑咖啡(Bryggkaffe)喝完后往往允许顾客在吧台自助免费续上一杯。"
+            },
+            {
+                "scenario": "询问是否有无糖或燕麦奶选项",
+                "en": "Can I have oat milk in my coffee?",
+                "cn": "我的咖啡可以加燕麦奶吗？",
+                "tip": "【健康习惯】北欧是全球燕麦奶(Oatly)的发源地，几乎所有咖啡馆都标配优质燕麦奶，乳糖不耐受的旅客超级友好。"
+            }
+        ]
+    },
+    {
+        "day": 4,
+        "topic": "🕯️ 丹麦 Hygge 温暖治愈哲学 (Danish Hygge & Coziness)",
+        "words": [
+            {
+                "word": "Hygge",
+                "phonetic": "/ˈhjuːɡə/",
+                "pos": "n./adj. 丹麦语",
+                "def": "丹麦式舒适温馨；简朴温暖的小确幸",
+                "exampleEn": "This small cafe feels so hygge.",
+                "exampleCn": "这家小咖啡馆感觉好温馨舒适。"
+            },
+            {
+                "word": "Candlelight",
+                "phonetic": "/ˈkændllaɪt/",
+                "pos": "n. 名词",
+                "def": "烛光；蜡烛照明",
+                "exampleEn": "I love the soft candlelight on the table.",
+                "exampleCn": "我喜欢桌上柔和温暖的烛光。"
+            },
+            {
+                "word": "Cozy",
+                "phonetic": "/ˈkoʊzi/",
+                "pos": "adj. 形容词",
+                "def": "温暖舒适的；惬意治愈的",
+                "exampleEn": "Your living room is very warm and cozy.",
+                "exampleCn": "你的客厅好暖和、好惬意。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "称赞北欧室内装饰温馨有格调",
+                "en": "It feels so warm and cozy in here.",
+                "cn": "这里感觉真暖和、真舒服。",
+                "tip": "【丹麦Hygge哲学】丹麦人不用刺眼大吊灯，喜欢点上真蜡烛、披上羊毛毯、手捧热可可，用柔和暖光营造让人心安的小确幸。"
+            },
+            {
+                "scenario": "在民宿向房东借一条保暖毯子",
+                "en": "Could I have an extra blanket, please?",
+                "cn": "能再借我一条毯子吗？",
+                "tip": "【民宿Tips】北欧冬季室内虽然暖气充足，但沙发上总会常备一条厚纯羊毛毯(Plaid)，窝在沙发看雪景是标配享受。"
+            },
+            {
+                "scenario": "在餐厅选择一个安静靠窗的位置",
+                "en": "Can we sit by the window?",
+                "cn": "我们可以坐在窗边吗？",
+                "tip": "【生活情调】北欧冬季日照宝贵，人们极度喜欢挑窗边的位子坐，一边享受窗外飘落的雪花，一边静静放空。"
+            }
+        ]
+    },
+    {
+        "day": 5,
+        "topic": "🏔️ 挪威峡湾巡游与悬崖徒步 (Norwegian Fjords & Hiking)",
+        "words": [
+            {
+                "word": "Fjord",
+                "phonetic": "/fjɔːd/",
+                "pos": "n. 名词",
+                "def": "峡湾（冰川侵蚀形成的深邃海湾）",
+                "exampleEn": "The fjord views are breathtaking.",
+                "exampleCn": "峡湾的风光美得令人窒息。"
+            },
+            {
+                "word": "Viewpoint",
+                "phonetic": "/ˈvjuːpɔɪnt/",
+                "pos": "n. 名词",
+                "def": "观景台；俯瞰点",
+                "exampleEn": "How far is the viewpoint from here?",
+                "exampleCn": "观景台离这里还有多远？"
+            },
+            {
+                "word": "Trek",
+                "phonetic": "/trek/",
+                "pos": "n./v.",
+                "def": "长途跋涉；山地徒步",
+                "exampleEn": "We are going on a short trek today.",
+                "exampleCn": "我们今天去进行一段简短的徒步。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "询问徒步路线难度是否适合自己",
+                "en": "Is this trail easy for beginners?",
+                "cn": "这条步道对初学者来说容易走吗？",
+                "tip": "【安全提醒】挪威布道石(Preikestolen)往返需4-5小时，山路多碎石与泥泞，千万别穿平底板鞋，防滑防水登山鞋必穿！"
+            },
+            {
+                "scenario": "询问渡轮或观光游船的发船时间",
+                "en": "What time does the next ferry leave?",
+                "cn": "下一班渡轮几点开船？",
+                "tip": "【峡湾交通】峡湾游船(如弗洛姆至居德旺恩)常有纯电动静音环保船，航行时几乎没有马达轰鸣，静谧得宛如仙境。"
+            },
+            {
+                "scenario": "在船顶甲板向船员确认拍照位置",
+                "en": "Can I go up to the top deck?",
+                "cn": "我能去顶层甲板吗？",
+                "tip": "【观光Tips】站在峡湾游船顶层甲板风力很大，体感温度会比陆地低5度以上，帽子围巾一定要系紧防被大风刮走。"
+            }
+        ]
+    },
+    {
+        "day": 6,
+        "topic": "🌲 自然漫游权与荒野采摘 (Allemansrätten / Right to Roam)",
+        "words": [
+            {
+                "word": "Right to Roam",
+                "phonetic": "/raɪt tuː roʊm/",
+                "pos": "n. 短语",
+                "def": "自然漫游权（北欧公众自由通行荒野的法定权利）",
+                "exampleEn": "Everyone has the right to roam here.",
+                "exampleCn": "在这里人人都有权利自由漫游自然。"
+            },
+            {
+                "word": "Forage",
+                "phonetic": "/ˈfɒrɪdʒ/",
+                "pos": "v. 动词",
+                "def": "采摘（野果/蘑菇）；觅食自然食材",
+                "exampleEn": "Can we forage wild berries in this forest?",
+                "exampleCn": "我们可以在这座森林里采摘野果吗？"
+            },
+            {
+                "word": "Pristine",
+                "phonetic": "/ˈprɪstiːn/",
+                "pos": "adj. 形容词",
+                "def": "原始纯净的；未受人工破坏的",
+                "exampleEn": "The lake water is completely pristine.",
+                "exampleCn": "这里的湖水纯净如初、未受破坏。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "询问是否可以在森林里搭帐篷",
+                "en": "Can I camp here for the night?",
+                "cn": "我可以在这里扎营过夜吗？",
+                "tip": "【自然漫游权】北欧法律保障公众自由通行荒野的权利，只要远离私人住宅150米以上且不破坏环境，便可免费露营1-2晚。"
+            },
+            {
+                "scenario": "向当地人请教采摘的浆果能不能吃",
+                "en": "Are these berries safe to eat?",
+                "cn": "这些野浆果可以安全食用吗？",
+                "tip": "【采摘常识】夏秋季森林里的野生蓝莓(Blåbär)和越橘(Lingonberry)随处可见，纯净甘甜可即采即食，但红色的毒蘑菇绝对不要碰。"
+            },
+            {
+                "scenario": "表达对保护自然的承诺",
+                "en": "We will take all our trash with us.",
+                "cn": "我们会把所有垃圾都带走。",
+                "tip": "【无痕山林】北欧漫游权的核心法则是‘不要打扰，不要破坏’(Leave no trace)，带走所有垃圾、不惊扰野生动物是全民共识。"
+            }
+        ]
+    },
+    {
+        "day": 7,
+        "topic": "🐕 哈士奇雪橇与驯鹿农场 (Husky Sledding & Sámi Culture)",
+        "words": [
+            {
+                "word": "Musher",
+                "phonetic": "/ˈmʌʃər/",
+                "pos": "n. 名词",
+                "def": "雪橇驾驭者；狗拉雪橇驾驶员",
+                "exampleEn": "Our musher is very friendly.",
+                "exampleCn": "我们的雪橇驾驭员非常友好。"
+            },
+            {
+                "word": "Sleigh",
+                "phonetic": "/sleɪ/",
+                "pos": "n. 名词",
+                "def": "雪橇（由驯鹿或马匹牵引的传统木雪橇）",
+                "exampleEn": "Hop into the reindeer sleigh!",
+                "exampleCn": "快坐上驯鹿雪橇吧！"
+            },
+            {
+                "word": "Sámi",
+                "phonetic": "/ˈsɑːmi/",
+                "pos": "n./adj.",
+                "def": "萨米人（北欧北极圈唯一的原住民先民）",
+                "exampleEn": "We visited a local Sámi family today.",
+                "exampleCn": "我们今天拜访了一个萨米原住民家庭。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "参加狗拉雪橇前询问操作要领",
+                "en": "How do I brake the sled?",
+                "cn": "我该如何给雪橇踩刹车？",
+                "tip": "【雪橇驾驶】哈士奇奔跑力量极大，双脚踩在金属刹车片上就能减速；转弯时身体重心顺着雪橇倾斜，千万不要单脚悬空。"
+            },
+            {
+                "scenario": "在农场询问是否能抚摸驯鹿",
+                "en": "Can I pet the reindeer?",
+                "cn": "我可以摸一摸这只驯鹿吗？",
+                "tip": "【动物习性】驯鹿性格胆小温和，给它们喂食干燥白地衣时手掌要平摊；抚摸时轻抚鹿脖子或背部，切勿突然抓扯鹿角。"
+            },
+            {
+                "scenario": "赞叹极地保暖衣服很管用",
+                "en": "This thermal suit keeps me so warm.",
+                "cn": "这套连体防寒服让我觉得非常暖和。",
+                "tip": "【装备Tips】参加极地雪橇活动时，农场会免费提供全套厚雪地连体靴服与大手套，套在自己衣服外面即可完美防风抗寒。"
+            }
+        ]
+    },
+    {
+        "day": 8,
+        "topic": "♨️ 冰岛蓝湖地热温泉 (Blue Lagoon & Geothermal Pools)",
+        "words": [
+            {
+                "word": "Geothermal",
+                "phonetic": "/ˌdʒiːoʊˈθɜːrml/",
+                "pos": "adj. 形容词",
+                "def": "地热的；利用火山地热能的",
+                "exampleEn": "Iceland has a lot of geothermal pools.",
+                "exampleCn": "冰岛有许多地热温泉池。"
+            },
+            {
+                "word": "Silica Mud",
+                "phonetic": "/ˈsɪlɪkə mʌd/",
+                "pos": "n. 短语",
+                "def": "天然白硅泥（蓝湖著名的矿物护肤白泥）",
+                "exampleEn": "Put some silica mud on your face.",
+                "exampleCn": "在脸上敷一点天然白硅泥吧。"
+            },
+            {
+                "word": "Wristband",
+                "phonetic": "/ˈrɪstbænd/",
+                "pos": "n. 名词",
+                "def": "电子感应手环（用于更衣柜与水吧消费）",
+                "exampleEn": "Use your wristband to unlock the locker.",
+                "exampleCn": "用你的电子手环来开储物柜。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在温泉前台询问毛巾和更衣柜",
+                "en": "Where can I get a clean towel?",
+                "cn": "我在哪里可以拿干净的浴巾？",
+                "tip": "【温泉更衣】蓝湖门票通常包含浴巾和一杯池畔饮品；手环不仅是更衣柜钥匙，还能在水吧直接感应记账消费。"
+            },
+            {
+                "scenario": "询问池畔水吧怎么点饮品",
+                "en": "Can I use my wristband to buy a drink?",
+                "cn": "我可以用手环买饮料吗？",
+                "tip": "【水吧体验】泡在雾气缭绕的湖水中游到木质水吧台，出示手环即可免费领取一杯鲜榨果汁或冰镇啤酒，享受冰火两重天！"
+            },
+            {
+                "scenario": "提醒同伴注意护发",
+                "en": "Don't get your hair wet in the water.",
+                "cn": "别把头发泡进水里哦。",
+                "tip": "【女生必读】蓝湖水含高浓度矿物质，对皮肤极好但会让头发干枯打结像稻草！下水前必须抹满免费护发素并把长发高高盘起。"
+            }
+        ]
+    },
+    {
+        "day": 9,
+        "topic": "🧊 冰川徒步与蓝冰洞探险 (Glacier Hiking & Ice Caves)",
+        "words": [
+            {
+                "word": "Crampons",
+                "phonetic": "/ˈkræmpɒnz/",
+                "pos": "n. 复数",
+                "def": "防滑冰爪（绑在登山靴底部的钢齿铁爪）",
+                "exampleEn": "Fasten your crampons onto your boots.",
+                "exampleCn": "把防滑冰爪绑在登山靴上。"
+            },
+            {
+                "word": "Crevasse",
+                "phonetic": "/krəˈvæs/",
+                "pos": "n. 名词",
+                "def": "冰川深裂缝；万丈冰裂隙",
+                "exampleEn": "Watch out for that deep crevasse.",
+                "exampleCn": "小心那个深不见底的冰裂隙。"
+            },
+            {
+                "word": "Ice Axe",
+                "phonetic": "/aɪs æks/",
+                "pos": "n. 短语",
+                "def": "专业破冰镐；高山冰斧",
+                "exampleEn": "Hold the ice axe with your right hand.",
+                "exampleCn": "用右手握好冰镐。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "检查冰爪是否牢固扣在鞋底",
+                "en": "Are my crampons tight enough?",
+                "cn": "我的冰爪绑得够紧吗？",
+                "tip": "【冰川安全】钢齿冰爪必须紧紧锁在硬底高帮靴上，走路时双脚略微分开‘鸭子步’垂直踏下，钢齿咬住坚冰才绝对防滑。"
+            },
+            {
+                "scenario": "询问纯净冰川融水能不能喝",
+                "en": "Is this glacier water safe to drink?",
+                "cn": "这冰川融水可以直接喝吗？",
+                "tip": "【极地体验】冰川上流淌的涓涓融水经过千年高压净化，纯度极高，趴下来用杯子接一口喝，清冽甘甜胜过任何矿泉水！"
+            },
+            {
+                "scenario": "在天然蓝冰洞前赞叹自然神奇",
+                "en": "The blue ice looks incredible!",
+                "cn": "这幽蓝色的冰洞看起来太不可思议了！",
+                "tip": "【限时绝版】蓝冰洞每年夏天会融化坍塌，冬季重新结冰由向导探寻新洞，因此你走进去的每一个冰洞都是当年世上独一无二的！"
+            }
+        ]
+    },
+    {
+        "day": 10,
+        "topic": "🚂 极地高山火车景观之旅 (Scenic Arctic Railways)",
+        "words": [
+            {
+                "word": "Scenic Railway",
+                "phonetic": "/ˈsiːnɪk ˈreɪlweɪ/",
+                "pos": "n. 短语",
+                "def": "观光景观铁路；高山风光列车",
+                "exampleEn": "This is a very famous scenic railway.",
+                "exampleCn": "这是一条非常有名的景观铁路。"
+            },
+            {
+                "word": "Compartment",
+                "phonetic": "/kəmˈpɑːrtmənt/",
+                "pos": "n. 名词",
+                "def": "火车包厢；卧铺隔间",
+                "exampleEn": "Which compartment is our seat in?",
+                "exampleCn": "我们的座位在哪个包厢/车厢？"
+            },
+            {
+                "word": "Waterfall",
+                "phonetic": "/ˈwɔːtərfɔːl/",
+                "pos": "n. 名词",
+                "def": "大瀑布",
+                "exampleEn": "Look at the waterfall outside the train window!",
+                "exampleCn": "看火车车窗外的那座大瀑布！"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在火车站询问列车是否准点",
+                "en": "Is the train on time?",
+                "cn": "火车准点吗？",
+                "tip": "【铁路出行】北欧列车(如挪威NSB/Vy或瑞典SJ)准点率极高，站台屏幕清晰标注车厢编号，APP可实时追踪列车位置。"
+            },
+            {
+                "scenario": "礼貌寻找并进入静音车厢",
+                "en": "Is this the quiet zone car?",
+                "cn": "这里是静音车厢吗？",
+                "tip": "【乘车习惯】北欧列车专设‘静音车厢’(Tyst kupé)，严禁大声交谈、打电话或手机外放，人们都在静静看书或看窗外雪景。"
+            },
+            {
+                "scenario": "询问车厢里的大件行李架在哪",
+                "en": "Where can I put my big suitcase?",
+                "cn": "我的大行李箱可以放在哪？",
+                "tip": "【行李存放】车门两侧均有专门的大件行李架，座位上方也有充裕行李架，座位旁还配备Type-C或标准充电插座。"
+            }
+        ]
+    },
+    {
+        "day": 11,
+        "topic": "💳 100% 极致无现金社会 (Cashless Travel in the Nordics)",
+        "words": [
+            {
+                "word": "Cashless",
+                "phonetic": "/ˈkæʃləs/",
+                "pos": "adj. 形容词",
+                "def": "无现金的；全电子支付的",
+                "exampleEn": "This shop is completely cashless.",
+                "exampleCn": "这家店是完全无现金的。"
+            },
+            {
+                "word": "Contactless",
+                "phonetic": "/ˈkɒntæktləs/",
+                "pos": "adj. 形容词",
+                "def": "非接触式感应支付的（Tap to pay）",
+                "exampleEn": "Can I pay with contactless card?",
+                "exampleCn": "我可以用感应挥卡支付吗？"
+            },
+            {
+                "word": "Terminal",
+                "phonetic": "/ˈtɜːrmɪnl/",
+                "pos": "n. 名词",
+                "def": "POS刷卡终端机",
+                "exampleEn": "Please tap your card on the terminal.",
+                "exampleCn": "请在POS机终端上刷一下卡。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在路边小店或餐厅买单",
+                "en": "Can I pay by card?",
+                "cn": "我可以刷卡支付吗？",
+                "tip": "【无现金社会】北欧连街头流动热狗摊、甚至公厕投币机都100%支持刷卡，Apple Pay或带感应芯片的信用卡一路畅通无阻。"
+            },
+            {
+                "scenario": "询问是否需要准备现金纸币",
+                "en": "Do you accept cash here?",
+                "cn": "你们这里收现金吗？",
+                "tip": "【避坑指南】不少北欧商户挂着‘No cash accepted’标牌直接拒收现金现钞，带大笔克朗现钞不仅没用，反而可能花不出去！"
+            },
+            {
+                "scenario": "结账时需要一张收据凭条",
+                "en": "Could I have a receipt, please?",
+                "cn": "可以给我一张小票收据吗？",
+                "tip": "【绿色环保】店员结账后通常会礼貌问一句‘Vill du ha kvittot?’(需要收据吗？)，若不需要可说‘No thanks’践行无纸化。"
+            }
+        ]
+    },
+    {
+        "day": 12,
+        "topic": "🏡 玻璃穹顶极光屋住宿 (Glass Igloo Experience)",
+        "words": [
+            {
+                "word": "Glass Igloo",
+                "phonetic": "/ɡlæs ˈɪɡluː/",
+                "pos": "n. 短语",
+                "def": "玻璃穹顶极光屋；全景圆顶小屋",
+                "exampleEn": "We booked a heated glass igloo tonight.",
+                "exampleCn": "我们今晚订了电加热恒温玻璃极光屋。"
+            },
+            {
+                "word": "Thermostatic",
+                "phonetic": "/ˌθɜːrməˈstætɪk/",
+                "pos": "adj. 形容词",
+                "def": "恒温的；自动控温融雪的",
+                "exampleEn": "The glass roof is thermostatic and melts snow.",
+                "exampleCn": "玻璃屋顶是恒温的，会自动融化积雪。"
+            },
+            {
+                "word": "Aurora Alarm",
+                "phonetic": "/ɔːˈrɔːrə əˈlɑːrm/",
+                "pos": "n. 短语",
+                "def": "极光警报器（监测到极光时发出轻柔蜂鸣声）",
+                "exampleEn": "Please turn on the aurora alarm for us.",
+                "exampleCn": "请帮我们开启极光警报器。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在极光屋前台询问极光警报功能",
+                "en": "How does the aurora alarm work?",
+                "cn": "极光警报器是怎么工作的？",
+                "tip": "【观光体验】极光屋床头有专门的蜂鸣开关，当地天文台一旦监测到夜空极光爆发，房间内就会轻柔滴滴响起，不用整夜守夜熬夜！"
+            },
+            {
+                "scenario": "询问如何关闭屋内所有灯光保证夜空通透",
+                "en": "How do I turn off all the lights?",
+                "cn": "怎样关掉屋里的所有灯光？",
+                "tip": "【观星技巧】躺在床上看极光时，必须把卫生间和床头的灯光全部关黑，让眼睛瞳孔适应黑暗，玻璃外的夜空才会宛如星海！"
+            },
+            {
+                "scenario": "赞叹早晨醒来看见雪景很美",
+                "en": "The snowy trees look so pretty outside.",
+                "cn": "窗外的雪挂树景看起来真美。",
+                "tip": "【拉普兰森林】早晨醒来，落地玻璃窗外是挂满厚雪的原生态松树林(Tykkylumi)，静谧得连雪花落下的声音都听得见。"
+            }
+        ]
+    },
+    {
+        "day": 13,
+        "topic": "🚲 哥本哈根骑行与绿色慢生活 (Copenhagen Cycling City)",
+        "words": [
+            {
+                "word": "Cycle Lane",
+                "phonetic": "/ˈsaɪkl leɪn/",
+                "pos": "n. 短语",
+                "def": "专属自行车道（有路缘石隔离的专业骑行道）",
+                "exampleEn": "Stay on the green cycle lane.",
+                "exampleCn": "请保持在绿色专属自行车道上骑行。"
+            },
+            {
+                "word": "Cargo Bike",
+                "phonetic": "/ˈkɑːrɡoʊ baɪk/",
+                "pos": "n. 短语",
+                "def": "前置运货/载娃三轮自行车",
+                "exampleEn": "Look at that cool cargo bike with kids inside!",
+                "exampleCn": "看那辆载着孩子的前斗三轮车，好酷！"
+            },
+            {
+                "word": "Hand Signal",
+                "phonetic": "/hænd ˈsɪɡnl/",
+                "pos": "n. 短语",
+                "def": "骑行手势信号",
+                "exampleEn": "Use hand signals before turning left.",
+                "exampleCn": "左转之前要做出骑行手势信号。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在酒店租用一辆城市自行车",
+                "en": "Can I rent a bike for today?",
+                "cn": "我今天可以租一辆自行车吗？",
+                "tip": "【单车之都】哥本哈根有世界最完善的单车道系统，红绿灯配有单车绿波时速，骑行是体验这座城市童话气质的最地道方式！"
+            },
+            {
+                "scenario": "骑行停车前单手举手示意后车",
+                "en": "I am going to stop right here.",
+                "cn": "我打算停在这儿。",
+                "tip": "【骑行手势】在哥本哈根骑车千万别突然急刹！停车前必须单手向上举手示意后车，左转需先直行至对面路口再直角转弯(Hook turn)。"
+            },
+            {
+                "scenario": "询问自行车可以停在哪个专用车架上",
+                "en": "Where should I park my bike?",
+                "cn": "我的自行车应该停在哪里？",
+                "tip": "【停车礼节】街头到处有专用单车槽架，锁好后轮内建环形锁即可；切忌乱停在人行道中央阻塞盲道。"
+            }
+        ]
+    },
+    {
+        "day": 14,
+        "topic": "🥐 北欧手工烘焙与黑麦面包 (Nordic Bakeries & Rye Bread)",
+        "words": [
+            {
+                "word": "Sourdough",
+                "phonetic": "/ˈsaʊərdoʊ/",
+                "pos": "n. 名词",
+                "def": "天然天然酸种发酵面包",
+                "exampleEn": "This fresh sourdough bread smells amazing.",
+                "exampleCn": "这刚出炉的酸种面包闻起来太香了。"
+            },
+            {
+                "word": "Rye Bread",
+                "phonetic": "/raɪ bred/ (Rugbrød)",
+                "pos": "n. 短语",
+                "def": "黑麦全麦面包（丹麦国民面包）",
+                "exampleEn": "Danes eat dark rye bread every day.",
+                "exampleCn": "丹麦人每天都吃黑麦谷物面包。"
+            },
+            {
+                "word": "Cardamom",
+                "phonetic": "/ˈkɑːrdəməm/",
+                "pos": "n. 名词",
+                "def": "小豆蔻香料（北欧烘焙的标志性灵魂香气）",
+                "exampleEn": "This cardamom bun is my favorite.",
+                "exampleCn": "这个小豆蔻面包卷是我的最爱。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在传统面包房向店员询问招牌推荐",
+                "en": "What is your most popular pastry here?",
+                "cn": "你们店里最受欢迎的面包糕点是哪款？",
+                "tip": "【地道吃货】相比肉桂卷，北欧本地人其实更钟情小豆蔻扭结卷(Kardemummabulle)，浓郁的小豆蔻香气是北欧烘焙的灵魂！"
+            },
+            {
+                "scenario": "尝试丹麦著名的开放式三明治",
+                "en": "I would like the salmon open sandwich, please.",
+                "cn": "我想点一份三文鱼开放式三明治。",
+                "tip": "【餐桌礼仪】丹麦传统开放式三明治(Smørrebrød)料堆得极高，千万别用手抓着咬！必须使用刀叉切小块优雅品尝。"
+            },
+            {
+                "scenario": "询问面包是否含有坚果过敏原",
+                "en": "Does this bun contain any nuts?",
+                "cn": "这个面包里含有坚果成分吗？",
+                "tip": "【食物标签】北欧烘焙店对过敏原标注极细致，无麸质(Gluten-free)、无乳糖(Lactose-free)、素食(Vegansk)均有清晰标牌。"
+            }
+        ]
+    },
+    {
+        "day": 15,
+        "topic": "🧦 洋葱式穿衣与极地防寒 (Layering for Arctic Weather)",
+        "words": [
+            {
+                "word": "Base Layer",
+                "phonetic": "/beɪs ˈleɪər/",
+                "pos": "n. 短语",
+                "def": "排汗打底保暖层（第一层贴身内衣）",
+                "exampleEn": "A thermal base layer keeps you dry.",
+                "exampleCn": "贴身排汗打底保暖层能让你保持干爽。"
+            },
+            {
+                "word": "Insulation",
+                "phonetic": "/ˌɪnsjuˈleɪʃn/",
+                "pos": "n. 名词",
+                "def": "保暖中层（抓绒衣/羽绒背心等锁温层）",
+                "exampleEn": "Fleece is a great insulation layer.",
+                "exampleCn": "抓绒衣是极佳的中层保暖锁温层。"
+            },
+            {
+                "word": "Windproof",
+                "phonetic": "/ˈwɪndpruːf/",
+                "pos": "adj. 形容词",
+                "def": "防风的；挡风防刮的",
+                "exampleEn": "You need a good windproof jacket today.",
+                "exampleCn": "你今天需要一件防风性能好的冲锋衣。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "询问外出户外该怎么穿衣服",
+                "en": "How cold is it outside right now?",
+                "cn": "现在外面有多冷？",
+                "tip": "【洋葱穿衣法则】第一层穿吸汗美利奴羊毛内衣；第二层穿保暖抓绒或羽绒；外层穿防风防水硬壳冲锋衣。进室内随时脱下不闷热！"
+            },
+            {
+                "scenario": "在户外店挑选合脚的雪地靴",
+                "en": "These winter boots are very warm and comfortable.",
+                "cn": "这双冬靴既保暖又很舒服。",
+                "tip": "【保暖防滑铁律】严禁穿纯棉袜子！汗湿后极易结冰冻伤脚趾；雪地靴最好买大半码或一码，给厚纯羊毛袜留出充裕的隔热空气层。"
+            },
+            {
+                "scenario": "出门前互相关照戴好帽子手套",
+                "en": "Don't forget your warm hat and gloves!",
+                "cn": "别忘了戴上保暖帽子和手套！",
+                "tip": "【防风细节】极地人体70%的热量从头部散失，一顶能遮住耳朵的羊毛针织无檐帽(Beanie)和防风手套是零下出门的救命利器。"
+            }
+        ]
+    },
+    {
+        "day": 16,
+        "topic": "🚶 北欧社交距离与个人边界 (Personal Space & Nordic Culture)",
+        "words": [
+            {
+                "word": "Personal Space",
+                "phonetic": "/ˈpɜːrsənl speɪs/",
+                "pos": "n. 短语",
+                "def": "个人空间；肢体社交距离",
+                "exampleEn": "Nordic people value their personal space.",
+                "exampleCn": "北欧人非常看重个人独立空间。"
+            },
+            {
+                "word": "Solitude",
+                "phonetic": "/ˈsɒlətjuːd/",
+                "pos": "n. 名词",
+                "def": "独处；宁静悠然的独处时光",
+                "exampleEn": "I really enjoy the peaceful solitude here.",
+                "exampleCn": "我真的很享受这里安宁澄澈的独处时光。"
+            },
+            {
+                "word": "Understated",
+                "phonetic": "/ˌʌndərˈsteɪtɪd/",
+                "pos": "adj. 形容词",
+                "def": "低调克制的；不张扬浮夸的",
+                "exampleEn": "Their lifestyle is simple and understated.",
+                "exampleCn": "他们的生活方式简朴而低调克制。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "礼貌打扰当地人问路",
+                "en": "Excuse me, could you point me to the museum?",
+                "cn": "打扰一下，请问去博物馆怎么走？",
+                "tip": "【破冰真相】‘芬兰人社恐’只是尊重他人不贸然打扰；只要你礼貌主动求助，北欧人会瞬间拿出百分之百的耐心和真诚热情指路！"
+            },
+            {
+                "scenario": "在公交车或长椅上礼貌确认空座",
+                "en": "Is this seat taken?",
+                "cn": "这个位子有人坐吗？",
+                "tip": "【公共礼仪】北欧人在车站等车时会自觉间隔两米，坐公交也习惯优先挑空排；若要坐别人身旁，轻声问一句‘Is this seat free?’非常得体。"
+            },
+            {
+                "scenario": "表达对当地安静祥和环境的赞赏",
+                "en": "It is so quiet and peaceful here.",
+                "cn": "这里真是太安静、太祥和了。",
+                "tip": "【安静即教养】在公共场所不大声喧哗、不当众外放喇叭是北欧人的核心生活默契，安宁的声环境是全社会共同呵护的宝藏。"
+            }
+        ]
+    },
+    {
+        "day": 17,
+        "topic": "🐟 奶油三文鱼汤与帝王蟹 (Nordic Seafood & Salmon Soup)",
+        "words": [
+            {
+                "word": "Salmon Soup",
+                "phonetic": "/ˈsæmən suːp/ (Lohikeitto)",
+                "pos": "n. 短语",
+                "def": "芬兰传统三文鱼浓汤",
+                "exampleEn": "This warm salmon soup is so delicious!",
+                "exampleCn": "这碗热腾腾的三文鱼汤太美味了！"
+            },
+            {
+                "word": "Dill",
+                "phonetic": "/dɪl/",
+                "pos": "n. 名词",
+                "def": "莳萝香草（北欧海鲜烹饪的核心灵魂香草）",
+                "exampleEn": "Fresh dill makes the fish taste great.",
+                "exampleCn": "新鲜的莳萝让鱼肉尝起来鲜美极了。"
+            },
+            {
+                "word": "King Crab",
+                "phonetic": "/kɪŋ kræb/",
+                "pos": "n. 短语",
+                "def": "北极帝王蟹",
+                "exampleEn": "We ate fresh Arctic king crab in Kirkenes.",
+                "exampleCn": "我们在希尔克内斯吃了新鲜的北极帝王蟹。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在餐厅点一碗招牌热三文鱼浓汤",
+                "en": "Can I have a bowl of traditional salmon soup?",
+                "cn": "请给我来一碗传统的三文鱼浓汤。",
+                "tip": "【暖胃神汤】芬兰三文鱼汤(Lohikeitto)加入大量新鲜三文鱼、土豆、莳萝与厚淡奶油，在冰天雪地里喝上一口，整个人瞬间原地满血！"
+            },
+            {
+                "scenario": "询问特色菜配面包与黄油",
+                "en": "Does it come with bread and butter?",
+                "cn": "这道菜配有面包和黄油吗？",
+                "tip": "【自助面包吧】北欧餐厅喝汤通常包含旁边的自助面包台，可随意自取涂满厚厚香甜黄油的黑麦硬面包搭配享用。"
+            },
+            {
+                "scenario": "表达对海鲜新鲜程度的赞美",
+                "en": "The seafood is super fresh!",
+                "cn": "这海鲜真是太新鲜了！",
+                "tip": "【极地海鲜】希尔克内斯冬季可参加冰钓帝王蟹团，刚从深海捞出的大蟹腿直接海水清蒸，肉质紧实甘甜，完全不需要任何蘸料！"
+            }
+        ]
+    },
+    {
+        "day": 18,
+        "topic": "🌊 海达路德沿海游轮漫游 (Hurtigruten Coastal Voyages)",
+        "words": [
+            {
+                "word": "Coastal Voyage",
+                "phonetic": "/ˈkoʊstl ˈvɔɪɪdʒ/",
+                "pos": "n. 短语",
+                "def": "沿海航线；海达路德百年海岸巡航",
+                "exampleEn": "We are sailing on a scenic coastal voyage.",
+                "exampleCn": "我们正航行在壮丽的沿海航线上。"
+            },
+            {
+                "word": "Observation Lounge",
+                "phonetic": "/ˌɒbzərˈveɪʃn laʊndʒ/",
+                "pos": "n. 短语",
+                "def": "全景落地窗观景休息厅",
+                "exampleEn": "Let's sit in the observation lounge and watch the sea.",
+                "exampleCn": "我们坐在全景休息厅看看大海吧。"
+            },
+            {
+                "word": "Port of Call",
+                "phonetic": "/pɔːrt əv kɔːl/",
+                "pos": "n. 短语",
+                "def": "游轮经停中途港口",
+                "exampleEn": "Our next port of call is Tromsø.",
+                "exampleCn": "我们下一个经停的中途港口是特罗姆瑟。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "询问游轮下一站靠港时间与停靠时长",
+                "en": "How long do we stop in this port?",
+                "cn": "我们在这一站港口停靠多久？",
+                "tip": "【百年航线】挪威海达路德(Hurtigruten)沿途停靠34个小渔村，既是观光船也是当地人的海上巴士，短暂靠港时可下船快步漫步港口小镇。"
+            },
+            {
+                "scenario": "请船上广播极光通知",
+                "en": "Will there be an aurora announcement tonight?",
+                "cn": "今晚会有极光广播提醒吗？",
+                "tip": "【极光巡航】游轮客舱内的广播系统有专门的‘极光开关’，深夜一旦船长在甲板观测到极光就会轻声广播，披上大衣就能冲向顶层甲板！"
+            },
+            {
+                "scenario": "在全景大窗前放松赏景",
+                "en": "The view from the window is amazing.",
+                "cn": "窗外的海景真是太震撼了。",
+                "tip": "【慢旅行生活】全景玻璃厅里有免费茶水，坐着看两岸白雪皑皑的山崖和偶尔掠过海面的白尾海雕，身心彻底慢下来。"
+            }
+        ]
+    },
+    {
+        "day": 19,
+        "topic": "🏺 极简设计与家居采光美学 (Nordic Design & Lighting)",
+        "words": [
+            {
+                "word": "Minimalism",
+                "phonetic": "/ˈmɪnɪməlɪzəm/",
+                "pos": "n. 名词",
+                "def": "极简主义（少即是多的美学设计原则）",
+                "exampleEn": "Nordic home design focuses on minimalism.",
+                "exampleCn": "北欧家居设计注重极简主义。"
+            },
+            {
+                "word": "Glassware",
+                "phonetic": "/ˈɡlæsweər/",
+                "pos": "n. 名词",
+                "def": "玻璃器皿；艺术玻璃设计制品",
+                "exampleEn": "Finnish glassware has such beautiful flowing shapes.",
+                "exampleCn": "芬兰的玻璃器皿器型流动优美。"
+            },
+            {
+                "word": "Timeless",
+                "phonetic": "/ˈtaɪmləs/",
+                "pos": "adj. 形容词",
+                "def": "永恒经典的；不过时的",
+                "exampleEn": "This wooden chair has a timeless style.",
+                "exampleCn": "这把木椅的款式经典、历久弥新。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在设计街区小店挑选纪念品",
+                "en": "Is this handmade by a local artist?",
+                "cn": "这是当地艺术家纯手工制作的吗？",
+                "tip": "【设计区漫步】赫尔辛基的设计区(Design District)汇聚了200多家独立设计工作室、陶艺坊与古董店，橱窗布置极具北欧审美。"
+            },
+            {
+                "scenario": "询问玻璃器皿是否方便安全打包托运",
+                "en": "Can you wrap this carefully for travel?",
+                "cn": "可以帮我把这个细心打包方便托运吗？",
+                "tip": "【打包服务】在伊塔拉(Iittala)等玻璃艺术店购买花瓶或杯子，店员会用厚厚的蜂窝缓冲纸和硬盒严密打包，直接放进托运行李很安全。"
+            },
+            {
+                "scenario": "赞美北欧人善于用柔和灯光营造氛围",
+                "en": "The lighting in this room is very soft.",
+                "cn": "这个房间里的光线非常柔和。",
+                "tip": "【光的艺术】北欧人深知光线对漫长冬日好心情的影响，经典的PH灯具永远遮蔽刺眼灯泡，让温暖光线均匀洒在餐桌上。"
+            }
+        ]
+    },
+    {
+        "day": 20,
+        "topic": "🎅 圣诞老人村与北极圈证书 (Santa Claus Village & Arctic Circle)",
+        "words": [
+            {
+                "word": "Arctic Circle",
+                "phonetic": "/ˌɑːrktɪk ˈsɜːrkl/",
+                "pos": "n. 短语",
+                "def": "北极圈（北纬66度33分地理分界线）",
+                "exampleEn": "We just crossed the Arctic Circle line!",
+                "exampleCn": "我们刚刚跨越了北极圈分界线！"
+            },
+            {
+                "word": "Postmark",
+                "phonetic": "/ˈpoʊstmɑːrk/",
+                "pos": "n. 名词",
+                "def": "特色邮戳；带有地理标记的印记",
+                "exampleEn": "Send a postcard with the official Arctic postmark.",
+                "exampleCn": "寄一张盖有北极圈官方专属邮戳的明信片吧。"
+            },
+            {
+                "word": "Elf",
+                "phonetic": "/elf/ (复数 elves)",
+                "pos": "n. 名词",
+                "def": "小精灵；圣诞老人的小助手",
+                "exampleEn": "The cheerful elves are helping Santa today.",
+                "exampleCn": "活泼欢快的小精灵们今天正在协助圣诞老人。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在圣诞老人总邮局购买邮票寄明信片",
+                "en": "I need five stamps for postcards, please.",
+                "cn": "请给我五张寄明信片的邮票。",
+                "tip": "【专属红黄邮筒】圣诞老人村总邮局有两个邮筒：黄色邮筒当天寄出；红色邮筒则会一直保留到当年圣诞节前夜精准送达收件人家中！"
+            },
+            {
+                "scenario": "与官方认证圣诞老人见面互动",
+                "en": "Nice to meet you, Santa Claus!",
+                "cn": "很高兴见到您，圣诞老人！",
+                "tip": "【童话照进现实】位于芬兰罗瓦涅米的圣诞老人办公室全年开放，这位官方圣诞爷爷博学幽默，甚至能用好几句地道流利的中文跟你打招呼！"
+            },
+            {
+                "scenario": "在雪地上横跨北纬66度33分标志线留影",
+                "en": "Let's take a photo stepping across the Arctic line!",
+                "cn": "我们拍张跨过北极圈标志线的合影吧！",
+                "tip": "【北极圈证书】地面的蓝色激光与灯柱精准标出了北极圈(66°33′07″)，游客中心还提供多语种的个人跨越北极圈羊皮纸纪念证书。"
+            }
+        ]
+    },
+    {
+        "day": 21,
+        "topic": "💧 自来水即饮品质与生态环保 (Pure Tap Water & Eco Living)",
+        "words": [
+            {
+                "word": "Tap Water",
+                "phonetic": "/tæp ˈwɔːtər/",
+                "pos": "n. 短语",
+                "def": "自来水（北欧自来水质优于绝大部分瓶装水）",
+                "exampleEn": "The tap water here is fresh and clean.",
+                "exampleCn": "这里的自来水清冽甘甜又干净。"
+            },
+            {
+                "word": "Reusable",
+                "phonetic": "/ˌriːˈjuːzəbl/",
+                "pos": "adj. 形容词",
+                "def": "可重复利用的；环保可循环的",
+                "exampleEn": "I always bring my reusable water bottle.",
+                "exampleCn": "我总是随身携带可重复利用的水杯。"
+            },
+            {
+                "word": "Eco-friendly",
+                "phonetic": "/ˌiːkoʊ ˈfrendli/",
+                "pos": "adj. 形容词",
+                "def": "生态友好的；重视环境保护的",
+                "exampleEn": "Nordic cities are very eco-friendly.",
+                "exampleCn": "北欧城市非常重视生态环境保护。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在酒店前台确认水龙头的自来水是否能直接饮用",
+                "en": "Is the tap water safe to drink?",
+                "cn": "自来水可以直接喝吗？",
+                "tip": "【旅行省钱铁律】北欧自来水经过冰川和地下砂石层天然净化，水质和口感远优于绝大多数高价瓶装水！带上保温杯直接从水龙头接水喝即可。"
+            },
+            {
+                "scenario": "在餐厅用餐时只要一杯免费普通饮用水",
+                "en": "Just a glass of tap water, please.",
+                "cn": "只要一杯普通的自来水就好，谢谢。",
+                "tip": "【点水常识】在餐厅点水时，如果只说‘water’服务员可能会端来收费的瓶装气泡水；直接说‘Tap water’则是免费且纯净冰凉的自来水。"
+            },
+            {
+                "scenario": "在机场或火车站寻找免费直饮水接水处",
+                "en": "Where can I refill my water bottle?",
+                "cn": "我在哪里可以给水杯接水？",
+                "tip": "【环保习惯】北欧公共场所几乎见不到废弃塑料瓶，洗手间的纯冷水龙头流出的就是直饮水（切记不要喝热水龙头的热水，热水管道与冷水不同）。"
+            }
+        ]
+    },
+    {
+        "day": 22,
+        "topic": "🥾 夏季午夜阳光与极昼白夜 (Midnight Sun & Polar Day)",
+        "words": [
+            {
+                "word": "Midnight Sun",
+                "phonetic": "/ˈmɪdnaɪt sʌn/",
+                "pos": "n. 短语",
+                "def": "午夜阳光；极昼现象（夏季太阳彻夜不落）",
+                "exampleEn": "The midnight sun shines bright all night long.",
+                "exampleCn": "午夜的太阳整夜都在明亮地照耀着大地。"
+            },
+            {
+                "word": "Blackout Curtain",
+                "phonetic": "/ˈblæk.aʊt ˈkɜːrtn/",
+                "pos": "n. 短语",
+                "def": "全遮光遮阳窗帘",
+                "exampleEn": "Please close the blackout curtains tightly.",
+                "exampleCn": "请把遮光窗帘紧紧拉上。"
+            },
+            {
+                "word": "Midsummer",
+                "phonetic": "/ˌmɪdˈsʌmər/",
+                "pos": "n. 名词",
+                "def": "仲夏节（北欧最重要的传统盛大节日之一）",
+                "exampleEn": "People dance around the pole on Midsummer Day.",
+                "exampleCn": "人们在仲夏节围绕着花柱欢快跳舞。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "惊叹半夜12点外面依然像白天一样明亮",
+                "en": "It is midnight, but still bright outside!",
+                "cn": "都半夜十二点了，外面居然还像白天一样亮！",
+                "tip": "【极昼奇观】6月至7月的北极圈内太阳彻底不落，整夜如黄昏般温暖明亮；初次到访容易兴奋失眠，一副优质立体眼罩是旅行必备神器！"
+            },
+            {
+                "scenario": "询问酒店房间窗帘遮光效果",
+                "en": "Do the curtains block out all the sunlight?",
+                "cn": "这窗帘能把阳光彻底挡住吗？",
+                "tip": "【睡眠常识】北欧夏天的酒店和民宿几乎家家户户都配有厚重的全遮光窗帘(Blackout curtains)，睡前拉紧窗帘才能营造黑夜安睡氛围。"
+            },
+            {
+                "scenario": "享受北欧漫长的夏日夜晚户外漫步",
+                "en": "Let's go for an evening walk in the park.",
+                "cn": "我们去公园里散散步吧。",
+                "tip": "【仲夏节风俗】仲夏节(Midsummer)是北欧仅次于圣诞的盛大节日，人们头戴新鲜野花编织的花环，在草地上野餐、生起篝火跳舞迎接夏天。"
+            }
+        ]
+    },
+    {
+        "day": 23,
+        "topic": "🚗 冰岛一号公路自驾与风暴 (Iceland Ring Road & Road Trips)",
+        "words": [
+            {
+                "word": "Ring Road",
+                "phonetic": "/rɪŋ roʊd/",
+                "pos": "n. 短语",
+                "def": "冰岛一号环岛公路（自驾主干道）",
+                "exampleEn": "Driving along the Ring Road is an amazing adventure.",
+                "exampleCn": "沿着一号环岛公路自驾是一场美妙的探险。"
+            },
+            {
+                "word": "Gale",
+                "phonetic": "/ɡeɪl/",
+                "pos": "n. 名词",
+                "def": "大风；烈风（阵风常达每秒30米以上）",
+                "exampleEn": "Strong gale-force winds are blowing today.",
+                "exampleCn": "今天刮着强劲的烈风。"
+            },
+            {
+                "word": "Gravel",
+                "phonetic": "/ˈɡrævl/",
+                "pos": "n. 名词",
+                "def": "碎石砂石（自驾易损伤车漆）",
+                "exampleEn": "Drive slowly on this gravel road.",
+                "exampleCn": "在这条砂石碎石路上要慢速开。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在自驾出发前向租车公司了解路况与天气",
+                "en": "Are the roads open today?",
+                "cn": "今天通往景点的公路都开放通行吗？",
+                "tip": "【自驾铁律】冰岛自驾每天出发前必上官方路况网 road.is 和天气网 vedur.is！黄标强风预警切勿盲目开进山区，防止车辆被吹翻失控。"
+            },
+            {
+                "scenario": "在大风天提醒副驾开车门务必双手抓紧",
+                "en": "Hold the car door tightly when you open it!",
+                "cn": "开车门时一定要双手紧紧拉住把手！",
+                "tip": "【血泪避坑】冰岛烈风阵风风速常超每秒30米，停车必逆风停！开车门若被狂风反向猛掀折断铰链，租车保险是100%全额不赔偿的！"
+            },
+            {
+                "scenario": "在加油站自助加满汽油",
+                "en": "I need to fill up the gas tank here.",
+                "cn": "我需要在这里把油箱加满。",
+                "tip": "【无人加油站】环岛公路上小镇之间距离遥远，只要油箱剩半箱且路过加油站，就应刷卡自助加满；记得先选好油枪编号再插卡扣款。"
+            }
+        ]
+    },
+    {
+        "day": 24,
+        "topic": "🪟 建筑大窗与阳光崇拜 (Big Windows & Sunlight Culture)",
+        "words": [
+            {
+                "word": "Floor-to-Ceiling",
+                "phonetic": "/flɔːr tuː ˈsiːlɪŋ/",
+                "pos": "adj. 短语",
+                "def": "全幅落地大窗的；从地板到天花板的",
+                "exampleEn": "This room has a floor-to-ceiling glass window.",
+                "exampleCn": "这个房间配有大面的全景落地大窗。"
+            },
+            {
+                "word": "Timber",
+                "phonetic": "/ˈtɪmbər/",
+                "pos": "n. 名词",
+                "def": "原木；优质木材建筑构件",
+                "exampleEn": "The walls are made of warm natural timber.",
+                "exampleCn": "墙面是由温润的原生态木材建造的。"
+            },
+            {
+                "word": "Sunlight",
+                "phonetic": "/ˈsʌnlaɪt/",
+                "pos": "n. 名词",
+                "def": "阳光；珍贵的太阳光照",
+                "exampleEn": "Let's sit outside and enjoy the warm sunlight.",
+                "exampleCn": "我们坐到室外晒晒温暖的阳光吧。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "赞美北欧公共建筑（如Oodi中央图书馆）采光开阔",
+                "en": "There is so much natural light coming in.",
+                "cn": "照进来的自然光线真充足。",
+                "tip": "【阳光崇拜】赫尔辛基Oodi中央图书馆宛如市民客厅；冬末只要阳光穿透云层，当地人就会一动不动仰面闭眼晒太阳享受珍贵日光。"
+            },
+            {
+                "scenario": "坐在窗边惬意看雪落风景",
+                "en": "I love watching the snow fall from the window.",
+                "cn": "我喜欢坐在窗前静静看雪花飘落。",
+                "tip": "【建筑巧思】北欧房屋全部使用三层乃至四层真空保温玻璃，即使窗外零下30度风雪肆虐，贴着大落地窗坐也完全感受不到丝毫寒意。"
+            },
+            {
+                "scenario": "向房东询问室内暖气温控开关",
+                "en": "How do I adjust the room temperature?",
+                "cn": "请问我该怎么调节房间里的温度？",
+                "tip": "【地暖与散热片】北欧城市供暖极其发达，墙角的暖气片通常配有1到5挡旋转温控阀，拧到3挡即可保持人体最舒适的21-22摄氏度。"
+            }
+        ]
+    },
+    {
+        "day": 25,
+        "topic": "🛒 超市自助扫码与空瓶回收 (Supermarket Self-Checkout & Pant)",
+        "words": [
+            {
+                "word": "Self-checkout",
+                "phonetic": "/ˌself ˈtʃekaʊt/",
+                "pos": "n. 短语",
+                "def": "自助结账机；自行扫码刷卡机",
+                "exampleEn": "You can pay quickly at the self-checkout counter.",
+                "exampleCn": "你可以在自助结账台快捷刷卡买单。"
+            },
+            {
+                "word": "Pant",
+                "phonetic": "/pɑːnt/",
+                "pos": "n. 斯堪的纳维亚语",
+                "def": "饮料瓶押金返还系统（把空瓶投进机器退钱抵扣）",
+                "exampleEn": "Put the empty cans into the pant machine.",
+                "exampleCn": "把空饮料瓶塞进押金返还回收机里吧。"
+            },
+            {
+                "word": "Reusable Bag",
+                "phonetic": "/riːˈjuːzəbl bæɡ/",
+                "pos": "n. 短语",
+                "def": "自带环保购物袋；帆布便携袋",
+                "exampleEn": "Did you bring a reusable shopping bag?",
+                "exampleCn": "你带可重复使用的环保购物袋了吗？"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在超市收银台询问结账方式",
+                "en": "Can I use this self-checkout machine?",
+                "cn": "我可以用这台自助结账机吗？",
+                "tip": "【超市购物】北欧超市基本普及自助扫码机，支持切换英文界面；自己扫描商品条形码，屏幕确认总额后直接刷卡或手机碰一下即可。"
+            },
+            {
+                "scenario": "体验北欧经典的饮料瓶回收退押金机器",
+                "en": "Where is the bottle return machine?",
+                "cn": "请问空瓶回收机在哪里？",
+                "tip": "【Pant福利】买饮料时账单里含1-2克朗空瓶押金；喝完将空瓶塞入超市入口处的‘Pant’机器，会打印出小票，买单时可直接冲抵现金扣除！"
+            },
+            {
+                "scenario": "购买纸质购物袋",
+                "en": "I will take one paper bag, please.",
+                "cn": "请给我一个纸质购物袋。",
+                "tip": "【环保塑料税】北欧超市不主动提供免费塑料袋，每个购物袋需单独花钱购买，因此当地人出门背包里通常都会塞一个折叠布袋。"
+            }
+        ]
+    },
+    {
+        "day": 26,
+        "topic": "🍓 老集市大厅与拉普兰特产 (Old Market Halls & Arctic Berries)",
+        "words": [
+            {
+                "word": "Market Hall",
+                "phonetic": "/ˈmɑːrkɪt hɔːl/",
+                "pos": "n. 短语",
+                "def": "老集市大厅；传统室内特色食品集市大厅",
+                "exampleEn": "Let's go explore the old market hall for lunch.",
+                "exampleCn": "我们去老集市大厅里逛逛吃午饭吧。"
+            },
+            {
+                "word": "Cloudberry",
+                "phonetic": "/ˈklaʊdberi/",
+                "pos": "n. 名词",
+                "def": "北极极地云莓（金黄色的极地稀有珍果，极地黄金）",
+                "exampleEn": "Have you ever tried arctic cloudberry jam?",
+                "exampleCn": "你尝过北极极地特产的黄金云莓果酱吗？"
+            },
+            {
+                "word": "Artisan",
+                "phonetic": "/ˈɑːrtɪzn/",
+                "pos": "n./adj.",
+                "def": "手工艺人；传统手工精心制作的",
+                "exampleEn": "This wooden cup is made by a local artisan.",
+                "exampleCn": "这个木杯是由当地民间手工艺人制作的。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在老集市海鲜摊询问能不能现场切片品尝",
+                "en": "Can I try a little sample, please?",
+                "cn": "我可以免费试吃尝一小口吗？",
+                "tip": "【老集市寻味】赫尔辛基百年集市大厅(Vanha Kauppahalli)里摊主非常大方，烟熏三文鱼、驯鹿肉香肠都会切出一小片请顾客品尝。"
+            },
+            {
+                "scenario": "购买可以带回国送朋友的特色果酱",
+                "en": "I would like a jar of cloudberry jam.",
+                "cn": "我想要一瓶极地黄金云莓果酱。",
+                "tip": "【极地黄金】云莓(Cloudberry)生长在北极圈沼泽苔原，金黄娇嫩无法人工种植，含有极高维生素C，配热煎奶酪(Leipäjuusto)吃是芬兰国宝级甜点。"
+            },
+            {
+                "scenario": "挑选纯手工白桦木杯(Kuksa)",
+                "en": "Is this traditional cup made of birch wood?",
+                "cn": "这个传统木杯是用白桦树木制作的吗？",
+                "tip": "【萨米木杯】正宗的Kuksa是用白桦树瘿整块手工挖空雕刻而成，用它在雪地里盛温热咖啡或越橘汁，手感温润且绝不烫手。"
+            }
+        ]
+    },
+    {
+        "day": 27,
+        "topic": "🧼 室内进门脱鞋文化与暖意 (Indoor Shoe Etiquette & Cozy Homes)",
+        "words": [
+            {
+                "word": "Hallway",
+                "phonetic": "/ˈhɔːlweɪ/",
+                "pos": "n. 名词",
+                "def": "门厅；进门玄关落尘区",
+                "exampleEn": "Please leave your snowy boots in the hallway.",
+                "exampleCn": "请把沾有积雪的靴子脱在玄关落尘区。"
+            },
+            {
+                "word": "Woolen Socks",
+                "phonetic": "/ˈwʊlən sɒks/",
+                "pos": "n. 短语",
+                "def": "厚纯羊毛袜（北欧室内行走的黄金标配）",
+                "exampleEn": "Put on these warm woolen socks inside the house.",
+                "exampleCn": "在屋里换上这双厚厚暖和的纯羊毛袜吧。"
+            },
+            {
+                "word": "Courtesy",
+                "phonetic": "/ˈkɜːrtəsi/",
+                "pos": "n. 名词",
+                "def": "礼貌礼节；教养与尊重举止",
+                "exampleEn": "Taking off your shoes is a common courtesy here.",
+                "exampleCn": "进门脱鞋是这里最基本的礼节。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "进当地人家中或温馨民宿时礼貌询问是否脱鞋",
+                "en": "Should I take off my shoes here?",
+                "cn": "我需要在这里脱掉鞋子吗？",
+                "tip": "【脱鞋文化】北欧冬季屋外积雪融水和砂石多，进别人家或部分瑜伽馆、小型图书馆必须在进门玄关(Hallway)脱鞋，换上厚羊毛袜走动。"
+            },
+            {
+                "scenario": "寻找室内拖鞋或干爽羊毛袜",
+                "en": "Are there any indoor slippers available?",
+                "cn": "有室内拖鞋可以穿吗？",
+                "tip": "【羊毛袜标配】北欧人家里往往铺设温润木地板，玄关处常有专门放雪地靴的沥水胶垫，主人通常会贴心准备多双干净的纯羊毛袜供客人穿。"
+            },
+            {
+                "scenario": "在玄关处把湿手套帽子挂在暖气旁烘干",
+                "en": "Can I hang my wet coat over here?",
+                "cn": "我可以把湿外套挂在这边吗？",
+                "tip": "【玄关设计】北欧房屋玄关大多安装了专用挂衣架和暖气片，方便进门顺手把落雪融湿的羽绒服、毛线手套和围巾挂上去快速烘干。"
+            }
+        ]
+    },
+    {
+        "day": 28,
+        "topic": "💰 小费习俗与机场退税攻略 (Tipping Etiquette & Tax Refund)",
+        "words": [
+            {
+                "word": "Tax Refund",
+                "phonetic": "/tæks ˈriːfʌnd/",
+                "pos": "n. 短语",
+                "def": "境外购物增值税退税",
+                "exampleEn": "Can I get a tax refund form for this purchase?",
+                "exampleCn": "我这笔消费可以开一张退税申请单吗？"
+            },
+            {
+                "word": "Service Charge",
+                "phonetic": "/ˈsɜːrvɪs tʃɑːrdʒ/",
+                "pos": "n. 短语",
+                "def": "服务费（北欧账单中已默认全额计入）",
+                "exampleEn": "The service charge is already included in the bill.",
+                "exampleCn": "账单里已经包含了法定服务费。"
+            },
+            {
+                "word": "Voucher",
+                "phonetic": "/ˈvaʊtʃər/",
+                "pos": "n. 名词",
+                "def": "退税单据；退税确认凭证",
+                "exampleEn": "Keep this tax-free voucher for the airport customs.",
+                "exampleCn": "把这张退税单收好，在机场海关办理使用。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在专柜购物结账后索取退税单",
+                "en": "Can you give me a tax-free form, please?",
+                "cn": "能帮我开一张退税申请单吗？",
+                "tip": "【购物退税】在标有‘Global Blue’或‘Planet’的商户，同天单笔消费满额（通常约300-400克朗以上）即可凭护照开具退税单，退税率高达12%-19%！"
+            },
+            {
+                "scenario": "餐厅结账时确认是否包含小费",
+                "en": "Is tip included in the bill?",
+                "cn": "小费已经包含在账单里了吗？",
+                "tip": "【小费习俗】北欧没有强制硬性小费文化！餐厅账单已包含法定服务费与税费，若觉得服务极其贴心，刷卡时在机器上加一点或留几块零钱即可。"
+            },
+            {
+                "scenario": "在机场寻找海关盖章与退税柜台",
+                "en": "Where is the customs desk for tax refund?",
+                "cn": "请问办理退税的海关柜台在哪里？",
+                "tip": "【机场必知】若退税物品放在托运行李箱内，必须在值机托运前先去海关盖章验货！否则行李托运走后看不到实物，海关一律拒盖退税章！"
+            }
+        ]
+    },
+    {
+        "day": 29,
+        "topic": "🕰️ 极夜蓝调时刻与维D补给 (Polar Night & Blue Hour)",
+        "words": [
+            {
+                "word": "Polar Night",
+                "phonetic": "/ˈpoʊlər naɪt/",
+                "pos": "n. 短语",
+                "def": "极夜现象（冬季太阳连续数周完全不升起）",
+                "exampleEn": "The sun does not rise during polar night.",
+                "exampleCn": "在极夜期间，太阳连续数周完全不升起。"
+            },
+            {
+                "word": "Blue Hour",
+                "phonetic": "/bluː ˈaʊər/",
+                "pos": "n. 短语",
+                "def": "蓝调时刻（极夜正午天际呈现的神秘梦幻蔚蓝微光）",
+                "exampleEn": "The sky turns magical blue during the blue hour.",
+                "exampleCn": "在蓝调时刻，天际会呈现出梦幻般的神秘蔚蓝。"
+            },
+            {
+                "word": "Cod Liver Oil",
+                "phonetic": "/kɒd ˈlɪvər ɔɪl/",
+                "pos": "n. 短语",
+                "def": "深海鳕鱼肝油（北欧人冬天人手一瓶的黄金维D补充品）",
+                "exampleEn": "Nordic people take cod liver oil every morning.",
+                "exampleCn": "北欧人每天早晨都会喝一小勺鳕鱼肝油。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "询问极夜期间天亮微光的大致时间",
+                "en": "When does it get light today?",
+                "cn": "今天大概什么时候天会有微光？",
+                "tip": "【蓝调奇观】即使在极夜(Mørketid)，正午前后依然有3-4小时绝美的粉蓝渐变微光，被称为‘蓝调时刻’(Blue Hour)，拍照氛围感拉满！"
+            },
+            {
+                "scenario": "在药妆店购买当地人必备的液体鱼油",
+                "en": "Do you have liquid cod liver oil?",
+                "cn": "你们有瓶装的液体鳕鱼肝油吗？",
+                "tip": "【维D法宝】极夜缺少阳光照射，挪威经典绿色瓶装柠檬味鱼油(Möller’s Tran)富含天然维D与Omega-3，是北欧人对抗冬日乏力的健康秘诀。"
+            },
+            {
+                "scenario": "感受街头暖黄色街灯带来的安心感",
+                "en": "The yellow street lights look so warm in the snow.",
+                "cn": "雪地里的暖黄色街灯看起来真温暖。",
+                "tip": "【浪漫极夜】极夜里的北欧小镇并不阴暗，家家户户窗台上都亮着星星纸灯和暖烛，整座城市宛如童话水晶球般静谧安详。"
+            }
+        ]
+    },
+    {
+        "day": 30,
+        "topic": "🎨 老城鹅卵石与露天暖炉 (Old Town Cobblestones & Outdoor Cafes)",
+        "words": [
+            {
+                "word": "Cobblestone",
+                "phonetic": "/ˈkɒblstoʊn/",
+                "pos": "n. 名词",
+                "def": "老城鹅卵石铺就的街道",
+                "exampleEn": "The old town has charming cobblestone streets.",
+                "exampleCn": "老城拥有迷人典雅的鹅卵石街道。"
+            },
+            {
+                "word": "Heater",
+                "phonetic": "/ˈhiːtər/",
+                "pos": "n. 名词",
+                "def": "户外红外电暖气；辐射加热灯",
+                "exampleEn": "The outdoor patio heater keeps us warm.",
+                "exampleCn": "室外的红外取暖灯让我们感到很暖和。"
+            },
+            {
+                "word": "Felt",
+                "phonetic": "/felt/",
+                "pos": "n./adj.",
+                "def": "纯羊毛毡；毛毡保暖坐垫",
+                "exampleEn": "Sit on this thick felt cushion to stay warm.",
+                "exampleCn": "坐在这块厚羊毛毡坐垫上保暖吧。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在斯德哥尔摩老城询问步行游览方向",
+                "en": "Which way is the Royal Palace?",
+                "cn": "去皇宫该往哪个方向走？",
+                "tip": "【老城漫游】老城(Gamla Stan)拥有700年历史，小巷曲折幽深；鹅卵石路面容易卡细鞋跟且雪天路滑，建议穿舒适平底雪地靴漫步。"
+            },
+            {
+                "scenario": "即使下雪天也想坐在户外咖啡座体验北欧浪漫",
+                "en": "Can we sit outside under the heater?",
+                "cn": "我们能坐在室外的取暖灯下吗？",
+                "tip": "【雪中露天座】北欧咖啡馆即使零下十度也会开放户外座位！椅上铺着暖暖的纯羊毛皮垫，头顶照着红外辐射暖灯，裹着毛毯喝热咖啡超有范儿！"
+            },
+            {
+                "scenario": "询问街头小吃摊点一份热肉丸",
+                "en": "One order of Swedish meatballs to go, please.",
+                "cn": "请给我打包一份瑞典肉丸带走。",
+                "tip": "【经典街味】现烤的小肉丸淋上浓郁奶油肉汁(Brunsås)，配上甜酸的越橘果酱和绵密土豆泥，一份热气腾腾捧在手里就是最简单的幸福。"
+            }
+        ]
+    },
+    {
+        "day": 31,
+        "topic": "🎒 极光之约圆满启程与心灵回味 (Farewell & Memories of the North)",
+        "words": [
+            {
+                "word": "Serenity",
+                "phonetic": "/səˈrenəti/",
+                "pos": "n. 名词",
+                "def": "宁静；内心的安详与澄澈",
+                "exampleEn": "I love the peaceful serenity of the North.",
+                "exampleCn": "我深爱北境那份纯净辽阔的内心安详。"
+            },
+            {
+                "word": "Koselig",
+                "phonetic": "/ˈkuːsəli/",
+                "pos": "adj. 挪威语",
+                "def": "挪威式温暖治愈；身心舒展的惬意感",
+                "exampleEn": "Spending time by the fireplace feels so koselig.",
+                "exampleCn": "围坐在壁炉旁烤火的时光感觉真治愈惬意。"
+            },
+            {
+                "word": "Wanderlust",
+                "phonetic": "/ˈwɒndərlʌst/",
+                "pos": "n. 名词",
+                "def": "对探索世界的强烈旅行渴望；漫游之癖",
+                "exampleEn": "Traveling in the Nordics satisfies my wanderlust.",
+                "exampleCn": "在北欧的旅程彻底满足了我对远方漫游的渴望。"
+            }
+        ],
+        "sentences": [
+            {
+                "scenario": "在酒店退房时向前台道谢",
+                "en": "Thank you so much! We had a wonderful stay.",
+                "cn": "非常感谢！我们在这里住得非常愉快。",
+                "tip": "【挪威Koselig】挪威人用‘Koselig’形容一切让人心头一暖、舒适满足的人事物；回归质朴纯简，用心感受大自然与生活的小美好。"
+            },
+            {
+                "scenario": "寄存行李并在离开前向当地朋友道别",
+                "en": "Can I leave my bags here until four o'clock?",
+                "cn": "我的行李可以先寄存在这里直到下午四点吗？",
+                "tip": "【行李寄存】酒店前台均免费提供退房后的行李寄存服务(Luggage room)，让你在前往机场前的最后几个小时依然能轻装告别小城。"
+            },
+            {
+                "scenario": "满怀感动踏上归途并期许未来重逢",
+                "en": "I hope I can come back here again someday.",
+                "cn": "希望未来某一天我还能再回到这里。",
+                "tip": "【2027北欧之约】从极光、峡湾到桑拿、Fika，北欧不只是一次远行，更是学会松弛与从容的生活态度。愿您的2027北欧漫游之旅圆满美好！"
+            }
+        ]
+    }
+]
+
+with open('english_data.json', 'w', encoding='utf-8') as f:
+    json.dump(curriculum, f, ensure_ascii=False, indent=2)
+
+print(f"Generated {len(curriculum)} days of simple spoken Nordic travel English successfully!")
