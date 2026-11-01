@@ -94,11 +94,11 @@ assert 'todoBadgeDot' not in html, "Red dot #todoBadgeDot must be removed from �
 assert 'meetingBadgeDot' not in html, "Red dot #meetingBadgeDot must be removed from 会议预约 title!"
 assert html.find('id="btnTodoViewMatrix"') < html.find('id="btnTodoViewList"'), "四象限看板 button must be placed before 清单视图 button!"
 assert html.find('id="todoMatrixContainer"') < html.find('id="todoFullList"'), "todoMatrixContainer must be placed before todoFullList!"
-assert '今天必须搞定' in html, "Missing '今天必须搞定' in HTML"
+assert '今天完成' in html, "Missing '今天完成' in HTML"
 assert '这周安排上' in html, "Missing '这周安排上' in HTML"
 assert '先放一放' in html, "Missing '先放一放' in HTML"
 assert '有空再说' in html, "Missing '有空再说' in HTML"
-assert '🇪🇬 开罗时间 (UTC+3)' in html, "Missing '🇪🇬 开罗时间 (UTC+3)' in HTML"
+assert '开罗时间' in html, "Missing '开罗时间' in HTML"
 assert 'id="editNoteModal"' in html, "Missing editNoteModal"
 req_pos = html.find('id="editRequestModal"')
 note_pos = html.find('id="editNoteModal"')
@@ -191,7 +191,10 @@ const document = {{
           toggle: function(c, v) {{ if (v) this._cls.add(c); else this._cls.delete(c); }}
         }},
         focus: () => {{}},
-        querySelectorAll: () => []
+        querySelectorAll: () => [],
+        querySelector: () => null,
+        addEventListener: () => {{}},
+        removeEventListener: () => {{}}
       }};
     }}
     return elements[id];

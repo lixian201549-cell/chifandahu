@@ -26,6 +26,10 @@ def test_monthly_routines():
             'id="linksCollapseBody"',
             'id="linksCategoryTabs"',
             'id="linksFullGrid"',
+            'id="btnRemindTomorrowMeetings"',
+            'id="tomorrowReminderModal"',
+            'id="inputReminderDate"',
+            'id="reminderMessagePreview"',
         ]
         for elem in required_elements:
             assert elem in content, f"Missing {elem} in {name}"
@@ -40,7 +44,9 @@ def test_monthly_routines():
             "每月第二周",
             "每月 20 号",
             "每月第四周",
-            "每月要完成的事",
+            "月度闯关",
+            "计划时间：",
+            "提醒领导明日会议",
         ]
         for kw in keywords:
             assert kw in content, f"Missing keyword '{kw}' in {name}"
@@ -57,6 +63,10 @@ def test_monthly_routines():
             "openEditMonthlyRoutineModal",
             "saveMonthlyRoutineItem",
             "deleteMonthlyRoutine",
+            "openTomorrowMeetingReminderModal",
+            "setReminderDateTomorrow",
+            "updateTomorrowReminderPreview",
+            "copyTomorrowReminderContent",
         ]
         for fn in js_functions:
             assert fn in content, f"Missing JS function {fn} in {name}"

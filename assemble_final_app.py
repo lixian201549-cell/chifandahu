@@ -3406,7 +3406,7 @@ html_template = """<!DOCTYPE html>
   }
 
 
-  /* ================= 5. 每月要完成的事 (Monthly Routine Timeline) & 常用链接 ================= */
+  /* ================= 5. 月度闯关 (Monthly Quest Timeline) & 常用链接 ================= */
   .monthly-month-bar {
     display: flex;
     justify-content: space-between;
@@ -4780,8 +4780,8 @@ html_template = """<!DOCTYPE html>
       </button>
 
       <button class="nav-tab" data-tab="links" onclick="switchTab('links')">
-        <img src="__IMG_JOE_COOL__" alt="每月要完成的事" />
-        <span>每月要完成的事</span>
+        <img src="__IMG_JOE_COOL__" alt="月度闯关" />
+        <span>月度闯关</span>
       </button>
 
       <button class="nav-tab" data-tab="todo" onclick="switchTab('todo')">
@@ -4903,16 +4903,16 @@ html_template = """<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- ================= 2. 每月要完成的事 (每月要完成的事 · Snoopy Routine) ================= -->
+    <!-- ================= 2. 月度闯关 (月度闯关 · Monthly Quest) ================= -->
     <div class="tab-pane" id="pane-links">
       <div class="module-header-banner theme-links">
         <div class="module-banner-left">
-          <img src="__IMG_JOE_COOL__" class="module-banner-avatar" alt="每月要完成的事" />
+          <img src="__IMG_JOE_COOL__" class="module-banner-avatar" alt="月度闯关" />
           <div>
             <div class="module-banner-title">
-              <span id="linksModuleTitleText">每月要完成的事 · Monthly Routine</span>
-              <button class="module-edit-btn" onclick="openEditModuleModal('links')" title="自定义月度事项板块">✏️</button>
-              <span class="persona-tag" id="linksModuleTagText">🗓️ 月度里程碑</span>
+              <span id="linksModuleTitleText">月度闯关 · Monthly Quest</span>
+              <button class="module-edit-btn" onclick="openEditModuleModal('links')" title="自定义月度闯关板块">✏️</button>
+              <span class="persona-tag" id="linksModuleTagText">🎯 月度打卡闯关</span>
             </div>
           </div>
         </div>
@@ -4920,13 +4920,13 @@ html_template = """<!DOCTYPE html>
         <div class="module-banner-right">
           <div class="stat-box">
             <div class="stat-num" id="statMonthlyProgress" style="color:#0891b2;">0 / 4</div>
-            <div class="stat-label">本月已完成</div>
+            <div class="stat-label">已通关</div>
           </div>
           <div class="stat-box">
             <div class="stat-num" id="statMonthlyNextDate" style="color:#6366f1; font-size:15px; font-weight:800;">11月9日</div>
-            <div class="stat-label">最近节点</div>
+            <div class="stat-label">下个关卡</div>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="openAddMonthlyRoutineModal()">➕ 添加月度事项</button>
+          <button class="btn btn-primary btn-sm" onclick="openAddMonthlyRoutineModal()">➕ 添加关卡</button>
         </div>
       </div>
 
@@ -5080,6 +5080,9 @@ html_template = """<!DOCTYPE html>
             <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">跳转日期：</label>
             <input type="date" id="timelineDateSelector" style="width:125px; padding:4px 8px; font-size:12px;" onchange="handleTimelineDateChange()" />
           </div>
+          <button class="btn" id="btnRemindTomorrowMeetings" onclick="openTomorrowMeetingReminderModal()" style="font-weight:700; color:#4338ca; border:1px solid #c7d2fe; background:#eef2ff;" title="一键提醒领导明日日程并复制">
+            📋 提醒领导明日会议
+          </button>
           <button class="btn" onclick="exportExecutiveScheduleBriefing()">
             复制排版周报
           </button>
@@ -5814,55 +5817,75 @@ html_template = """<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- ================= MODAL: TOMORROW MEETING REMINDER ================= -->
+  <div class="modal-overlay" id="tomorrowReminderModal">
+    <div class="modal-box" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title">📋 提醒领导明日日程备忘</div>
+        <button class="btn btn-sm btn-ghost" onclick="closeModal('tomorrowReminderModal')">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label style="font-size:12.5px; font-weight:700; color:var(--text-secondary);">目标日程日期：</label>
+            <input type="date" id="inputReminderDate" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:4px;" onchange="updateTomorrowReminderPreview()" />
+            <button class="btn btn-sm btn-ghost" onclick="setReminderDateTomorrow()" style="font-size:12px;">设为明天</button>
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="copyTomorrowReminderContent()">📋 一键复制文本</button>
+        </div>
+
+        <div>
+          <label style="font-size:12.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:6px;">提醒文案预览（可直接在此微调修改）：</label>
+          <textarea id="reminderMessagePreview" rows="12" style="width:100%; box-sizing:border-box; font-family:var(--font-mono); font-size:13px; line-height:1.6; padding:12px; border:1px solid var(--border); border-radius:6px; resize:vertical; background:var(--card-subtle); color:var(--text-primary);"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:11.5px; color:var(--text-muted);">💡 复制后可直接在微信/WeLink/邮件中发送给领导</div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('tomorrowReminderModal')">关闭</button>
+          <button type="button" class="btn btn-primary" onclick="copyTomorrowReminderContent()">📋 一键复制并发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL: ADD / EDIT MONTHLY ROUTINE ================= -->
   <div class="modal-overlay" id="monthlyRoutineModal">
-    <div class="modal-box" style="max-width: 520px;">
+    <div class="modal-box" style="max-width: 500px;">
       <div class="modal-header">
-        <div class="modal-title" id="monthlyRoutineModalTitle">➕ 添加月度事项</div>
+        <div class="modal-title" id="monthlyRoutineModalTitle">➕ 添加月度关卡</div>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('monthlyRoutineModal')">✕</button>
       </div>
       <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
         <input type="hidden" id="inputRoutineId" />
+        <input type="hidden" id="inputRoutineCategory" value="月度关卡" />
+        <input type="hidden" id="inputRoutineIcon" value="" />
+        <input type="hidden" id="inputRoutineSubtasks" value="" />
+
         <div class="form-group" style="margin-bottom:0;">
-          <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">事项名称</label>
+          <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">关卡事项名称</label>
           <input type="text" id="inputRoutineTitle" placeholder="例如：开部门例会（内部）/ 发送技术运营月报" style="font-size:14px; font-weight:600;" />
         </div>
         
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
           <div class="form-group" style="margin-bottom:0;">
-            <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">时间规则类型</label>
+            <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">计划时间类型</label>
             <select id="selectRoutineType" onchange="handleRoutineTypeChange()" style="width:100%;">
               <option value="date">固定公历日期 (每月几号)</option>
               <option value="week">周期周次 (每月第几周)</option>
             </select>
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <label id="labelRoutineValue" style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">具体日期 (1~31 号)</label>
+            <label id="labelRoutineValue" style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">计划时间 (1~31 号)</label>
             <input type="number" id="inputRoutineValue" min="1" max="31" value="9" style="font-size:14px; font-weight:600;" />
           </div>
         </div>
-
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">分类标签</label>
-            <input type="text" id="inputRoutineCategory" placeholder="如：🏢 内部例会" value="🏢 内部例会" style="font-size:13px;" />
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">图标 Emoji</label>
-            <input type="text" id="inputRoutineIcon" value="👥" style="width:100%; font-size:16px; text-align:center;" />
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom:0;">
-          <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">执行要点 / 检查清单 (每行一项)</label>
-          <textarea id="inputRoutineSubtasks" rows="3" placeholder="例如：&#10;• 对齐本月核心工作重点&#10;• 梳理跨组协同诉求&#10;• 输出会议纪要并抄送" style="font-size:13px; line-height:1.5;"></textarea>
-        </div>
       </div>
       <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
-        <button type="button" class="btn btn-ghost" id="btnDeleteRoutineInModal" style="color:#dc2626; display:none;" onclick="deleteCurrentEditRoutine()">🗑️ 删除该事项</button>
+        <button type="button" class="btn btn-ghost" id="btnDeleteRoutineInModal" style="color:#dc2626; display:none;" onclick="deleteCurrentEditRoutine()">删除该事项</button>
         <div style="display:flex; gap:8px; margin-left:auto;">
           <button type="button" class="btn btn-ghost" onclick="closeModal('monthlyRoutineModal')">取消</button>
-          <button type="button" class="btn btn-primary" onclick="saveMonthlyRoutineItem()">保存事项</button>
+          <button type="button" class="btn btn-primary" onclick="saveMonthlyRoutineItem()">保存关卡</button>
         </div>
       </div>
     </div>
@@ -10379,6 +10402,95 @@ function exportExecutiveScheduleBriefing() {
   copyToClipboard(lines.join('\\n'), '领导周日程通报已复制到剪贴板，可直接发送微信或邮件。');
 }
 
+// ================= 明日会议提醒 (一键复制给领导) =================
+function openTomorrowMeetingReminderModal() {
+  setReminderDateTomorrow();
+  openModal('tomorrowReminderModal');
+}
+
+function setReminderDateTomorrow() {
+  const now = new Date();
+  const tm = new Date(now);
+  tm.setDate(now.getDate() + 1);
+  const tmStr = formatDateToStr(tm);
+  const inp = document.getElementById('inputReminderDate');
+  if (inp) inp.value = tmStr;
+  updateTomorrowReminderPreview();
+}
+
+function updateTomorrowReminderPreview() {
+  const inp = document.getElementById('inputReminderDate');
+  if (!inp || !inp.value) return;
+  const targetDateStr = inp.value;
+
+  const dt = new Date(targetDateStr + 'T00:00:00');
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const wDay = weekDays[dt.getDay()];
+  const parts = targetDateStr.split('-');
+  const mNum = parseInt(parts[1], 10);
+  const dNum = parseInt(parts[2], 10);
+  const dateFormatted = `${mNum}月${dNum}日 (${wDay})`;
+
+  const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const dayMeetings = allMeetings.filter(m => m.date === targetDateStr && m.status === 'scheduled');
+  dayMeetings.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+  const trip = getTripForDate(targetDateStr);
+
+  const lines = [];
+  lines.push(`【领导明日日程备忘 · ${dateFormatted}】`);
+  if (trip) {
+    lines.push(`📍 当前出差：${trip.destination} (${trip.tzName || ''}当地时间)`);
+  }
+  lines.push('──────────────────────────────');
+
+  if (dayMeetings.length === 0) {
+    lines.push(`领导您好，明日（${dateFormatted}）暂无已排期会议安排，祝您工作顺利！`);
+  } else {
+    lines.push(`领导您好，为您整理明日（${dateFormatted}）共有 ${dayMeetings.length} 场会议安排：\\n`);
+    dayMeetings.forEach((mItem, index) => {
+      const dtInfo = getMeetingDisplayTime(mItem);
+      let timeLabel = '';
+      if (dtInfo.isTripDate && dtInfo.tzName) {
+        timeLabel = `${dtInfo.start} - ${dtInfo.end} (${dtInfo.tzName}当地时间 / 开罗 ${dtInfo.cairoStart})`;
+      } else {
+        timeLabel = `${dtInfo.cairoStart} - ${dtInfo.cairoEnd} (开罗时间)`;
+      }
+
+      lines.push(`${index + 1}. ⏰ 时间：${timeLabel}`);
+      lines.push(`   📌 会议：${mItem.title || '待定会议'}`);
+      if (mItem.location) {
+        lines.push(`   📍 会议室/地点：${mItem.location}`);
+      }
+      if (mItem.attendees) {
+        lines.push(`   👥 参会人：${mItem.attendees}`);
+      }
+      if (mItem.decision) {
+        lines.push(`   🎯 核心决策点：${mItem.decision}`);
+      }
+      lines.push('');
+    });
+    lines.push('──────────────────────────────');
+    lines.push('秘书处提醒：相关汇报材料已提前备齐放置于桌面，请各参会人提前5分钟到场。');
+  }
+
+  const ta = document.getElementById('reminderMessagePreview');
+  if (ta) {
+    ta.value = lines.join('\\n');
+  }
+}
+
+function copyTomorrowReminderContent() {
+  const ta = document.getElementById('reminderMessagePreview');
+  if (!ta) return;
+  const text = ta.value.trim();
+  if (!text) {
+    showToast('暂无可复制的提醒内容');
+    return;
+  }
+  copyToClipboard(text, '✨ 明日会议提醒已成功复制，可直接发送给领导！');
+}
+
 function resetMeetingsToDefault() {
   const ok = confirm('确定要重置主管会议日程为空白初始状态吗？\\n当前所有会议记录将被清空，恢复为空白日程表，方便全新导入或登记。');
   if (!ok) return;
@@ -12763,7 +12875,7 @@ function deleteTodo(id) {
   renderTodos();
 }
 
-// ================= 每月要完成的事 (Monthly Routine Timeline) =================
+// ================= 月度闯关 (Monthly Quest Timeline) =================
 const DEFAULT_MONTHLY_ROUTINES = [
   {
     id: 1,
@@ -12961,7 +13073,7 @@ function renderMonthlyRoutines() {
   let timelineHtml = '';
   let todayMarkerInserted = false;
 
-  computedItems.forEach((item) => {
+  computedItems.forEach((item, index) => {
     if (isCurrentCalendarMonth && !todayMarkerInserted && todayDay < item.details.sortDay) {
       timelineHtml += `
         <div class="routine-today-marker">
@@ -12969,7 +13081,7 @@ function renderMonthlyRoutines() {
             <div class="routine-today-dot-inner"></div>
           </div>
           <div class="routine-today-badge">
-            <span>📍 今天在这里 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
+            <span>今日进度 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
           </div>
         </div>
       `;
@@ -12978,29 +13090,29 @@ function renderMonthlyRoutines() {
 
     const isCompleted = !!item.check.completed;
     let statusClass = 'upcoming';
-    let statusText = '⏳ 即将到来';
+    let statusText = '待办';
 
     if (isCompleted) {
       statusClass = 'done';
-      statusText = '✅ 本月已完成';
+      statusText = '已完成';
     } else if (isCurrentCalendarMonth) {
       if (item.type === 'date') {
         if (todayDay === item.value) {
           statusClass = 'current';
-          statusText = '🔥 今日执行';
+          statusText = '今日计划';
         } else if (todayDay > item.value) {
           statusClass = 'overdue';
-          statusText = '⚠️ 本月待完成';
+          statusText = '待完成';
         }
       } else {
         const startD = (item.value - 1) * 7 + 1;
         const endD = item.value * 7;
         if (todayDay >= startD && todayDay <= endD) {
           statusClass = 'current';
-          statusText = '🔵 本周重点';
+          statusText = '本周重点';
         } else if (todayDay > endD) {
           statusClass = 'overdue';
-          statusText = '⚠️ 本月待完成';
+          statusText = '待完成';
         }
       }
     }
@@ -13010,16 +13122,15 @@ function renderMonthlyRoutines() {
 
     timelineHtml += `
       <div class="routine-timeline-node ${isCompleted ? 'completed' : ''}" id="routine-node-${item.id}">
-        <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor};">
-          ${isCompleted ? '✓' : escapeHtml(item.icon || '📌')}
+        <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor}; font-weight:800; font-size:14px;">
+          ${isCompleted ? '✓' : (index + 1)}
         </div>
 
         <div class="routine-card">
           <div class="routine-card-header">
             <div class="routine-card-tags">
-              <span class="routine-pill-rule" style="background:${ruleBg}; color:${ruleColor};">${escapeHtml(item.timingDisplay)}</span>
+              <span class="routine-pill-rule" style="background:${ruleBg}; color:${ruleColor}; font-weight:700;">计划时间：${escapeHtml(item.timingDisplay)}</span>
               <span class="routine-pill-date">${escapeHtml(item.details.displayDate)}</span>
-              <span class="routine-pill-category">${escapeHtml(item.category || '月度例行')}</span>
             </div>
             <div class="routine-status-badge ${statusClass}">
               ${statusText}
@@ -13029,30 +13140,29 @@ function renderMonthlyRoutines() {
           <div class="routine-card-title">${escapeHtml(item.title)}</div>
 
           ${item.details.fridayHint ? `
-            <div class="routine-hint-bar">
-              <span>📅</span>
-              <span>${escapeHtml(item.details.fridayHint)}</span>
+            <div class="routine-hint-bar" style="font-size:12px;">
+              <span>交付计划：${escapeHtml(item.details.fridayHint)}</span>
             </div>
           ` : ''}
 
           <div class="routine-card-footer">
             <div class="routine-action-left">
               <button class="btn-toggle-routine ${isCompleted ? 'is-done' : ''}" onclick="toggleMonthlyRoutineComplete(${item.id})">
-                ${isCompleted ? '✅ 本月已完成 (点击取消)' : '⭕ 标记本月完成'}
+                ${isCompleted ? '已完成 (点击取消)' : '标记完成'}
               </button>
               <button class="btn btn-sm btn-ghost" onclick="toggleRoutineNoteBox(${item.id})">
-                📝 ${item.check.note ? '查看/修改纪要备忘' : '添加本月备注'}
+                ${item.check.note ? '查看/修改备注' : '添加备注'}
               </button>
             </div>
             <div class="routine-action-right">
-              <button class="btn btn-sm btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项">✏️</button>
-              ${item.isCustom ? `<button class="btn btn-sm btn-ghost" style="color:#dc2626;" onclick="deleteMonthlyRoutine(${item.id})" title="删除">✕</button>` : ''}
+              <button class="btn btn-sm btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项">编辑</button>
+              ${item.isCustom ? `<button class="btn btn-sm btn-ghost" style="color:#dc2626;" onclick="deleteMonthlyRoutine(${item.id})" title="删除">删除</button>` : ''}
             </div>
           </div>
 
           <div class="routine-note-drawer" id="routine-note-box-${item.id}" style="${item.check.note ? 'display:block;' : 'display:none;'}">
-            <div style="font-size:12px; font-weight:700; margin-bottom:6px; color:var(--text-secondary);">📌 本月备忘与执行记录：</div>
-            <textarea class="routine-note-textarea" id="routine-note-input-${item.id}" placeholder="输入该项工作的会议室号、邮件主题或纪要链接..." onblur="saveMonthlyRoutineNote(${item.id})">${escapeHtml(item.check.note || '')}</textarea>
+            <div style="font-size:12px; font-weight:700; margin-bottom:6px; color:var(--text-secondary);">本月备忘记录：</div>
+            <textarea class="routine-note-textarea" id="routine-note-input-${item.id}" placeholder="输入会议室号、邮件主题或备忘记录..." onblur="saveMonthlyRoutineNote(${item.id})">${escapeHtml(item.check.note || '')}</textarea>
           </div>
         </div>
       </div>
@@ -13066,7 +13176,7 @@ function renderMonthlyRoutines() {
           <div class="routine-today-dot-inner"></div>
         </div>
         <div class="routine-today-badge">
-          <span>📍 今天在这里 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
+          <span>今日进度 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
         </div>
       </div>
     `;
@@ -13142,14 +13252,17 @@ function toggleLinksCollapse() {
 }
 
 function openAddMonthlyRoutineModal() {
-  document.getElementById('monthlyRoutineModalTitle').textContent = '➕ 添加月度事项';
+  document.getElementById('monthlyRoutineModalTitle').textContent = '➕ 添加月度关卡';
   document.getElementById('inputRoutineId').value = '';
   document.getElementById('inputRoutineTitle').value = '';
   document.getElementById('selectRoutineType').value = 'date';
-  document.getElementById('inputRoutineValue').value = '15';
-  document.getElementById('inputRoutineCategory').value = '🏢 部门事项';
-  document.getElementById('inputRoutineIcon').value = '📌';
-  document.getElementById('inputRoutineSubtasks').value = '';
+  document.getElementById('inputRoutineValue').value = '9';
+  const catInp = document.getElementById('inputRoutineCategory');
+  if (catInp) catInp.value = '月度关卡';
+  const iconInp = document.getElementById('inputRoutineIcon');
+  if (iconInp) iconInp.value = '';
+  const subInp = document.getElementById('inputRoutineSubtasks');
+  if (subInp) subInp.value = '';
   const delBtn = document.getElementById('btnDeleteRoutineInModal');
   if (delBtn) delBtn.style.display = 'none';
   handleRoutineTypeChange();
@@ -13161,14 +13274,17 @@ function openEditMonthlyRoutineModal(routineId) {
   const item = routines.find(r => r.id === routineId);
   if (!item) return;
 
-  document.getElementById('monthlyRoutineModalTitle').textContent = '✏️ 编辑月度事项';
+  document.getElementById('monthlyRoutineModalTitle').textContent = '✏️ 编辑月度关卡';
   document.getElementById('inputRoutineId').value = item.id;
   document.getElementById('inputRoutineTitle').value = item.title || '';
   document.getElementById('selectRoutineType').value = item.type || 'date';
   document.getElementById('inputRoutineValue').value = item.value || 1;
-  document.getElementById('inputRoutineCategory').value = item.category || '月度例行';
-  document.getElementById('inputRoutineIcon').value = item.icon || '📌';
-  document.getElementById('inputRoutineSubtasks').value = (item.subtasks || []).join('\\n');
+  const catInp = document.getElementById('inputRoutineCategory');
+  if (catInp) catInp.value = item.category || '月度关卡';
+  const iconInp = document.getElementById('inputRoutineIcon');
+  if (iconInp) iconInp.value = item.icon || '';
+  const subInp = document.getElementById('inputRoutineSubtasks');
+  if (subInp) subInp.value = (item.subtasks || []).join('\\n');
 
   const delBtn = document.getElementById('btnDeleteRoutineInModal');
   if (delBtn) {
@@ -13184,12 +13300,12 @@ function handleRoutineTypeChange() {
   const valInp = document.getElementById('inputRoutineValue');
   if (!sel || !label || !valInp) return;
   if (sel.value === 'date') {
-    label.textContent = '具体日期 (1~31 号)';
+    label.textContent = '计划时间 (1~31 号)';
     valInp.min = '1';
     valInp.max = '31';
     if (parseInt(valInp.value, 10) > 31) valInp.value = '31';
   } else {
-    label.textContent = '周期周次 (第 1~5 周)';
+    label.textContent = '计划时间 (第 1~5 周)';
     valInp.min = '1';
     valInp.max = '5';
     if (parseInt(valInp.value, 10) > 5) valInp.value = '2';
@@ -13284,13 +13400,13 @@ let currentLinkCategoryFilter = 'ALL';
 function renderLinks() {
   // 1. Settings (Custom module title & persona tag)
   const settings = getData(STORAGE_KEYS.LINK_SETTINGS, {
-    title: '每月要完成的事 · Monthly Routine',
-    tag: '🗓️ 月度里程碑'
+    title: '月度闯关 · Monthly Quest',
+    tag: '🎯 月度打卡闯关'
   });
   const titleEl = document.getElementById('linksModuleTitleText');
-  if (titleEl) titleEl.textContent = settings.title || '每月要完成的事 · Monthly Routine';
+  if (titleEl) titleEl.textContent = settings.title || '月度闯关 · Monthly Quest';
   const tagEl = document.getElementById('linksModuleTagText');
-  if (tagEl) tagEl.textContent = settings.tag || '🗓️ 月度里程碑';
+  if (tagEl) tagEl.textContent = settings.tag || '🎯 月度打卡闯关';
 
   // 2. Fetch and normalize links
   let links = getData(STORAGE_KEYS.LINKS, []);
@@ -13619,9 +13735,9 @@ const DEFAULT_MODULE_CONFIGS = {
     tagEl: 'timezoneModuleTagText'
   },
   links: {
-    name: '每月要完成的事',
-    defaultTitle: '每月要完成的事 · Monthly Routine',
-    defaultTag: '🗓️ 月度里程碑',
+    name: '月度闯关',
+    defaultTitle: '月度闯关 · Monthly Quest',
+    defaultTag: '🎯 月度打卡闯关',
     titleEl: 'linksModuleTitleText',
     tagEl: 'linksModuleTagText'
   },
@@ -14275,8 +14391,8 @@ function initSeeds() {
 
   if (!localStorage.getItem(STORAGE_KEYS.LINK_SETTINGS)) {
     setData(STORAGE_KEYS.LINK_SETTINGS, {
-      title: "每月要完成的事 · Monthly Routine",
-      tag: "🗓️ 月度里程碑"
+      title: "月度闯关 · Monthly Quest",
+      tag: "🎯 月度打卡闯关"
     });
   }
 
