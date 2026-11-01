@@ -6857,13 +6857,17 @@ function syncKeyToHostDatabase(key, val) {
   if (typeof fetch !== 'function' || typeof window === 'undefined' || !window.location || !window.location.protocol.startsWith('http')) {
     return;
   }
+  // Personal scratchpad/blackboard is authoritative on this device - never use optimistic locking against own typing!
+  const isBlackboard = (key === STORAGE_KEYS.BLACKBOARD_RECORDS);
+  const expectedVer = isBlackboard ? null : (_hostDbVersions[key] || null);
+
   fetch('/api/set', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       key: key,
       val: val,
-      expectedUpdatedAt: _hostDbVersions[key] || null
+      expectedUpdatedAt: expectedVer
     })
   }).then(res => {
     if (res.status === 401) {
@@ -6880,18 +6884,19 @@ function syncKeyToHostDatabase(key, val) {
     } else if (result.status === 409 && data && data.error === 'SYNC_CONFLICT') {
       _hostDbVersions[key] = data.currentVersion;
       _hostDbLastMod = Math.max(_hostDbLastMod, data.currentVersion || 0);
-      const isTypingChalkboard = (key === STORAGE_KEYS.BLACKBOARD_RECORDS && document.activeElement && document.activeElement.id === 'chalkboardDirectInput');
-      if (isTypingChalkboard) {
-        // While user is actively typing on the chalkboard, do not wipe out their active draft
+
+      if (key === STORAGE_KEYS.BLACKBOARD_RECORDS) {
+        // Silently retry pushing the user's latest local text without conflict toast
         setTimeout(() => {
           const currentLocal = getData(key, null);
           if (currentLocal) syncKeyToHostDatabase(key, currentLocal);
-        }, 300);
-      } else {
-        localStorage.setItem(key, JSON.stringify(data.currentValue));
-        refreshAllViewsFromDatabase();
-        showToast('检测到另一台设备刚刚更新了这项内容，已保留服务器上的最新版本');
+        }, 500);
+        return;
       }
+
+      localStorage.setItem(key, JSON.stringify(data.currentValue));
+      refreshAllViewsFromDatabase();
+      showToast('检测到另一台设备刚刚更新了这项内容，已保留服务器上的最新版本');
     }
   }).catch(err => {
     console.warn('Host DB Sync error:', err);
@@ -6963,7 +6968,7 @@ function pollHostDatabaseChanges() {
         _hostDbLastMod = resData.lastModified;
         const remote = resData.data || {};
         Object.assign(_hostDbVersions, resData.versions || {});
-        const isTypingChalkboard = (document.activeElement && document.activeElement.id === 'chalkboardDirectInput');
+        const isTypingChalkboard = (document.activeElement && document.activeElement.id === 'chalkboardDirectInput') || _isBlackboardComposing;
         Object.keys(remote).forEach(k => {
           try {
             if (k === STORAGE_KEYS.BLACKBOARD_RECORDS && isTypingChalkboard) return;
@@ -7259,13 +7264,16 @@ function renderChalkboard(dateStr) {
   // Populate textarea directly (only when not actively typing to avoid cursor jump or IME interruption)
   const textarea = document.getElementById('chalkboardDirectInput');
   if (textarea) {
-    if (document.activeElement !== textarea) {
+    const isEditing = (document.activeElement === textarea) || _isBlackboardComposing;
+    if (!isEditing) {
       const record = records[currentBlackboardDate];
       let val = '';
       if (record) {
         val = record.content || record.notes || [record.highlight, record.notes, record.reflection].filter(Boolean).join('\\n\\n') || '';
       }
-      textarea.value = val;
+      if (textarea.value !== val) {
+        textarea.value = val;
+      }
     }
   }
 }
@@ -7287,6 +7295,7 @@ function initBlackboardInputListeners() {
     handleDirectBlackboardInput();
   });
   textarea.addEventListener('blur', () => {
+    if (_isBlackboardComposing) return;
     if (_blackboardDebounceTimer) {
       clearTimeout(_blackboardDebounceTimer);
       _blackboardDebounceTimer = null;
@@ -7296,11 +7305,14 @@ function initBlackboardInputListeners() {
 }
 
 function handleDirectBlackboardInput() {
+  // If user is currently composing Chinese Pinyin, DO NOT update storage or sync until confirmed!
+  if (_isBlackboardComposing) return;
+
   const textarea = document.getElementById('chalkboardDirectInput');
   if (!textarea) return;
 
   const text = textarea.value;
-  // 1. Immediately cache in localStorage so no keystroke or Chinese character is lost
+  // 1. Immediately cache in localStorage so no confirmed Chinese text is lost
   try {
     const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
     if (!records[currentBlackboardDate]) {
@@ -7312,19 +7324,17 @@ function handleDirectBlackboardInput() {
     localStorage.setItem(STORAGE_KEYS.BLACKBOARD_RECORDS, JSON.stringify(records));
   } catch (e) {}
 
-  // 2. If IME Pinyin composition is active, wait until composition completes
-  if (_isBlackboardComposing) return;
-
-  // 3. Debounce sync to remote backend (500ms) to prevent network lag, 409 conflicts, and IME cursor interruption
+  // 2. Debounce sync to remote backend (800ms) so smooth typing is never interrupted
   if (_blackboardDebounceTimer) {
     clearTimeout(_blackboardDebounceTimer);
   }
   _blackboardDebounceTimer = setTimeout(() => {
     commitBlackboardDirectInput();
-  }, 500);
+  }, 800);
 }
 
 function commitBlackboardDirectInput() {
+  if (_isBlackboardComposing) return;
   const textarea = document.getElementById('chalkboardDirectInput');
   if (!textarea) return;
   const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});

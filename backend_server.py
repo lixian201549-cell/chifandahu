@@ -465,7 +465,10 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
                 self._json_response(400, {"success": False, "error": "Invalid storage key"})
                 return
             expected = request_data.get("expectedUpdatedAt")
-            if expected is not None and not isinstance(expected, (int, float)):
+            # Blackboard is a live personal scratchpad; always allow direct save without conflict collision
+            if key == "snoopy_blackboard_records_v1":
+                expected = None
+            elif expected is not None and not isinstance(expected, (int, float)):
                 self._json_response(400, {"success": False, "error": "Invalid version"})
                 return
             success, version, current_value = db_set_key(key, request_data.get("val"), expected)
