@@ -4779,6 +4779,11 @@ html_template = """<!DOCTYPE html>
         <span>HOME</span>
       </button>
 
+      <button class="nav-tab" data-tab="links" onclick="switchTab('links')">
+        <img src="__IMG_JOE_COOL__" alt="每月要完成的事" />
+        <span>每月要完成的事</span>
+      </button>
+
       <button class="nav-tab" data-tab="todo" onclick="switchTab('todo')">
         <img src="__IMG_BEAGLE_SCOUT__" alt="今日任务" />
         <span>今日任务</span>
@@ -4792,11 +4797,6 @@ html_template = """<!DOCTYPE html>
       <button class="nav-tab" data-tab="timezone" onclick="switchTab('timezone')">
         <img src="__IMG_FLYING_ACE__" alt="时区协同" />
         <span>时区协同</span>
-      </button>
-
-      <button class="nav-tab" data-tab="links" onclick="switchTab('links')">
-        <img src="__IMG_JOE_COOL__" alt="每月要完成的事" />
-        <span>每月要完成的事</span>
       </button>
 
       <button class="nav-tab" data-tab="notes" onclick="switchTab('notes')">
@@ -4903,7 +4903,86 @@ html_template = """<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- ================= 2. 今日任务 (今日任务 · Beagle Scout) ================= -->
+    <!-- ================= 2. 每月要完成的事 (每月要完成的事 · Snoopy Routine) ================= -->
+    <div class="tab-pane" id="pane-links">
+      <div class="module-header-banner theme-links">
+        <div class="module-banner-left">
+          <img src="__IMG_JOE_COOL__" class="module-banner-avatar" alt="每月要完成的事" />
+          <div>
+            <div class="module-banner-title">
+              <span id="linksModuleTitleText">每月要完成的事 · Monthly Routine</span>
+              <button class="module-edit-btn" onclick="openEditModuleModal('links')" title="自定义月度事项板块">✏️</button>
+              <span class="persona-tag" id="linksModuleTagText">🗓️ 月度里程碑</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="module-banner-right">
+          <div class="stat-box">
+            <div class="stat-num" id="statMonthlyProgress" style="color:#0891b2;">0 / 4</div>
+            <div class="stat-label">本月已完成</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="statMonthlyNextDate" style="color:#6366f1; font-size:15px; font-weight:800;">11月9日</div>
+            <div class="stat-label">最近节点</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openAddMonthlyRoutineModal()">➕ 添加月度事项</button>
+        </div>
+      </div>
+
+      <!-- 月度事项主卡片 -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-body">
+          <!-- 月份选择与进度条栏 -->
+          <div class="monthly-month-bar">
+            <div class="monthly-month-nav">
+              <button class="btn btn-sm btn-ghost" onclick="changeRoutineMonth(-1)" title="查看上个月">◀ 上月</button>
+              <span class="monthly-month-title" id="currentRoutineMonthDisplay">2026年 11月</span>
+              <button class="btn btn-sm btn-ghost" onclick="changeRoutineMonth(1)" title="查看下个月">下月 ▶</button>
+              <button class="btn btn-sm btn-outline" onclick="resetRoutineMonthToCurrent()" style="margin-left:6px; font-size:12px;">回到本月</button>
+            </div>
+            <div class="monthly-progress-box">
+              <span style="font-size:12.5px; color:var(--text-secondary); font-weight:600;">月度事项推进：</span>
+              <div class="routine-progress-track">
+                <div class="routine-progress-fill" id="routineProgressFill" style="width:0%;"></div>
+              </div>
+              <span id="routineProgressPercent" style="font-size:13px; font-weight:800; color:var(--text-primary); min-width:38px;">0%</span>
+            </div>
+          </div>
+
+          <!-- 动态渲染的月度时间线 (简洁无冗余文案) -->
+          <div class="routine-timeline" id="monthlyTimelineContainer">
+            <!-- 由 renderMonthlyRoutines() 动态填充 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 可折叠的常用链接工具箱 (保留原有网址收录与快捷直达能力) -->
+      <div class="card" style="margin-top:20px; border:1px solid var(--border);">
+        <div class="card-header" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:14px 18px; user-select:none; background:var(--card-subtle);" onclick="toggleLinksCollapse()">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:17px;">🔗</span>
+            <span style="font-weight:700; font-size:14px; color:var(--text-primary);">常用办公链接（快捷导航工具箱）</span>
+            <span class="badge" id="statLinkCountBadge" style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px;">已收录</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); openAddLinkModal()" style="font-size:12px;">➕ 添加新链接</button>
+            <span id="linksCollapseIcon" style="font-size:12px; color:var(--text-muted); font-weight:700;">▼ 展开</span>
+          </div>
+        </div>
+        <div id="linksCollapseBody" style="display:none; padding:16px 18px; border-top:1px solid var(--border);">
+          <div class="links-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+            <div class="links-category-tabs" id="linksCategoryTabs" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"></div>
+            <div>
+              <button class="btn btn-sm btn-ghost" onclick="openManageCategoriesModal()" style="font-size:12px;">🏷️ 管理/修改分类名称</button>
+            </div>
+          </div>
+          <div class="links-grid" id="linksFullGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 3. 今日任务 (今日任务 · Beagle Scout) ================= -->
     <div class="tab-pane" id="pane-todo">
       <!-- Unified Module Header Banner (Clean, no unnecessary slogans) -->
       <div class="module-header-banner theme-todo">
@@ -5099,94 +5178,6 @@ html_template = """<!DOCTYPE html>
         </div>
 
         <div id="tzSimResults"></div>
-      </div>
-    </div>
-
-    <!-- ================= 5. 每月要完成的事 (每月要完成的事 · Snoopy Routine) ================= -->
-    <div class="tab-pane" id="pane-links">
-      <div class="module-header-banner theme-links">
-        <div class="module-banner-left">
-          <img src="__IMG_JOE_COOL__" class="module-banner-avatar" alt="每月要完成的事" />
-          <div>
-            <div class="module-banner-title">
-              <span id="linksModuleTitleText">每月要完成的事 · Monthly Routine</span>
-              <button class="module-edit-btn" onclick="openEditModuleModal('links')" title="自定义月度事项板块">✏️</button>
-              <span class="persona-tag" id="linksModuleTagText">🗓️ 月度里程碑</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="module-banner-right">
-          <div class="stat-box">
-            <div class="stat-num" id="statMonthlyProgress" style="color:#0891b2;">0 / 4</div>
-            <div class="stat-label">本月已完成</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-num" id="statMonthlyNextDate" style="color:#6366f1; font-size:15px; font-weight:800;">11月9日</div>
-            <div class="stat-label">最近节点</div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="openAddMonthlyRoutineModal()">➕ 添加月度事项</button>
-        </div>
-      </div>
-
-      <!-- 月度事项主卡片 -->
-      <div class="card" style="margin-bottom:20px;">
-        <div class="card-body">
-          <!-- 月份选择与进度条栏 -->
-          <div class="monthly-month-bar">
-            <div class="monthly-month-nav">
-              <button class="btn btn-sm btn-ghost" onclick="changeRoutineMonth(-1)" title="查看上个月">◀ 上月</button>
-              <span class="monthly-month-title" id="currentRoutineMonthDisplay">2026年 11月</span>
-              <button class="btn btn-sm btn-ghost" onclick="changeRoutineMonth(1)" title="查看下个月">下月 ▶</button>
-              <button class="btn btn-sm btn-outline" onclick="resetRoutineMonthToCurrent()" style="margin-left:6px; font-size:12px;">回到本月</button>
-            </div>
-            <div class="monthly-progress-box">
-              <span style="font-size:12.5px; color:var(--text-secondary); font-weight:600;">月度事项推进：</span>
-              <div class="routine-progress-track">
-                <div class="routine-progress-fill" id="routineProgressFill" style="width:0%;"></div>
-              </div>
-              <span id="routineProgressPercent" style="font-size:13px; font-weight:800; color:var(--text-primary); min-width:38px;">0%</span>
-            </div>
-          </div>
-
-          <!-- 提示横幅 -->
-          <div class="routine-quote-banner">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:18px;">🐶</span>
-              <span><strong>固定节奏，从容推进</strong>：每月按时召开例会、定期发送技术运营月报与遗留任务双周报，每项工作清晰闭环。</span>
-            </div>
-            <span style="font-size:12px; color:#1e40af; opacity:0.85; white-space:nowrap;">时间线视图</span>
-          </div>
-
-          <!-- 动态渲染的月度时间线 -->
-          <div class="routine-timeline" id="monthlyTimelineContainer">
-            <!-- 由 renderMonthlyRoutines() 动态填充 -->
-          </div>
-        </div>
-      </div>
-
-      <!-- 可折叠的常用链接工具箱 (保留原有网址收录与快捷直达能力) -->
-      <div class="card" style="margin-top:20px; border:1px solid var(--border);">
-        <div class="card-header" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:14px 18px; user-select:none; background:var(--card-subtle);" onclick="toggleLinksCollapse()">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:17px;">🔗</span>
-            <span style="font-weight:700; font-size:14px; color:var(--text-primary);">常用办公链接（快捷导航工具箱）</span>
-            <span class="badge" id="statLinkCountBadge" style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px;">已收录</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); openAddLinkModal()" style="font-size:12px;">➕ 添加新链接</button>
-            <span id="linksCollapseIcon" style="font-size:12px; color:var(--text-muted); font-weight:700;">▼ 展开</span>
-          </div>
-        </div>
-        <div id="linksCollapseBody" style="display:none; padding:16px 18px; border-top:1px solid var(--border);">
-          <div class="links-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
-            <div class="links-category-tabs" id="linksCategoryTabs" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"></div>
-            <div>
-              <button class="btn btn-sm btn-ghost" onclick="openManageCategoriesModal()" style="font-size:12px;">🏷️ 管理/修改分类名称</button>
-            </div>
-          </div>
-          <div class="links-grid" id="linksFullGrid"></div>
-        </div>
       </div>
     </div>
 
@@ -12782,13 +12773,7 @@ const DEFAULT_MONTHLY_ROUTINES = [
     timingDisplay: "每月 9 号",
     category: "🏢 内部例会",
     icon: "👥",
-    color: "#3b82f6",
-    subtasks: [
-      "对齐本月团队核心工作重点与交付目标",
-      "梳理重点支撑事项及跨组协同诉求",
-      "输出部门例会纪要并同步相关责任人"
-    ],
-    description: "每月9日定期召开内部部门例会，对齐团队月度核心工作与关键交付目标。"
+    color: "#3b82f6"
   },
   {
     id: 2,
@@ -12798,13 +12783,7 @@ const DEFAULT_MONTHLY_ROUTINES = [
     timingDisplay: "每月第二周",
     category: "📊 运营月报 & 双周报",
     icon: "📊",
-    color: "#8b5cf6",
-    subtasks: [
-      "【技术运营月报】汇总当月技术运行健康度、重大保障与关键指标分析",
-      "【遗留任务双周报】梳理上半月遗留任务推进状态与责任人闭环进度",
-      "完成汇报材料终审并正式发送相关管理层与对齐人"
-    ],
-    description: "每月第二周完成编制并发送技术运营月报，同步上半月遗留任务双周跟踪报告。"
+    color: "#8b5cf6"
   },
   {
     id: 3,
@@ -12814,13 +12793,7 @@ const DEFAULT_MONTHLY_ROUTINES = [
     timingDisplay: "每月 20 号",
     category: "💼 NIS跨部门",
     icon: "💼",
-    color: "#0284c7",
-    subtasks: [
-      "参加NIS部门月度例会，汇报重大项目与业务支撑进展",
-      "对齐NIS侧最新规范要求与跨体系重点协同课题",
-      "记录NIS会后待办并纳管至双周跟踪列表"
-    ],
-    description: "每月20日定期参加NIS部门月度例会，汇报业务进展与对接协同议题。"
+    color: "#0284c7"
   },
   {
     id: 4,
@@ -12830,13 +12803,7 @@ const DEFAULT_MONTHLY_ROUTINES = [
     timingDisplay: "每月第四周",
     category: "📋 遗留任务双周报",
     icon: "📋",
-    color: "#0d9488",
-    subtasks: [
-      "全量盘点下半月及全月遗留任务闭环清零情况",
-      "标注入库新风险点、阻塞点与下月重点攻克计划",
-      "完成下半月双周报终审并正式发送抄送各相关方"
-    ],
-    description: "每月第四周跟踪梳理月末遗留任务闭环清零情况，编制并发送下半月遗留任务双周报。"
+    color: "#0d9488"
   }
 ];
 
@@ -12929,6 +12896,20 @@ function renderMonthlyRoutines() {
   if (!routines || !Array.isArray(routines) || routines.length === 0) {
     routines = DEFAULT_MONTHLY_ROUTINES;
     setData(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
+  } else {
+    // Purge verbose default descriptions and subtasks to ensure an ultra-clean minimal panel
+    let modified = false;
+    routines = routines.map(r => {
+      if (r.id <= 4 && (r.description || (r.subtasks && r.subtasks.length > 0))) {
+        modified = true;
+        const { description, subtasks, ...clean } = r;
+        return clean;
+      }
+      return r;
+    });
+    if (modified) {
+      setData(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
+    }
   }
 
   const allChecklists = getData(STORAGE_KEYS.MONTHLY_CHECKLIST, {});
@@ -13024,20 +13005,6 @@ function renderMonthlyRoutines() {
       }
     }
 
-    let subtasksHtml = '';
-    if (item.subtasks && item.subtasks.length > 0) {
-      subtasksHtml = `
-        <div class="routine-subtasks-list">
-          ${item.subtasks.map(s => `
-            <div class="routine-subtask-item">
-              <span class="routine-subtask-bullet">▫️</span>
-              <span>${escapeHtml(s)}</span>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-
     const ruleColor = item.color || '#3b82f6';
     const ruleBg = ruleColor + '18';
 
@@ -13067,10 +13034,6 @@ function renderMonthlyRoutines() {
               <span>${escapeHtml(item.details.fridayHint)}</span>
             </div>
           ` : ''}
-
-          ${item.description ? `<div class="routine-card-desc">${escapeHtml(item.description)}</div>` : ''}
-
-          ${subtasksHtml}
 
           <div class="routine-card-footer">
             <div class="routine-action-left">
