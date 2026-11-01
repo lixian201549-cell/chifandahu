@@ -239,8 +239,8 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
             "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
             "connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
         )
-        if self.path.startswith("/api/") or self.path in ("/login", "/login.html", "/"):
-            self.send_header("Cache-Control", "no-store")
+        if self.path.startswith("/api/") or self.path in ("/login", "/login.html", "/", "/index.html"):
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         super().end_headers()
 
     def _json_response(self, status, payload, extra_headers=None):

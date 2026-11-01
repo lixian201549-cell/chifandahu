@@ -4947,11 +4947,15 @@
   <!-- ================= MODAL: ADD / EDIT SUPERVISOR MEETING ================= -->
   <div class="modal-overlay" id="meetingModal">
     <div class="modal-box" id="meetingModalBox">
-      <div class="modal-header" id="meetingModalHeader" style="cursor: grab; user-select: none;">
+      <!-- Top Drag Grip Bar -->
+      <div class="modal-drag-handle-bar" style="width: 100%; padding: 8px 0 4px 0; background: #f8fafc; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: center; align-items: center; cursor: grab; touch-action: none; user-select: none; border-bottom: 1px solid #f1f5f9;" title="按住可自由拖动卡片">
+        <div style="width: 44px; height: 4px; background: #94a3b8; border-radius: 2px;"></div>
+      </div>
+      <div class="modal-header" id="meetingModalHeader" style="cursor: grab; user-select: none; touch-action: none; padding-top: 10px;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:4px; background:#f1f5f9; color:#64748b; font-size:13px; cursor:grab;" title="按住可自由拖拽移动卡片">✥</span>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:#e0f2fe; color:#0284c7; font-size:14px; font-weight:bold; cursor:grab;" title="按住可自由拖拽移动卡片">✥</span>
           <div class="modal-title" id="meetingModalTitle">登记主管会议预约</div>
-          <span style="font-size:11px; color:#94a3b8; font-weight:normal; margin-left:4px;">(按住顶部栏可自由移动)</span>
+          <span style="font-size:11.5px; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:12px; font-weight:normal; margin-left:4px;">✋ 按住顶部栏可随意移动</span>
         </div>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('meetingModal')">✕</button>
       </div>
@@ -7576,7 +7580,7 @@ function getTripForDate(dateStr) {
   const match = trips.find(t => t.startDate <= dateStr && dateStr <= t.endDate);
   if (!match) return null;
   const tzInfo = TRIP_TIMEZONE_MAP[match.destination] || TRIP_TIMEZONE_MAP.cairo;
-  const diffHours = (tzInfo.utcOffset !== undefined) ? (tzInfo.utcOffset - 3) : 0;
+  const diffHours = (tzInfo.utcOffset !== undefined) ? (tzInfo.utcOffset - 2) : 0;
   return {
     ...match,
     tzInfo,
@@ -7858,7 +7862,7 @@ function parseDateTimeToUtcMs(dateStr, timeStr, tzKey) {
   const [year, month, day] = dParts;
   const [hour, min] = tParts;
   const tz = TRIP_TIMEZONE_MAP[tzKey] || TRIP_TIMEZONE_MAP.cairo;
-  const utcOffset = tz.utcOffset !== undefined ? tz.utcOffset : 3;
+  const utcOffset = tz.utcOffset !== undefined ? tz.utcOffset : 2;
   return Date.UTC(year, month - 1, day, hour - utcOffset, min);
 }
 
@@ -14399,11 +14403,10 @@ function deleteCurrentEditNote() {
 function initModalDragSystem() {
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
     const box = overlay.querySelector('.modal-box, .celebration-modal-box');
-    const header = overlay.querySelector('.modal-header');
-    if (!box || !header) return;
+    if (!box) return;
 
-    header.style.cursor = 'grab';
-    header.style.userSelect = 'none';
+    const handles = box.querySelectorAll('.modal-header, .modal-drag-handle-bar, .modal-footer');
+    if (handles.length === 0) return;
 
     let isDragging = false;
     let startX = 0, startY = 0;
@@ -14419,28 +14422,44 @@ function initModalDragSystem() {
       box.style.animation = '';
     };
 
-    function onPointerDown(e) {
-      if (e.target.closest('button, input, select, textarea, a, .btn')) return;
+    function startDrag(e) {
+      if (e.target.closest('button, input, select, textarea, a, .btn, label, option, summary')) return;
+      if (e.button !== undefined && e.button !== 0) return; // Only left-click
+      if (e.cancelable) e.preventDefault();
+
       isDragging = true;
-      startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-      startY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+      const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+
+      startX = clientX;
+      startY = clientY;
       initX = curX;
       initY = curY;
-      header.style.cursor = 'grabbing';
+
       box.style.animation = 'none';
+      box.style.transition = 'none';
       document.body.style.userSelect = 'none';
 
-      window.addEventListener('mousemove', onPointerMove, { passive: false });
-      window.addEventListener('mouseup', onPointerUp);
-      window.addEventListener('touchmove', onPointerMove, { passive: false });
-      window.addEventListener('touchend', onPointerUp);
+      const activeHandle = e.currentTarget;
+      if (activeHandle && activeHandle.setPointerCapture && e.pointerId !== undefined) {
+        try { activeHandle.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+
+      window.addEventListener('pointermove', onMove, { passive: false });
+      window.addEventListener('pointerup', endDrag);
+      window.addEventListener('pointercancel', endDrag);
+      window.addEventListener('mousemove', onMove, { passive: false });
+      window.addEventListener('mouseup', endDrag);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', endDrag);
     }
 
-    function onPointerMove(e) {
+    function onMove(e) {
       if (!isDragging) return;
       if (e.cancelable) e.preventDefault();
-      const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-      const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+
+      const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
 
       curX = initX + (clientX - startX);
       curY = initY + (clientY - startY);
@@ -14448,20 +14467,28 @@ function initModalDragSystem() {
       box.style.transform = `translate(${curX}px, ${curY}px)`;
     }
 
-    function onPointerUp() {
+    function endDrag(e) {
       if (!isDragging) return;
       isDragging = false;
-      header.style.cursor = 'grab';
       document.body.style.userSelect = '';
 
-      window.removeEventListener('mousemove', onPointerMove);
-      window.removeEventListener('mouseup', onPointerUp);
-      window.removeEventListener('touchmove', onPointerMove);
-      window.removeEventListener('touchend', onPointerUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', endDrag);
+      window.removeEventListener('pointercancel', endDrag);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', endDrag);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', endDrag);
     }
 
-    header.addEventListener('mousedown', onPointerDown);
-    header.addEventListener('touchstart', onPointerDown, { passive: true });
+    handles.forEach(h => {
+      h.style.cursor = 'grab';
+      h.style.touchAction = 'none';
+      h.style.userSelect = 'none';
+      h.addEventListener('pointerdown', startDrag);
+      h.addEventListener('mousedown', startDrag);
+      h.addEventListener('touchstart', startDrag, { passive: false });
+    });
   });
 }
 
