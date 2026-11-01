@@ -5272,7 +5272,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.0.5</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.0.6</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -14715,8 +14715,7 @@ function openEditMonthlyRoutineModal(routineId) {
   document.getElementById('inputRoutineValue').value = item.value || 1;
   document.getElementById('inputRoutineCategory').value = item.category || '月度例行';
   document.getElementById('inputRoutineIcon').value = item.icon || '📌';
-  document.getElementById('inputRoutineSubtasks').value = (item.subtasks || []).join('
-');
+  document.getElementById('inputRoutineSubtasks').value = (item.subtasks || []).join('\n');
 
   const delBtn = document.getElementById('btnDeleteRoutineInModal');
   if (delBtn) {
@@ -14762,8 +14761,7 @@ function saveMonthlyRoutineItem() {
     return;
   }
 
-  const subtasks = subtasksRaw ? subtasksRaw.split('
-').map(s => s.replace(/^[•\-\*▫️\s]+/, '').trim()).filter(Boolean) : [];
+  const subtasks = subtasksRaw ? subtasksRaw.split(/\r?\n/).map(s => s.replace(/^[•\-\*▫️\s]+/, '').trim()).filter(Boolean) : [];
 
   let routines = getData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
   const timingDisplay = (type === 'date') ? `每月 ${value} 号` : `每月第 ${value} 周`;
@@ -15956,7 +15954,7 @@ renderHomeDashboard();
 initBlackboardInputListeners();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.0.5';
+window.APP_VERSION = 'v1.0.6';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>

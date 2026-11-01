@@ -61,7 +61,23 @@ def test_monthly_routines():
         for fn in js_functions:
             assert fn in content, f"Missing JS function {fn} in {name}"
 
-        print(f"✓ All checks passed for {name}!")
+        # Check JavaScript syntax execution via Node
+        import subprocess
+        res = subprocess.run([
+            "node", "-e",
+            f"""
+            const fs = require('fs');
+            const html = fs.readFileSync('{path}', 'utf8');
+            const scripts = html.match(/<script>([\\s\\S]*?)<\\/script>/g) || [];
+            for (let i = 0; i < scripts.length; i++) {{
+              const code = scripts[i].replace(/<\\/?script>/g, '');
+              new Function(code);
+            }}
+            """
+        ], capture_output=True, text=True)
+        assert res.returncode == 0, f"JS Syntax error in {name}: {res.stderr}"
+
+        print(f"✓ All checks & JS syntax passed for {name}!")
 
     print("✨ All Monthly Routine tests passed successfully!")
 

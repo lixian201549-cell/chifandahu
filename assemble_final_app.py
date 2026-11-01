@@ -13205,7 +13205,7 @@ function openEditMonthlyRoutineModal(routineId) {
   document.getElementById('inputRoutineValue').value = item.value || 1;
   document.getElementById('inputRoutineCategory').value = item.category || '月度例行';
   document.getElementById('inputRoutineIcon').value = item.icon || '📌';
-  document.getElementById('inputRoutineSubtasks').value = (item.subtasks || []).join('\n');
+  document.getElementById('inputRoutineSubtasks').value = (item.subtasks || []).join('\\n');
 
   const delBtn = document.getElementById('btnDeleteRoutineInModal');
   if (delBtn) {
@@ -13251,7 +13251,7 @@ function saveMonthlyRoutineItem() {
     return;
   }
 
-  const subtasks = subtasksRaw ? subtasksRaw.split('\n').map(s => s.replace(/^[•\-\*▫️\s]+/, '').trim()).filter(Boolean) : [];
+  const subtasks = subtasksRaw ? subtasksRaw.split(/\\r?\\n/).map(s => s.replace(/^[•\\-\\*▫️\\s]+/, '').trim()).filter(Boolean) : [];
 
   let routines = getData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
   const timingDisplay = (type === 'date') ? `每月 ${value} 号` : `每月第 ${value} 周`;
