@@ -5821,7 +5821,7 @@ html_template = """<!DOCTYPE html>
   <div class="modal-overlay" id="tomorrowReminderModal">
     <div class="modal-box" style="max-width: 580px;">
       <div class="modal-header">
-        <div class="modal-title">📋 提醒领导明日日程备忘</div>
+        <div class="modal-title">📋 曦总日程安排</div>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('tomorrowReminderModal')">✕</button>
       </div>
       <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
@@ -5835,7 +5835,7 @@ html_template = """<!DOCTYPE html>
         </div>
 
         <div>
-          <label style="font-size:12.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:6px;">提醒文案预览（可直接在此微调修改）：</label>
+          <label style="font-size:12.5px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:6px;">日程文案预览（可直接在此微调修改）：</label>
           <textarea id="reminderMessagePreview" rows="12" style="width:100%; box-sizing:border-box; font-family:var(--font-mono); font-size:13px; line-height:1.6; padding:12px; border:1px solid var(--border); border-radius:6px; resize:vertical; background:var(--card-subtle); color:var(--text-primary);"></textarea>
         </div>
       </div>
@@ -10433,45 +10433,32 @@ function updateTomorrowReminderPreview() {
 
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
   const dayMeetings = allMeetings.filter(m => m.date === targetDateStr && m.status === 'scheduled');
-  dayMeetings.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  dayMeetings.sort((a, b) => (a.startTime || a.time || '10:00').localeCompare(b.startTime || b.time || '10:00'));
 
   const trip = getTripForDate(targetDateStr);
 
   const lines = [];
-  lines.push(`【领导明日日程备忘 · ${dateFormatted}】`);
+  lines.push(`曦总日程安排 · ${dateFormatted}`);
   if (trip) {
-    lines.push(`📍 当前出差：${trip.destination} (${trip.tzName || ''}当地时间)`);
+    lines.push(`📍 出差地：${trip.destination} (${trip.tzName || ''}当地时间)`);
   }
-  lines.push('──────────────────────────────');
+  lines.push('');
 
   if (dayMeetings.length === 0) {
-    lines.push(`领导您好，明日（${dateFormatted}）暂无已排期会议安排，祝您工作顺利！`);
+    lines.push('明日暂无已排期会议安排。');
   } else {
-    lines.push(`领导您好，为您整理明日（${dateFormatted}）共有 ${dayMeetings.length} 场会议安排：\\n`);
     dayMeetings.forEach((mItem, index) => {
+      const subject = mItem.subject || mItem.title || '待定会议';
       const dtInfo = getMeetingDisplayTime(mItem);
       let timeLabel = '';
       if (dtInfo.isTripDate && dtInfo.tzName) {
         timeLabel = `${dtInfo.start} - ${dtInfo.end} (${dtInfo.tzName}当地时间 / 开罗 ${dtInfo.cairoStart})`;
       } else {
-        timeLabel = `${dtInfo.cairoStart} - ${dtInfo.cairoEnd} (开罗时间)`;
+        timeLabel = `${dtInfo.cairoStart} - ${dtInfo.cairoEnd}`;
       }
 
-      lines.push(`${index + 1}. ⏰ 时间：${timeLabel}`);
-      lines.push(`   📌 会议：${mItem.title || '待定会议'}`);
-      if (mItem.location) {
-        lines.push(`   📍 会议室/地点：${mItem.location}`);
-      }
-      if (mItem.attendees) {
-        lines.push(`   👥 参会人：${mItem.attendees}`);
-      }
-      if (mItem.decision) {
-        lines.push(`   🎯 核心决策点：${mItem.decision}`);
-      }
-      lines.push('');
+      lines.push(`${index + 1}. ${subject}  ${timeLabel}`);
     });
-    lines.push('──────────────────────────────');
-    lines.push('秘书处提醒：相关汇报材料已提前备齐放置于桌面，请各参会人提前5分钟到场。');
   }
 
   const ta = document.getElementById('reminderMessagePreview');
@@ -10485,10 +10472,10 @@ function copyTomorrowReminderContent() {
   if (!ta) return;
   const text = ta.value.trim();
   if (!text) {
-    showToast('暂无可复制的提醒内容');
+    showToast('暂无可复制的日程内容');
     return;
   }
-  copyToClipboard(text, '✨ 明日会议提醒已成功复制，可直接发送给领导！');
+  copyToClipboard(text, '✨ 曦总日程安排已成功复制，可直接发送！');
 }
 
 function resetMeetingsToDefault() {
