@@ -4628,7 +4628,7 @@
 
         <div class="module-banner-right">
           <div class="stat-box" style="text-align:right; min-width:140px; padding:8px 16px;">
-            <div style="font-size:11px; color:var(--text-muted); font-weight:600;">🇪🇬 开罗时间 (UTC+3)</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600;">🇪🇬 开罗时间 (UTC+2 · 冬令时)</div>
             <div class="stat-num" id="tzBigCairoClock" style="font-size:22px; color:var(--text-primary); margin-top:2px;">--:--:--</div>
           </div>
         </div>
@@ -4646,7 +4646,7 @@
         <div class="tz-sim-row" style="background:var(--card-subtle); padding:10px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:14px; display:flex; align-items:center; gap:8px; flex-wrap:nowrap; overflow-x:auto;">
           <label style="font-size:12px; font-weight:700; white-space:nowrap;">基准时区：</label>
           <select id="simBaseTimezone" onchange="updateTzSimulator()" style="padding:4px 8px; font-size:12px; font-weight:600; border:1px solid var(--border); border-radius:4px; background:#fff; white-space:nowrap;">
-            <option value="cairo" selected>埃及·开罗 (UTC+3)</option>
+            <option value="cairo" selected>埃及·开罗 (UTC+2)</option>
             <option value="med_south_libya">地南·利比亚 (UTC+2)</option>
             <option value="med_south_tunis">地南·突尼斯 (UTC+1)</option>
             <option value="cameroon">喀麦隆 (UTC+1)</option>
@@ -4946,9 +4946,13 @@
 
   <!-- ================= MODAL: ADD / EDIT SUPERVISOR MEETING ================= -->
   <div class="modal-overlay" id="meetingModal">
-    <div class="modal-box">
-      <div class="modal-header">
-        <div class="modal-title" id="meetingModalTitle">登记主管会议预约</div>
+    <div class="modal-box" id="meetingModalBox">
+      <div class="modal-header" id="meetingModalHeader" style="cursor: grab; user-select: none;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:4px; background:#f1f5f9; color:#64748b; font-size:13px; cursor:grab;" title="按住可自由拖拽移动卡片">✥</span>
+          <div class="modal-title" id="meetingModalTitle">登记主管会议预约</div>
+          <span style="font-size:11px; color:#94a3b8; font-weight:normal; margin-left:4px;">(按住顶部栏可自由移动)</span>
+        </div>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('meetingModal')">✕</button>
       </div>
       <div class="modal-body">
@@ -4961,7 +4965,7 @@
             <div style="display:flex; align-items:center; gap:6px; flex:1;">
               <span style="font-size:12px; font-weight:700; color:#15803d; white-space:nowrap;">🌍 录入时区：</span>
               <select id="inputMeetingTimezoneBase" onchange="handleMeetingModalTimezoneChange()" style="font-size:12px; font-weight:600; padding:3px 8px; border:1px solid #86efac; border-radius:4px; background:#fff; color:#166534; flex:1; max-width:270px;">
-                <option value="cairo" selected>埃及·开罗 (UTC+3)</option>
+                <option value="cairo" selected>埃及·开罗 (UTC+2)</option>
                 <option value="cameroon">喀麦隆 (UTC+1)</option>
                 <option value="med_south_libya">利比亚 (UTC+2)</option>
                 <option value="med_south_tunis">突尼斯 (UTC+1)</option>
@@ -5161,16 +5165,16 @@
         <div>
           <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px;">1. 选择出差目的地</label>
           <select id="inputTripDestination" class="form-control" style="width:100%; padding:7px 10px; font-size:12.5px; font-weight:600; border:1px solid var(--border); border-radius:var(--radius-sm); background:#fff;">
-            <option value="med_south_tunis" selected>🇹🇳 地南·突尼斯 (UTC+1 · 比开罗慢 2 小时)</option>
-            <option value="med_south_libya">🇱🇾 地南·利比亚 (UTC+2 · 比开罗慢 1 小时)</option>
-            <option value="algeria">🇩🇿 阿尔及利亚 (UTC+1 · 比开罗慢 2 小时)</option>
-            <option value="morocco">🇲🇦 摩洛哥 (UTC+0 · 比开罗慢 3 小时)</option>
-            <option value="congo_drc">🇨🇩 刚果（金） (UTC+1 · 比开罗慢 2 小时)</option>
-            <option value="cameroon">🇨🇲 喀麦隆 (UTC+1 · 比开罗慢 2 小时)</option>
-            <option value="cote_divoire">🇨🇮 科特迪瓦 (UTC+0 · 比开罗慢 3 小时)</option>
-            <option value="senegal">🇸🇳 塞内加尔 (UTC+0 · 比开罗慢 3 小时)</option>
-            <option value="beijing">🇨🇳 中国·北京 (UTC+8 · 比开罗快 5 小时)</option>
-            <option value="cairo">🇪🇬 埃及·开罗 (UTC+3 · 常驻基准)</option>
+            <option value="med_south_tunis" selected>🇹🇳 地南·突尼斯 (UTC+1 · 比开罗慢 1 小时)</option>
+            <option value="med_south_libya">🇱🇾 地南·利比亚 (UTC+2 · 与开罗无时差)</option>
+            <option value="algeria">🇩🇿 阿尔及利亚 (UTC+1 · 比开罗慢 1 小时)</option>
+            <option value="morocco">🇲🇦 摩洛哥 (UTC+0 · 比开罗慢 2 小时)</option>
+            <option value="congo_drc">🇨🇩 刚果（金） (UTC+1 · 比开罗慢 1 小时)</option>
+            <option value="cameroon">🇨🇲 喀麦隆 (UTC+1 · 比开罗慢 1 小时)</option>
+            <option value="cote_divoire">🇨🇮 科特迪瓦 (UTC+0 · 比开罗慢 2 小时)</option>
+            <option value="senegal">🇸🇳 塞内加尔 (UTC+0 · 比开罗慢 2 小时)</option>
+            <option value="beijing">🇨🇳 中国·北京 (UTC+8 · 比开罗快 6 小时)</option>
+            <option value="cairo">🇪🇬 埃及·开罗 (UTC+2 · 常驻基准)</option>
           </select>
         </div>
 
@@ -5252,7 +5256,7 @@
             <div>
               <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">起飞时区 *</span>
               <select id="inputTransitDepTz" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
-                <option value="cairo" selected>埃及·开罗 (UTC+3)</option>
+                <option value="cairo" selected>埃及·开罗 (UTC+2)</option>
                 <option value="cameroon">喀麦隆 (UTC+1)</option>
                 <option value="med_south_libya">利比亚 (UTC+2)</option>
                 <option value="med_south_tunis">突尼斯 (UTC+1)</option>
@@ -5284,7 +5288,7 @@
             <div>
               <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地时区 *</span>
               <select id="inputTransitArrTz" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
-                <option value="cairo">埃及·开罗 (UTC+3)</option>
+                <option value="cairo">埃及·开罗 (UTC+2)</option>
                 <option value="cameroon" selected>喀麦隆 (UTC+1)</option>
                 <option value="med_south_libya">利比亚 (UTC+2)</option>
                 <option value="med_south_tunis">突尼斯 (UTC+1)</option>
@@ -7422,8 +7426,8 @@ const WOODSTOCK_WHISPERS = [
   "♪ 嗒啦！今日份好运与专注已为您妥善送达！"
 ];
 
-// 6. THE 8 REPRESENTATIVE OFFICES (Sorted chronologically from earliest to latest per Point 3)
-// Earliest local time / ahead timezones come first: UTC+3 (Cairo) -> UTC+2 (Med South Libya) -> UTC+1 (Tunis, Congo DRC, Cameroon, Algeria, Morocco) -> UTC+0 (Côte d'Ivoire, Senegal)
+// 6. THE 8 REPRESENTATIVE OFFICES (Sorted chronologically from earliest to latest)
+// Earliest local time / ahead timezones come first: UTC+2 (Cairo, Libya) -> UTC+1 (Tunis, Congo DRC, Cameroon, Algeria) -> UTC+0 (Morocco, Côte d'Ivoire, Senegal)
 const TIMEZONE_REPS = [
   {
     id: 'cairo',
@@ -7432,9 +7436,9 @@ const TIMEZONE_REPS = [
     city: '开罗 (Cairo)',
     flag: '🇪🇬',
     tz: 'Africa/Cairo',
-    utcOffset: 3,
+    utcOffset: 2,
     isBaseline: true,
-    desc: '开罗基准时区 (UTC+3) · 率先开启工作日'
+    desc: '开罗基准时区 (UTC+2 · 冬令时) · 率先开启工作日'
   },
   {
     id: 'med_south_libya',
@@ -7444,7 +7448,7 @@ const TIMEZONE_REPS = [
     flag: '🇱🇾',
     tz: 'Africa/Tripoli',
     utcOffset: 2,
-    diffText: '比开罗慢 1 小时 (UTC+2 · -1h)',
+    diffText: '同开罗时间 (UTC+2 · 0h)',
     desc: '地中海南代表处 · 利比亚办公点 (UTC+2)'
   },
   {
@@ -7455,7 +7459,7 @@ const TIMEZONE_REPS = [
     flag: '🇹🇳',
     tz: 'Africa/Tunis',
     utcOffset: 1,
-    diffText: '比开罗慢 2 小时 (UTC+1 · -2h)',
+    diffText: '比开罗慢 1 小时 (UTC+1 · -1h)',
     desc: '地中海南代表处 · 突尼斯办公点 (UTC+1)'
   },
   {
@@ -7466,7 +7470,7 @@ const TIMEZONE_REPS = [
     flag: '🇨🇩',
     tz: 'Africa/Kinshasa',
     utcOffset: 1,
-    diffText: '比开罗慢 2 小时',
+    diffText: '比开罗慢 1 小时',
     desc: '中非核心枢纽（金沙萨）'
   },
   {
@@ -7477,7 +7481,7 @@ const TIMEZONE_REPS = [
     flag: '🇨🇲',
     tz: 'Africa/Douala',
     utcOffset: 1,
-    diffText: '比开罗慢 2 小时',
+    diffText: '比开罗慢 1 小时',
     desc: '中西非交汇节点'
   },
   {
@@ -7488,7 +7492,7 @@ const TIMEZONE_REPS = [
     flag: '🇩🇿',
     tz: 'Africa/Algiers',
     utcOffset: 1,
-    diffText: '比开罗慢 2 小时',
+    diffText: '比开罗慢 1 小时',
     desc: '北非重要资源与交付中心'
   },
   {
@@ -7499,7 +7503,7 @@ const TIMEZONE_REPS = [
     flag: '🇲🇦',
     tz: 'Africa/Casablanca',
     utcOffset: 0,
-    diffText: '比开罗慢 3 小时',
+    diffText: '比开罗慢 2 小时',
     desc: '西北非商业重镇 (UTC+0)'
   },
   {
@@ -7510,7 +7514,7 @@ const TIMEZONE_REPS = [
     flag: '🇨🇮',
     tz: 'Africa/Abidjan',
     utcOffset: 0,
-    diffText: '比开罗慢 3 小时',
+    diffText: '比开罗慢 2 小时',
     desc: '西非法语区经济中心'
   },
   {
@@ -7521,23 +7525,23 @@ const TIMEZONE_REPS = [
     flag: '🇸🇳',
     tz: 'Africa/Dakar',
     utcOffset: 0,
-    diffText: '比开罗慢 3 小时',
+    diffText: '比开罗慢 2 小时',
     desc: '西非门户枢纽'
   }
 ];
 
-// 出差目的地时区映射与快速换算配置 (以开罗 UTC+3 为基础)
+// 出差目的地时区映射与快速换算配置 (以开罗冬令时 UTC+2 为基础)
 const TRIP_TIMEZONE_MAP = {
-  cairo: { id: 'cairo', name: '埃及·开罗', utcOffset: 3, flag: '🇪🇬', diffText: '常驻基准' },
-  med_south_libya: { id: 'med_south_libya', name: '地南·利比亚', utcOffset: 2, flag: '🇱🇾', diffText: '慢 1 小时' },
-  med_south_tunis: { id: 'med_south_tunis', name: '地南·突尼斯', utcOffset: 1, flag: '🇹🇳', diffText: '慢 2 小时' },
-  algeria: { id: 'algeria', name: '阿尔及利亚', utcOffset: 1, flag: '🇩🇿', diffText: '慢 2 小时' },
-  morocco: { id: 'morocco', name: '摩洛哥', utcOffset: 0, flag: '🇲🇦', diffText: '慢 3 小时' },
-  congo_drc: { id: 'congo_drc', name: '刚果（金）', utcOffset: 1, flag: '🇨🇩', diffText: '慢 2 小时' },
-  cameroon: { id: 'cameroon', name: '喀麦隆', utcOffset: 1, flag: '🇨🇲', diffText: '慢 2 小时' },
-  cote_divoire: { id: 'cote_divoire', name: '科特迪瓦', utcOffset: 0, flag: '🇨🇮', diffText: '慢 3 小时' },
-  senegal: { id: 'senegal', name: '塞内加尔', utcOffset: 0, flag: '🇸🇳', diffText: '慢 3 小时' },
-  beijing: { id: 'beijing', name: '中国·北京', utcOffset: 8, flag: '🇨🇳', diffText: '快 5 小时' }
+  cairo: { id: 'cairo', name: '埃及·开罗', utcOffset: 2, flag: '🇪🇬', diffText: '常驻基准' },
+  med_south_libya: { id: 'med_south_libya', name: '地南·利比亚', utcOffset: 2, flag: '🇱🇾', diffText: '无时差' },
+  med_south_tunis: { id: 'med_south_tunis', name: '地南·突尼斯', utcOffset: 1, flag: '🇹🇳', diffText: '慢 1 小时' },
+  algeria: { id: 'algeria', name: '阿尔及利亚', utcOffset: 1, flag: '🇩🇿', diffText: '慢 1 小时' },
+  morocco: { id: 'morocco', name: '摩洛哥', utcOffset: 0, flag: '🇲🇦', diffText: '慢 2 小时' },
+  congo_drc: { id: 'congo_drc', name: '刚果（金）', utcOffset: 1, flag: '🇨🇩', diffText: '慢 1 小时' },
+  cameroon: { id: 'cameroon', name: '喀麦隆', utcOffset: 1, flag: '🇨🇲', diffText: '慢 1 小时' },
+  cote_divoire: { id: 'cote_divoire', name: '科特迪瓦', utcOffset: 0, flag: '🇨🇮', diffText: '慢 2 小时' },
+  senegal: { id: 'senegal', name: '塞内加尔', utcOffset: 0, flag: '🇸🇳', diffText: '慢 2 小时' },
+  beijing: { id: 'beijing', name: '中国·北京', utcOffset: 8, flag: '🇨🇳', diffText: '快 6 小时' }
 };
 
 function getActiveTripTimezone() {
@@ -7547,7 +7551,7 @@ function getActiveTripTimezone() {
 function getTripTimezoneDiffHours(targetTzId) {
   const tzId = targetTzId || getActiveTripTimezone();
   const tzInfo = TRIP_TIMEZONE_MAP[tzId] || TRIP_TIMEZONE_MAP.cairo;
-  return tzInfo.utcOffset - 3; // 相对开罗 (UTC+3) 的时差小时数
+  return tzInfo.utcOffset - 2; // 相对开罗冬令时 (UTC+2) 的时差小时数
 }
 
 function shiftTimeStrByHours(timeStr, diffHours) {
@@ -7672,7 +7676,7 @@ function changeTripTimezone(tzId) {
   renderSupervisorWeeklyBoard();
   renderSupervisorDayCalendar();
   if (tzId === 'cairo') {
-    showToast('🇪🇬 已切回开罗常驻基准时区 (UTC+3)');
+    showToast('🇪🇬 已切回开罗常驻基准时区 (UTC+2)');
   } else {
     const tzInfo = TRIP_TIMEZONE_MAP[tzId] || TRIP_TIMEZONE_MAP.cairo;
     showToast(`✈️ 已切换出差时区：${tzInfo.flag} ${tzInfo.name} (比开罗${tzInfo.diffText})`);
@@ -8970,7 +8974,7 @@ function updateChalkboardExecutiveBar() {
       if (trip) {
         tripEl.textContent = `领导动态：✈️ 出差中 · ${trip.tzName || trip.destination}`;
       } else {
-        tripEl.textContent = `领导动态：🏛️ 开罗常驻 (UTC+3)`;
+        tripEl.textContent = `领导动态：🏛️ 开罗常驻 (UTC+2)`;
       }
     }
   }
@@ -8978,7 +8982,7 @@ function updateChalkboardExecutiveBar() {
   // Clock
   if (clockEl) {
     const now = new Date();
-    const cairoH = (now.getUTCHours() + 3 + 24) % 24;
+    const cairoH = (now.getUTCHours() + 2 + 24) % 24;
     const cairoM = now.getUTCMinutes();
     clockEl.textContent = `开罗时间 ${String(cairoH).padStart(2,'0')}:${String(cairoM).padStart(2,'0')}`;
   }
@@ -8991,11 +8995,11 @@ function renderHomeLeaderTrip() {
   const todayStr = getTodayDateStr();
   const trip = getTripForDate(todayStr);
   const now = new Date();
-  const cairoTimeStr = String((now.getUTCHours() + 3 + 24) % 24).padStart(2, '0') + ':' + String(now.getUTCMinutes()).padStart(2, '0');
+  const cairoTimeStr = String((now.getUTCHours() + 2 + 24) % 24).padStart(2, '0') + ':' + String(now.getUTCMinutes()).padStart(2, '0');
   if (trip) {
     container.innerHTML = `<div>✈️ 领导出差中 · ${escapeHtml(trip.destination)}</div>`;
   } else {
-    container.innerHTML = `<div>🏛️ 开罗常驻总部 (UTC+3) · ${cairoTimeStr}</div>`;
+    container.innerHTML = `<div>🏛️ 开罗常驻总部 (UTC+2) · ${cairoTimeStr}</div>`;
   }
 }
 
@@ -12457,7 +12461,12 @@ function renderTimezones() {
   const gridEl = document.getElementById('tzFullGrid');
   if (gridEl) {
     // Sort chronologically from earliest local time to latest (Point 3)
-    const sortedReps = [...TIMEZONE_REPS].sort((a, b) => b.utcOffset - a.utcOffset);
+    const sortedReps = [...TIMEZONE_REPS].sort((a, b) => {
+      if (b.utcOffset !== a.utcOffset) return b.utcOffset - a.utcOffset;
+      if (a.isBaseline) return -1;
+      if (b.isBaseline) return 1;
+      return 0;
+    });
 
     gridEl.innerHTML = sortedReps.map(rep => {
       const timeFmt = new Intl.DateTimeFormat('zh-CN', {
@@ -12550,20 +12559,20 @@ function renderTimezones() {
     miniEl.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px;">
-          <span>🇪🇬 <strong>开罗基准 (UTC+3)</strong> · 埃及代表处</span>
+          <span>🇪🇬 <strong>开罗基准 (UTC+2)</strong> · 埃及代表处</span>
           <span style="font-family:var(--font-mono); font-weight:700; color:var(--text-primary);">${cairoTimeStr}</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-secondary);">
-          <span>🇱🇾 <strong>UTC+2 (-1h)</strong> · 地南·利比亚</span>
+          <span>🇱🇾 <strong>UTC+2 (0h)</strong> · 地南·利比亚</span>
+          <span style="font-family:var(--font-mono); font-weight:600;">无时差</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-secondary);">
+          <span>🇩🇿 <strong>UTC+1 (-1h)</strong> · 地南·突尼斯 / 阿尔及利亚 / 刚果金 / 喀麦隆</span>
           <span style="font-family:var(--font-mono); font-weight:600;">慢 1 小时</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-secondary);">
-          <span>🇩🇿 <strong>UTC+1 (-2h)</strong> · 地南·突尼斯 / 阿尔及利亚 / 刚果金 / 喀麦隆 / 摩洛哥</span>
+          <span>🇨🇮 <strong>UTC+0 (-2h)</strong> · 摩洛哥 / 科特迪瓦 / 塞内加尔</span>
           <span style="font-family:var(--font-mono); font-weight:600;">慢 2 小时</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-secondary);">
-          <span>🇨🇮 <strong>UTC+0 (-3h)</strong> · 科特迪瓦 / 塞内加尔</span>
-          <span style="font-family:var(--font-mono); font-weight:600;">慢 3 小时</span>
         </div>
       </div>
     `;
@@ -12572,7 +12581,7 @@ function renderTimezones() {
 }
 
 const SIM_OFFICES = [
-  { id: 'cairo', name: '埃及代表处', country: '埃及', flag: '🇪🇬', utcOffset: 3, city: '开罗' },
+  { id: 'cairo', name: '埃及代表处', country: '埃及', flag: '🇪🇬', utcOffset: 2, city: '开罗' },
   { id: 'med_south_libya', name: '地南代表处 · 利比亚', country: '利比亚', flag: '🇱🇾', utcOffset: 2, city: '的黎波里 / 班加西' },
   { id: 'med_south_tunis', name: '地南代表处 · 突尼斯', country: '突尼斯', flag: '🇹🇳', utcOffset: 1, city: '突尼斯市' },
   { id: 'congo_drc', name: '刚果代表处', country: '刚果（金）', flag: '🇨🇩', utcOffset: 1, city: '金沙萨' },
@@ -12703,7 +12712,7 @@ function updateTzSimulator() {
         </tbody>
       </table>
     </div>
-    <span style="display:none;" class="tz-sim-test-compat">开罗 (UTC+3) 利比亚 (UTC+2 · 慢1h)</span>
+    <span style="display:none;" class="tz-sim-test-compat">开罗 (UTC+2) 利比亚 (UTC+2 · 0h)</span>
   `;
 }
 function pad(n) {
@@ -14386,6 +14395,76 @@ function deleteCurrentEditNote() {
   deleteNote(id);
 }
 
+// ================= DRAGGABLE MODAL SYSTEM =================
+function initModalDragSystem() {
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    const box = overlay.querySelector('.modal-box, .celebration-modal-box');
+    const header = overlay.querySelector('.modal-header');
+    if (!box || !header) return;
+
+    header.style.cursor = 'grab';
+    header.style.userSelect = 'none';
+
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let curX = 0, curY = 0;
+    let initX = 0, initY = 0;
+
+    box.resetModalPosition = function() {
+      curX = 0;
+      curY = 0;
+      initX = 0;
+      initY = 0;
+      box.style.transform = '';
+      box.style.animation = '';
+    };
+
+    function onPointerDown(e) {
+      if (e.target.closest('button, input, select, textarea, a, .btn')) return;
+      isDragging = true;
+      startX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+      startY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+      initX = curX;
+      initY = curY;
+      header.style.cursor = 'grabbing';
+      box.style.animation = 'none';
+      document.body.style.userSelect = 'none';
+
+      window.addEventListener('mousemove', onPointerMove, { passive: false });
+      window.addEventListener('mouseup', onPointerUp);
+      window.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp);
+    }
+
+    function onPointerMove(e) {
+      if (!isDragging) return;
+      if (e.cancelable) e.preventDefault();
+      const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+      const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+
+      curX = initX + (clientX - startX);
+      curY = initY + (clientY - startY);
+
+      box.style.transform = `translate(${curX}px, ${curY}px)`;
+    }
+
+    function onPointerUp() {
+      if (!isDragging) return;
+      isDragging = false;
+      header.style.cursor = 'grab';
+      document.body.style.userSelect = '';
+
+      window.removeEventListener('mousemove', onPointerMove);
+      window.removeEventListener('mouseup', onPointerUp);
+      window.removeEventListener('touchmove', onPointerMove);
+      window.removeEventListener('touchend', onPointerUp);
+    }
+
+    header.addEventListener('mousedown', onPointerDown);
+    header.addEventListener('touchstart', onPointerDown, { passive: true });
+  });
+}
+
 // ================= UTILITIES & HELPERS =================
 function openModal(id) {
   if (id === 'editLinksModuleModal') {
@@ -14393,7 +14472,13 @@ function openModal(id) {
     return;
   }
   const el = document.getElementById(id);
-  if (el) el.classList.add('active');
+  if (el) {
+    el.classList.add('active');
+    const box = el.querySelector('.modal-box, .celebration-modal-box');
+    if (box && typeof box.resetModalPosition === 'function') {
+      box.resetModalPosition();
+    }
+  }
 }
 function closeModal(id) {
   if (id === 'editLinksModuleModal') id = 'editModuleModal';
@@ -14574,7 +14659,7 @@ function initSeeds() {
 
   if (!localStorage.getItem(STORAGE_KEYS.NOTES)) {
     setData(STORAGE_KEYS.NOTES, [
-      { id: 301, text: "📌 8 代表处时区快速对齐备忘：\n• 开罗（基准）：UTC+3\n• 地南·利比亚：UTC+2 (-1h)\n• 地南·突尼斯、阿尔及利亚、刚果（金）、喀麦隆、摩洛哥：UTC+1 (-2h)\n• 科特迪瓦、塞内加尔：UTC+0 (-3h)\n⚠️ 特别提醒：地中海南管辖突尼斯(UTC+1)与利比亚(UTC+2)，两地相差1小时！\n★ 最佳跨区会议对齐时间：开罗时间 11:00 - 17:00", category: "🌍 代表处对接", time: "09:15" },
+      { id: 301, text: "📌 8 代表处时区快速对齐备忘：\n• 开罗（基准·冬令时）：UTC+2\n• 地南·利比亚：UTC+2 (0h · 无时差)\n• 地南·突尼斯、阿尔及利亚、刚果（金）、喀麦隆：UTC+1 (-1h)\n• 摩洛哥、科特迪瓦、塞内加尔：UTC+0 (-2h)\n⚠️ 特别提醒：地中海南管辖突尼斯(UTC+1)与利比亚(UTC+2)，两地相差1小时！\n★ 最佳跨区会议对齐时间：开罗时间 11:00 - 17:00", category: "🌍 代表处对接", time: "09:15" },
       { id: 302, text: "👔 主管习惯交代备忘：\n• 每次预约必须包含清晰的决策点（最多不超过3条）。\n• 汇报材料在会前半小时打印放置于办公桌右侧。", category: "👔 主管交代", time: "09:30" }
     ]);
   }
@@ -14648,6 +14733,7 @@ if (localStorage.getItem(STORAGE_KEYS.THEME) === 'comic') {
 }
 
 initTimePickers();
+initModalDragSystem();
 document.addEventListener('click', function(e) {
   if (e && e.target && !e.target.closest('.time-picker-wrapper')) {
     closeAllTimePickers();
