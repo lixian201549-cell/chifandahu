@@ -10546,7 +10546,12 @@ function updateTomorrowReminderPreview() {
   const parts = targetDateStr.split('-');
   const mNum = parseInt(parts[1], 10);
   const dNum = parseInt(parts[2], 10);
-  const dateFormatted = `${mNum}月${dNum}日 (${wDay})`;
+
+  const now = new Date();
+  const tm = new Date(now);
+  tm.setDate(now.getDate() + 1);
+  const tmStr = formatDateToStr(tm);
+  const isTomorrow = (targetDateStr === tmStr);
 
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
   const dayMeetings = allMeetings.filter(m => m.date === targetDateStr && m.status === 'scheduled');
@@ -10555,28 +10560,80 @@ function updateTomorrowReminderPreview() {
   const trip = getTripForDate(targetDateStr);
 
   const lines = [];
-  lines.push(`📅 曦总日程安排 · ${dateFormatted}`);
+  const titlePrefix = isTomorrow ? '📅 曦总明日日程' : '📅 曦总日程安排';
+  lines.push(`${titlePrefix}｜${mNum}月${dNum}日（${wDay}）`);
   if (trip) {
     lines.push(`📍 出差目的地：${trip.destination} (${trip.tzName || ''}当地时间)`);
   }
   lines.push('');
 
   if (dayMeetings.length === 0) {
-    lines.push('明日暂无已排期会议安排。');
+    lines.push('明日暂无已排期会议安排，祝曦总工作顺利！');
   } else {
+    const conflictMap = (typeof getAllMeetingConflicts === 'function')
+      ? getAllMeetingConflicts(dayMeetings)
+      : {};
+
+    let prevPeriod = null;
+
     dayMeetings.forEach((mItem, index) => {
-      const subject = mItem.subject || mItem.title || '待定会议';
       const dtInfo = getMeetingDisplayTime(mItem);
-      let timeLabel = '';
+      const startMins = timeStrToMinutes(dtInfo.start);
+      const curPeriod = (startMins < 720) ? 'morning' : 'afternoon';
+
+      if (prevPeriod && prevPeriod !== curPeriod && lines[lines.length - 1] !== '') {
+        lines.push('');
+      }
+      prevPeriod = curPeriod;
+
+      const isConflict = !!(conflictMap[mItem.id] && conflictMap[mItem.id].length > 0);
+      const isHighPri = (mItem.priority === 'high' || mItem.priority === 'urgent');
+      const icon = (isConflict || isHighPri) ? '🔴' : '📌';
+
+      let timeStr = `${dtInfo.start}–${dtInfo.end}`;
       if (dtInfo.isTripDate && dtInfo.tzName) {
-        timeLabel = `${dtInfo.start} - ${dtInfo.end} (${dtInfo.tzName}当地时间 / 开罗 ${dtInfo.cairoStart})`;
-      } else {
-        timeLabel = `${dtInfo.cairoStart} - ${dtInfo.cairoEnd}`;
+        timeStr += ` (${dtInfo.tzName}当地时间)`;
       }
 
-      const locText = mItem.location ? `  📍 ${mItem.location}` : '';
-      lines.push(`${index + 1}. 📌 ${subject}  ⏰ ${timeLabel}${locText}`);
+      const subject = mItem.subject || mItem.title || '待定会议';
+      lines.push(`${icon} ${timeStr}｜${subject}`);
+
+      const noteText = (mItem.decision || mItem.notes || mItem.background || '').trim();
+      if (noteText) {
+        lines.push(`　↳ ${noteText}`);
+        lines.push('');
+      } else if (mItem.location) {
+        lines.push(`　↳ 地点：${mItem.location}`);
+      }
     });
+
+    while (lines.length > 0 && lines[lines.length - 1] === '') {
+      lines.pop();
+    }
+
+    const reportedPairs = new Set();
+    const conflictWarnings = [];
+    dayMeetings.forEach(m => {
+      const confs = conflictMap[m.id];
+      if (confs && confs.length > 0) {
+        confs.forEach(c => {
+          const pairKey = [m.id, c.conflictId].sort().join('_');
+          if (!reportedPairs.has(pairKey)) {
+            reportedPairs.add(pairKey);
+            const sub1 = m.subject || '会议';
+            const sub2 = c.otherSubject || '会议';
+            const range = c.overlapRangeStr ? c.overlapRangeStr.replace(' - ', '–') : '';
+            conflictWarnings.push(`⚠️ ${range ? range + '后' : ''}【${sub1}】与【${sub2}】时间重叠，请根据实际安排分段出席或授权参会。`);
+          }
+        });
+      }
+    });
+
+    if (conflictWarnings.length > 0) {
+      lines.push('');
+      lines.push('');
+      conflictWarnings.forEach(w => lines.push(w));
+    }
   }
 
   const ta = document.getElementById('reminderMessagePreview');

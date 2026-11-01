@@ -51,6 +51,7 @@ def test_monthly_routines():
             "计划时间：",
             "提醒领导明日会议",
             "曦总日程安排",
+            "曦总明日日程",
         ]
         for kw in keywords:
             assert kw in content, f"Missing keyword '{kw}' in {name}"
