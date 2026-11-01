@@ -5,7 +5,17 @@ import os
 import shutil
 import struct
 
-print("Step 1: Reading base64 assets and English curriculum data...")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+version_file_path = os.path.join(BASE_DIR, 'VERSION')
+if os.path.exists(version_file_path):
+    with open(version_file_path, 'r', encoding='utf-8') as vf:
+        app_version = vf.read().strip()
+else:
+    app_version = 'v1.0.0'
+if not app_version.startswith('v') and not app_version.startswith('V'):
+    app_version = f"v{app_version}"
+
+print(f"Step 1: Reading base64 assets, English curriculum data, and Version: {app_version}...")
 with open('assets_b64.json', 'r', encoding='utf-8') as f:
     assets = json.load(f)
 
@@ -4320,6 +4330,42 @@ html_template = """<!DOCTYPE html>
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .app-version-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--woodstock-soft, #fef6dd);
+    color: var(--text-primary, #1e1b18);
+    border: 1px solid var(--border, #e5dfd3);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.03em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    user-select: all;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .app-version-badge:hover {
+    transform: translateY(-1px);
+    background: var(--woodstock, #f8d347);
+  }
+  .theme-comic .app-version-badge {
+    border: 1.5px solid var(--ink, #171717);
+    background: #fff;
+    box-shadow: 2px 2px 0 var(--ink, #171717);
+  }
+  .theme-comic .app-version-badge:hover {
+    background: var(--yellow, #f5bf36);
   }
 </style>
 </head>
@@ -4863,7 +4909,10 @@ html_template = """<!DOCTYPE html>
   <!-- App Footer -->
   <footer class="app-footer">
     <div class="footer-inner">
-      <div>Snoopy’s Little Lab · Sanyli.</div>
+      <div class="footer-left">
+        <span>Snoopy’s Little Lab · Sanyli.</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ __APP_VERSION__</span>
+      </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
   </footer>
@@ -13299,7 +13348,8 @@ updateTzSimulator();
 renderHomeDashboard();
 initHostDatabaseSync();
 
-console.log("Snoopy's Little Lab loaded successfully with smart calendar import, auto free slots, and chronological timezones!");
+window.APP_VERSION = '__APP_VERSION__';
+console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
 </html>
@@ -13328,8 +13378,12 @@ login_template = """<!DOCTYPE html>
   body {
     margin: 0;
     min-height: 100vh;
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    box-sizing: border-box;
     overflow-x: hidden;
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", sans-serif;
@@ -13514,10 +13568,60 @@ login_template = """<!DOCTYPE html>
     font-size: 11.5px;
     line-height: 1.6;
   }
+  .login-card-version {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .login-version-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--ink);
+    user-select: all;
+  }
+  .login-footer {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 650;
+    letter-spacing: .02em;
+    user-select: none;
+  }
+  .login-version-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    user-select: all;
+  }
   @keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(1deg); } }
   @media (prefers-reduced-motion: reduce) { .snoopy-stage img { animation: none; } }
   @media (max-width: 760px) {
-    body { padding: 16px 0 28px; place-items: start center; }
+    body { padding: 16px 0 28px; justify-content: flex-start; }
     .login-shell { grid-template-columns: 1fr; box-shadow: 7px 7px 0 var(--ink); }
     .illustration { min-height: 310px; padding: 28px 28px 12px; border-right: 0; border-bottom: 2px solid var(--ink); }
     .illustration h1 { font-size: 40px; max-width: 330px; }
@@ -13558,10 +13662,21 @@ login_template = """<!DOCTYPE html>
         <button class="submit" id="submitButton" type="submit">🐾 打开我的小实验室</button>
         <div class="error" id="loginError" role="alert" aria-live="polite"></div>
       </form>
-      <div class="privacy-note">🔐 密码只发送给你的主机验证；登录会话使用安全 Cookie，页面不会保存密码。</div>
+      <div class="privacy-note">
+        <div>🔐 密码只发送给你的主机验证；登录会话使用安全 Cookie，页面不会保存密码。</div>
+        <div class="login-card-version">
+          <span>当前发布版本</span>
+          <span class="login-version-pill" id="loginCardVersionBadge">🏷️ __APP_VERSION__</span>
+        </div>
+      </div>
     </section>
   </main>
+  <footer class="login-footer">
+    <span>Snoopy’s Little Lab · Sanyli.</span>
+    <span class="login-version-badge" id="loginFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ __APP_VERSION__</span>
+  </footer>
 <script>
+  window.APP_VERSION = '__APP_VERSION__';
   const form = document.getElementById('loginForm');
   const passwordInput = document.getElementById('password');
   const submitButton = document.getElementById('submitButton');
@@ -13615,6 +13730,7 @@ login_template = """<!DOCTYPE html>
 """
 
 replacements = {
+    '__APP_VERSION__': app_version,
     '__IMG_ORDINARY_DOGHOUSE__': img_ordinary_doghouse,
     '__IMG_BORDER_SNOOPY__': img_border_snoopy,
     '__IMG_WOODSTOCK__': img_woodstock,
@@ -13653,5 +13769,14 @@ icon_entry = struct.pack('<BBBBHHII', 173, 200, 0, 0, 1, 32, len(png_bytes), 22)
 with open('favicon.ico', 'wb') as icon_file:
     icon_file.write(icon_header + icon_entry + png_bytes)
 
+# Always sync to dist directory so backend server serves the latest build immediately
+dist_dir = os.path.join(BASE_DIR, 'dist')
+os.makedirs(dist_dir, exist_ok=True)
+shutil.copy2(output_path, os.path.join(dist_dir, 'index.html'))
+shutil.copy2('login.html', os.path.join(dist_dir, 'login.html'))
+shutil.copy2('favicon.ico', os.path.join(dist_dir, 'favicon.ico'))
+shutil.copy2('favicon.png', os.path.join(dist_dir, 'favicon.png'))
+
 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
-print(f"Step 2: Compiled standalone {output_path} successfully! Size: {file_size_mb:.2f} MB")
+print(f"Step 2: Compiled standalone {output_path} & login.html successfully! (Version: {app_version}, Size: {file_size_mb:.2f} MB)")
+print(f"Step 3: Synced all build outputs to {dist_dir} successfully!")

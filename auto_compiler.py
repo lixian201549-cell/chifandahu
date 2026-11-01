@@ -10,7 +10,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WATCH_TARGETS = [
     os.path.join(BASE_DIR, "assemble_final_app.py"),
     os.path.join(BASE_DIR, "backend_server.py"),
-    os.path.join(BASE_DIR, "serve_tunnel.py")
+    os.path.join(BASE_DIR, "serve_tunnel.py"),
+    os.path.join(BASE_DIR, "VERSION")
 ]
 
 def get_mtimes():

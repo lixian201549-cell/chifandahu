@@ -20,6 +20,19 @@ DB_PATH = os.path.join(DATA_DIR, "work_platform.db")
 AUTH_PATH = os.path.join(DATA_DIR, "auth_config.json")
 INITIAL_PASSWORD_PATH = os.path.join(DATA_DIR, "initial_login.txt")
 BACKUP_DIR = os.path.join(DATA_DIR, "backups")
+VERSION_PATH = os.path.join(BASE_DIR, "VERSION")
+
+
+def get_app_version():
+    if os.path.exists(VERSION_PATH):
+        try:
+            with open(VERSION_PATH, "r", encoding="utf-8") as vf:
+                v = vf.read().strip()
+                if v:
+                    return v if v.startswith("v") else f"v{v}"
+        except Exception:
+            pass
+    return "v1.0.0"
 
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
 SESSION_TTL_SECONDS = 12 * 60 * 60
@@ -351,6 +364,7 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
                     "status": "online",
                     "database": "SQLite",
                     "serverTime": time.time(),
+                    "appVersion": get_app_version(),
                 })
                 return
             if path == "/api/data":

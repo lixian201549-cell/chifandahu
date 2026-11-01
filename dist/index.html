@@ -4288,6 +4288,42 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .app-version-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--woodstock-soft, #fef6dd);
+    color: var(--text-primary, #1e1b18);
+    border: 1px solid var(--border, #e5dfd3);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.03em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    user-select: all;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .app-version-badge:hover {
+    transform: translateY(-1px);
+    background: var(--woodstock, #f8d347);
+  }
+  .theme-comic .app-version-badge {
+    border: 1.5px solid var(--ink, #171717);
+    background: #fff;
+    box-shadow: 2px 2px 0 var(--ink, #171717);
+  }
+  .theme-comic .app-version-badge:hover {
+    background: var(--yellow, #f5bf36);
   }
 </style>
 </head>
@@ -4831,7 +4867,10 @@
   <!-- App Footer -->
   <footer class="app-footer">
     <div class="footer-inner">
-      <div>Snoopy’s Little Lab · Sanyli.</div>
+      <div class="footer-left">
+        <span>Snoopy’s Little Lab · Sanyli.</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.0.0</span>
+      </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
   </footer>
@@ -14819,7 +14858,8 @@ updateTzSimulator();
 renderHomeDashboard();
 initHostDatabaseSync();
 
-console.log("Snoopy's Little Lab loaded successfully with smart calendar import, auto free slots, and chronological timezones!");
+window.APP_VERSION = 'v1.0.0';
+console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
 </html>

@@ -37,15 +37,33 @@ python3 manage_password.py
 
 修改后重新启动服务。也可以在启动前设置 `PLATFORM_PASSWORD` 环境变量；环境变量密码会优先于本地密码配置。
 
-## 构建
+## 版本管理与构建
+
+每次对页面进行修改并准备推送时，需递增版本号：
+
+```bash
+# 递增 patch 版本 (如 v1.0.0 -> v1.0.1) 并自动编译更新 index.html、login.html 和 dist/
+python3 bump_version.py
+
+# 也可以显式指定递增级别：
+python3 bump_version.py patch   # v1.0.0 -> v1.0.1
+python3 bump_version.py minor   # v1.0.0 -> v1.1.0
+python3 bump_version.py major   # v1.0.0 -> v2.0.0
+python3 bump_version.py 1.2.0   # 指定特定版本号
+
+# 查看当前版本号
+python3 bump_version.py --current
+```
+
+手动全量构建：
 
 ```bash
 python3 assemble_final_app.py
-cp index.html dist/index.html
-cp login.html dist/login.html
 ```
 
-`auto_compiler.py` 会监听生成源并自动更新 `dist`，但不会自动暂存、提交或推送任何 Git 内容。
+`assemble_final_app.py` 会自动读取根目录 `VERSION` 并注入到主页面及登录页面底部，同时自动同步最新产物至 `dist/` 目录。
+
+`auto_compiler.py` 会监听 `VERSION` 与生成源并自动更新 `dist`，但不会自动暂存、提交或推送任何 Git 内容。
 
 ## 数据与安全
 
