@@ -2748,7 +2748,7 @@ html_template = """<!DOCTYPE html>
     transition: width 0.35s ease;
   }
 
-  /* 2. 「今天必须搞定」焦点卡片 (Today Focus Hero Card) */
+  /* 2. 「今天完成」焦点卡片 (Today Focus Hero Card) */
   .today-hero-board {
     background: #ffffff;
     border: 1px solid #fed7aa;
@@ -4597,7 +4597,7 @@ html_template = """<!DOCTYPE html>
           <div class="todo-input-bar" id="todoInputBar">
             <input type="text" id="inputTodoText" placeholder="添加待办事项，回车快速保存..." onkeydown="if(event.key==='Enter') addTodo()" style="flex:1; min-width:180px;" />
             <select id="selectTodoPriority" style="width: 135px; flex-shrink:0;">
-              <option value="q1" selected>🔥 今天必须搞定</option>
+              <option value="q1" selected>🔥 今天完成</option>
               <option value="q2">⭐ 这周安排上</option>
               <option value="q3">⚡ 先放一放</option>
               <option value="q4">☕ 有空再说</option>
@@ -5247,10 +5247,6 @@ html_template = """<!DOCTYPE html>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('leaderTripModal')">✕</button>
       </div>
       <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
-        <div style="font-size:12px; color:var(--text-secondary); line-height:1.5; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); padding:10px 12px;">
-          💡 <strong>功能说明：</strong>选择领导出差的起止日期与目的地。系统将在<strong>您指定的出差日期内</strong>，自动把会议卡片大字展示为<strong>目的地当地时间</strong>，同时清晰标注<strong>开罗开始时间</strong>。非出差日期的会议保持开罗常驻时间不变，绝不篡改底层原始时间。
-        </div>
-
         <!-- 1. 出差目的地 -->
         <div>
           <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px;">1. 选择出差目的地</label>
@@ -5631,7 +5627,7 @@ html_template = """<!DOCTYPE html>
           <div>
             <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">任务分类</label>
             <select id="editTodoPriority" style="width:100%; box-sizing:border-box;">
-              <option value="q1">🔥 今天必须搞定</option>
+              <option value="q1">🔥 今天完成</option>
               <option value="q2">⭐ 这周安排上</option>
               <option value="q3">⚡ 先放一放</option>
               <option value="q4">☕ 有空再说</option>
@@ -11636,7 +11632,7 @@ let currentTodoViewMode = 'matrix'; // 'matrix' | 'list' | 'archive' (默认首�
 
 const QUADRANT_CONFIG = {
   q1: {
-    title: '今天必须搞定',
+    title: '今天完成',
     code: 'Q1',
     action: '🔥 今日必办',
     icon: '🔥',
@@ -11813,11 +11809,11 @@ function renderTodos() {
 
     matrixEl.innerHTML = `
       <div class="todo-focus-layout" style="gap:14px; margin-top:10px;">
-        <!-- 1. 「🔥 今天必须搞定」焦点卡片 (极简设计，内嵌轻量进度，支持拖拽排序) -->
+        <!-- 1. 「🔥 今天完成」焦点卡片 (极简设计，内嵌轻量进度，支持拖拽排序) -->
         <div class="today-hero-board">
           <div class="today-hero-header" style="padding:10px 16px;">
             <div class="today-hero-title" style="font-size:14px;">
-              <span>🔥 <strong>今天必须搞定</strong></span>
+              <span>🔥 <strong>今天完成</strong></span>
             </div>
             <div style="display:flex; align-items:center; gap:12px;">
               <!-- 紧凑微型进度条 (保留 todo-energy-card 与 todo-progress-fill 兼容测试) -->
@@ -11855,7 +11851,7 @@ function renderTodos() {
                 </div>
                 <div class="today-task-actions">
                   <select class="shift-quadrant-select" onchange="quickMoveTodo(${t.id}, this.value)" title="调整分类">
-                    <option value="q1" selected>🔥 今天必须搞定</option>
+                    <option value="q1" selected>🔥 今天完成</option>
                     <option value="q2">⭐ 这周安排上</option>
                     <option value="q3">⚡ 先放一放</option>
                     <option value="q4">☕ 有空再说</option>
@@ -12002,7 +11998,7 @@ function renderTodos() {
       dashEl.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:8px;">
           <div style="display:flex; justify-content:space-between; align-items:center; padding:0 2px;">
-            <span style="font-size:12.5px; font-weight:700; color:var(--text-primary);">🔥 今天必须搞定</span>
+            <span style="font-size:12.5px; font-weight:700; color:var(--text-primary);">🔥 今天完成</span>
             <span style="font-size:11px; color:var(--text-muted);">${q1Done}/${allQ1.length} 完成</span>
           </div>
 
