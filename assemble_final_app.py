@@ -4867,9 +4867,9 @@ html_template = """<!DOCTYPE html>
               <!-- 右侧：字体大小调节、加粗、查看以往记录 -->
               <div class="chalk-tools-group" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <div style="display:inline-flex; align-items:center; gap:2px; background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:6px; border:1px solid rgba(255,255,255,0.18);">
-                  <button class="chalk-nav-btn" onclick="adjustBlackboardFontSize(-2)" title="缩小黑板字体" style="padding:1px 6px; font-size:11px; line-height:1.2;">A-</button>
+                  <button class="chalk-nav-btn" onmousedown="event.preventDefault()" onclick="adjustBlackboardFontSize(-2)" title="缩小所选字体 (未框选时调节全局)" style="padding:1px 6px; font-size:11px; line-height:1.2;">A-</button>
                   <span id="blackboardFontSizeDisplay" style="font-size:11.5px; font-weight:700; color:#fde047; min-width:32px; text-align:center; user-select:none;">16px</span>
-                  <button class="chalk-nav-btn" onclick="adjustBlackboardFontSize(2)" title="放大黑板字体" style="padding:1px 6px; font-size:11px; line-height:1.2;">A+</button>
+                  <button class="chalk-nav-btn" onmousedown="event.preventDefault()" onclick="adjustBlackboardFontSize(2)" title="放大所选字体 (未框选时调节全局 · Cmd/Ctrl +)" style="padding:1px 6px; font-size:11px; line-height:1.2;">A+</button>
                 </div>
 
                 <button class="chalk-nav-btn" id="btnBlackboardBold" onmousedown="event.preventDefault()" onclick="toggleBlackboardBold()" title="加粗选中文字 (Cmd/Ctrl+B)" style="padding:2px 9px; font-weight:800; font-size:12px; line-height:1.2;">
@@ -6152,19 +6152,9 @@ html_template = """<!DOCTYPE html>
       </div>
       <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
         <input type="hidden" id="editRequestId" />
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-          <div>
-            <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">预约人 / 部门</label>
-            <input type="text" id="editRequestRequester" style="width:100%; box-sizing:border-box;" placeholder="如：地南代表处 陈总" />
-          </div>
-          <div>
-            <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">期望时间 / 紧急度</label>
-            <select id="editRequestUrgency" style="width:100%; box-sizing:border-box;">
-              <option value="high">🔴 加急 / 尽快</option>
-              <option value="medium">🟡 本周内</option>
-              <option value="low">🟢 下周 / 灵活</option>
-            </select>
-          </div>
+        <div>
+          <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">预约人 / 部门</label>
+          <input type="text" id="editRequestRequester" style="width:100%; box-sizing:border-box;" placeholder="如：地南代表处 陈总" />
         </div>
         <div>
           <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">会议诉求 / 议题</label>
@@ -7818,6 +7808,17 @@ function initBlackboardInputListeners() {
   editor.addEventListener('input', () => {
     handleDirectBlackboardInput();
   });
+  editor.addEventListener('mouseup', updateBlackboardFontSizeDisplay);
+  editor.addEventListener('keyup', updateBlackboardFontSizeDisplay);
+  editor.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === '=' || e.key === '+')) {
+      e.preventDefault();
+      adjustBlackboardFontSize(2);
+    } else if ((e.metaKey || e.ctrlKey) && (e.key === '-' || e.key === '_')) {
+      e.preventDefault();
+      adjustBlackboardFontSize(-2);
+    }
+  });
   editor.addEventListener('blur', () => {
     if (_isBlackboardComposing) return;
     if (_blackboardDebounceTimer) {
@@ -7987,13 +7988,115 @@ function applyBlackboardFontSettings(size) {
   }
 }
 
+function updateBlackboardFontSizeDisplay() {
+  const editor = document.getElementById('chalkboardDirectInput');
+  const sizeDisp = document.getElementById('blackboardFontSizeDisplay');
+  if (!editor || !sizeDisp) return;
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    if (editor.contains(range.commonAncestorContainer)) {
+      let node = range.startContainer;
+      if (node.nodeType === 3) node = node.parentElement;
+      if (node) {
+        const fontSpan = node.closest('span[style*="font-size"]');
+        if (fontSpan && fontSpan.style.fontSize) {
+          sizeDisp.textContent = parseInt(fontSpan.style.fontSize, 10) + 'px';
+          return;
+        }
+        const comp = window.getComputedStyle(node).fontSize;
+        if (comp) {
+          sizeDisp.textContent = parseInt(comp, 10) + 'px';
+          return;
+        }
+      }
+    }
+  }
+  const baseSize = localStorage.getItem('snoopy_blackboard_fontsize') || '16';
+  sizeDisp.textContent = baseSize + 'px';
+}
+
 function adjustBlackboardFontSize(delta) {
-  let cur = parseInt(localStorage.getItem('snoopy_blackboard_fontsize') || '16', 10);
-  cur += delta;
-  if (cur < 12) cur = 12;
-  if (cur > 30) cur = 30;
-  localStorage.setItem('snoopy_blackboard_fontsize', String(cur));
-  applyBlackboardFontSettings(cur);
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (!editor) return;
+
+  const sel = window.getSelection();
+  let hasSelection = false;
+  let range = null;
+
+  if (sel && sel.rangeCount > 0 && !sel.isCollapsed && sel.toString().trim().length > 0) {
+    range = sel.getRangeAt(0);
+    if (editor.contains(range.commonAncestorContainer)) {
+      hasSelection = true;
+    }
+  }
+
+  if (hasSelection) {
+    // 针对用户当前选中的字体单独进行放大/缩小
+    let node = range.startContainer;
+    if (node.nodeType === 3) node = node.parentElement;
+    let curSize = 16;
+    const fontSpan = node ? node.closest('span[style*="font-size"]') : null;
+    if (fontSpan && fontSpan.style.fontSize) {
+      curSize = parseInt(fontSpan.style.fontSize, 10) || 16;
+    } else if (node) {
+      curSize = parseInt(window.getComputedStyle(node).fontSize, 10) || 16;
+    }
+
+    let newSize = curSize + delta;
+    if (newSize < 12) newSize = 12;
+    if (newSize > 50) newSize = 50;
+
+    editor.focus();
+    try {
+      document.execCommand('styleWithCSS', false, false);
+    } catch (e) {}
+
+    document.execCommand('fontSize', false, '7');
+    const fontEls = editor.querySelectorAll('font[size="7"], font[size="+7"]');
+    if (fontEls.length > 0) {
+      fontEls.forEach(f => {
+        const span = document.createElement('span');
+        span.style.fontSize = newSize + 'px';
+        span.style.lineHeight = '1.35';
+        while (f.firstChild) {
+          span.appendChild(f.firstChild);
+        }
+        span.querySelectorAll('span[style*="font-size"]').forEach(child => {
+          child.style.fontSize = '';
+        });
+        f.parentNode.replaceChild(span, f);
+      });
+    } else if (range && !range.collapsed) {
+      try {
+        const span = document.createElement('span');
+        span.style.fontSize = newSize + 'px';
+        span.style.lineHeight = '1.35';
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.addRange(newRange);
+      } catch (err) {
+        console.warn('Range wrap fallback failed:', err);
+      }
+    }
+
+    const sizeDisp = document.getElementById('blackboardFontSizeDisplay');
+    if (sizeDisp) sizeDisp.textContent = newSize + 'px';
+
+    handleDirectBlackboardInput();
+  } else {
+    // 未框选文字时，调整黑板基础字号
+    let cur = parseInt(localStorage.getItem('snoopy_blackboard_fontsize') || '16', 10);
+    cur += delta;
+    if (cur < 12) cur = 12;
+    if (cur > 36) cur = 36;
+    localStorage.setItem('snoopy_blackboard_fontsize', String(cur));
+    applyBlackboardFontSettings(cur);
+    handleDirectBlackboardInput();
+  }
 }
 
 function toggleBlackboardBold() {
@@ -8766,13 +8869,8 @@ function renderSupervisorWeeklyBoard() {
 
       <!-- Quick Fast Input Bar -->
       <div class="request-quick-bar">
-        <input type="text" id="inputFastReqRequester" placeholder="预约人/代表处" style="width: 170px; flex-shrink: 0;" />
-        <input type="text" id="inputFastReqTopic" placeholder="待排事项/议题诉求" style="flex: 1; min-width: 180px;" onkeydown="if(event.key==='Enter') addMeetingRequestFast()" />
-        <select id="selectFastReqUrgency" style="width: 120px; flex-shrink: 0;">
-          <option value="high">🔴 加急/尽快</option>
-          <option value="medium" selected>🟡 本周内</option>
-          <option value="low">🟢 机动/下周</option>
-        </select>
+        <input type="text" id="inputFastReqRequester" placeholder="预约人/代表处" style="width: 180px; flex-shrink: 0;" />
+        <input type="text" id="inputFastReqTopic" placeholder="待排事项/议题诉求" style="flex: 1; min-width: 200px;" onkeydown="if(event.key==='Enter') addMeetingRequestFast()" />
         <input type="text" id="inputFastReqDuration" placeholder="时长" style="width: 80px; flex-shrink: 0;" value="45m" />
         <button class="btn btn-primary" onclick="addMeetingRequestFast()" style="flex-shrink: 0; padding: 6px 14px;">快速记下</button>
       </div>
@@ -8789,18 +8887,11 @@ function renderSupervisorWeeklyBoard() {
     `;
   } else {
     pendingRequests.forEach(req => {
-      const urgMap = {
-        high: '<span class="urgency-pill urgency-high">🔴 加急</span>',
-        medium: '<span class="urgency-pill urgency-medium">🟡 本周</span>',
-        low: '<span class="urgency-pill urgency-low">🟢 机动</span>'
-      };
-
       html += `
         <div class="weekly-request-card">
           <div class="weekly-request-top">
             <div style="display:flex; align-items:center; gap:8px;">
               <span class="weekly-request-person">👤 ${escapeHtml(req.requester)}</span>
-              ${urgMap[req.urgency] || ''}
             </div>
             <span class="weekly-pending-tag" style="background:#fff7ed; color:#c2410c; border-color:#ffedd5;">⏳ 待排期</span>
           </div>
@@ -8896,11 +8987,12 @@ function exportSingleDayScheduleNotice(dateStr) {
     } else {
       lines.push(`   ⏱️ 时间：${dt.start} - ${dt.end} (${m.duration || 45}分钟)`);
     }
-    if (m.location) lines.push('   📍 地点：' + m.location);
-    if (m.reporter) lines.push('   👤 汇报人：' + m.reporter);
-    if (m.attendees) lines.push('   👥 参会人：' + m.attendees);
-    if (m.minuter) lines.push('   ✍️ 纪要人：' + m.minuter);
-    if (m.decision) lines.push('   📌 决策要点说明：' + m.decision);
+    if (m.location && m.location.trim()) lines.push('   📍 地点：' + m.location.trim());
+    if (m.reporter && m.reporter.trim()) lines.push('   👤 汇报人：' + m.reporter.trim());
+    if (m.attendees && m.attendees.trim()) lines.push('   👥 参会人：' + m.attendees.trim());
+    if (m.minuter && m.minuter.trim()) lines.push('   ✍️ 纪要人：' + m.minuter.trim());
+    if (m.decision && m.decision.trim()) lines.push('   📌 决策要点说明：' + m.decision.trim());
+    if (m.notes && m.notes.trim()) lines.push('   📝 备注：' + m.notes.trim());
     lines.push('');
   });
 
@@ -10536,8 +10628,15 @@ function exportExecutiveScheduleBriefing() {
         const tzNote = dt.isShifted ? ` [开罗时间 ${dt.cairoStart} - ${dt.cairoEnd}]` : '';
         lines.push(`  ▪ ${dt.start} - ${dt.end} (${durHours}H) 《${m.subject}》${tzNote}`);
         lines.push(`    - 汇报人：${m.reporter || '未注明'} | 纪要人：${m.minuter || '秘书处'}`);
-        lines.push(`    - 参会人：${m.attendees}`);
-        lines.push(`    - 决策要点：${m.decision}`);
+        if (m.attendees && m.attendees.trim()) {
+          lines.push(`    - 参会人：${m.attendees.trim()}`);
+        }
+        if (m.decision && m.decision.trim()) {
+          lines.push(`    - 决策要点：${m.decision.trim()}`);
+        }
+        if (m.notes && m.notes.trim()) {
+          lines.push(`    - 备注：${m.notes.trim()}`);
+        }
       });
     }
   }
@@ -11399,7 +11498,8 @@ function addMeetingRequestFast() {
     if (el) el.focus();
     return;
   }
-  const urgency = document.getElementById('selectFastReqUrgency').value || 'medium';
+  const urgencyEl = document.getElementById('selectFastReqUrgency');
+  const urgency = urgencyEl ? urgencyEl.value : 'normal';
   let duration = document.getElementById('inputFastReqDuration').value.trim() || '45';
   duration = duration.replace(/[^0-9]/g, '') || '45';
 
@@ -11481,7 +11581,8 @@ function openEditRequestModal(id) {
   if (!req) return;
   document.getElementById('editRequestId').value = req.id;
   document.getElementById('editRequestRequester').value = req.requester || '';
-  document.getElementById('editRequestUrgency').value = req.urgency || 'medium';
+  const editUrgEl = document.getElementById('editRequestUrgency');
+  if (editUrgEl) editUrgEl.value = req.urgency || 'normal';
   document.getElementById('editRequestTopic').value = req.topic || '';
   document.getElementById('editRequestDuration').value = req.duration || '45';
   document.getElementById('editRequestStatus').value = req.status || 'pending';
@@ -11496,7 +11597,8 @@ function saveEditRequest() {
     return;
   }
   const requester = document.getElementById('editRequestRequester').value.trim() || '其他人员';
-  const urgency = document.getElementById('editRequestUrgency').value;
+  const editUrgEl = document.getElementById('editRequestUrgency');
+  const urgency = editUrgEl ? editUrgEl.value : 'normal';
   const duration = document.getElementById('editRequestDuration').value.trim() || '45';
   const status = document.getElementById('editRequestStatus').value;
 
@@ -11769,34 +11871,19 @@ function copyPendingRequestsBriefing() {
   const tzInfo = (typeof TRIP_TIMEZONE_MAP !== 'undefined' && TRIP_TIMEZONE_MAP[activeTz]) ? TRIP_TIMEZONE_MAP[activeTz] : null;
   const tripSuffix = (isShifted && tzInfo) ? ` (出差${tzInfo.name}中 · ${tzInfo.flag})` : '';
 
-  // 紧急程度优先级排序: 加急(high) -> 本周(medium) -> 机动(low)
-  const urgencyOrder = { high: 1, medium: 2, low: 3 };
-  const sortedRequests = [...pendingRequests].sort((a, b) => {
-    const orderA = urgencyOrder[a.urgency] || 2;
-    const orderB = urgencyOrder[b.urgency] || 2;
-    return orderA - orderB;
-  });
-
-  const urgencyTagMap = {
-    high: '🔴【加急】',
-    medium: '🟡【本周】',
-    low: '🟢【机动】'
-  };
-
-  // 极简高管呈批格式：每个预约一行字说完，篇幅精炼直观
+  // 极简高管呈批格式：每个预约一行字说完，篇幅精炼直观，不分重要程度
   const lines = [
     `【主管待排期事项请示 · ${headerDateStr}${tripSuffix}】`,
-    `曦总您好，当前汇总共有 ${sortedRequests.length} 项待排期事项，请您审定是否安排：`,
+    `曦总您好，当前汇总共有 ${pendingRequests.length} 项待排期事项，请您审定是否安排：`,
     ''
   ];
 
-  sortedRequests.forEach((req, idx) => {
-    const urg = urgencyTagMap[req.urgency] || '🟡【本周】';
+  pendingRequests.forEach((req, idx) => {
     const durNum = parseInt(req.duration || 45, 10);
     const durStr = durNum ? `${durNum}m` : (req.duration || '45m');
     const requester = req.requester ? req.requester.trim() : '未注明';
     const topic = req.topic ? req.topic.trim() : '未命名事项';
-    lines.push(`${idx + 1}. ${urg}${requester}：${topic} (${durStr})`);
+    lines.push(`${idx + 1}. ${requester}：${topic} (${durStr})`);
   });
 
   lines.push('');
@@ -13176,8 +13263,8 @@ function getRoutineDateDetails(routine, year, month) {
       type: 'week',
       sortDay: fridayDay || (startDay + 4),
       dateRangeStr: `${month}月${startDay}日 ~ ${month}月${endDay}日`,
-      displayDate: `${month}月第${weekNum}周 (${month}月${startDay}日~${endDay}日)`,
-      ruleText: `每月第 ${weekNum} 周`,
+      displayDate: `${month}月${startDay}日 ~ ${month}月${endDay}日`,
+      ruleText: `${month}月${startDay}日 ~ ${month}月${endDay}日`,
       fridayHint: fridayHint,
       exactDay: fridayDay || (startDay + 4)
     };
@@ -13254,7 +13341,10 @@ function renderMonthlyRoutines() {
     if (nextItem.type === 'date') {
       statNextDateEl.textContent = `${month}月${nextItem.value}日`;
     } else {
-      statNextDateEl.textContent = `第${nextItem.value}周`;
+      const startD = (nextItem.value - 1) * 7 + 1;
+      const maxD = new Date(year, month, 0).getDate();
+      const endD = Math.min(nextItem.value * 7, maxD);
+      statNextDateEl.textContent = `${month}月${startD}日~${endD}日`;
     }
   }
 
@@ -13315,21 +13405,23 @@ function renderMonthlyRoutines() {
     if (item.type === 'date') {
       axisDateLabel = `${month}月${item.value}日`;
     } else {
-      axisDateLabel = `第${item.value}周`;
+      const startD = (item.value - 1) * 7 + 1;
+      const maxD = new Date(year, month, 0).getDate();
+      const endD = Math.min(item.value * 7, maxD);
+      axisDateLabel = `${startD}日~${endD}日`;
     }
     const markerContent = isCompleted ? `✓ ${axisDateLabel}` : axisDateLabel;
 
     timelineHtml += `
       <div class="routine-timeline-node ${isCompleted ? 'completed' : ''}" id="routine-node-${item.id}">
-        <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor};" title="计划时间：${escapeHtml(item.timingDisplay)}">
+        <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor};" title="${escapeHtml(item.details.displayDate)}">
           ${markerContent}
         </div>
 
         <div class="routine-card">
           <div class="routine-card-header">
             <div class="routine-card-tags">
-              <span class="routine-pill-rule" style="background:${ruleBg}; color:${ruleColor}; font-weight:700;">计划时间：${escapeHtml(item.timingDisplay)}</span>
-              <span class="routine-pill-date">${escapeHtml(item.details.displayDate)}</span>
+              <span class="routine-pill-date" style="background:${ruleBg}; color:${ruleColor}; font-weight:700; border:1px solid ${ruleColor}33; border-radius:5px; padding:3px 9px; font-size:12px;">📅 ${escapeHtml(item.details.displayDate)}</span>
             </div>
             <div class="routine-status-badge ${statusClass}">
               ${statusText}
