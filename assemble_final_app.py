@@ -3406,6 +3406,356 @@ html_template = """<!DOCTYPE html>
   }
 
 
+  /* ================= 5. 每月要完成的事 (Monthly Routine Timeline) & 常用链接 ================= */
+  .monthly-month-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 20px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .monthly-month-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .monthly-month-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-primary);
+    padding: 0 8px;
+    min-width: 130px;
+    text-align: center;
+  }
+  .monthly-progress-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .routine-progress-track {
+    width: 140px;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .routine-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .routine-quote-banner {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13.5px;
+    color: #1e3a8a;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .routine-timeline {
+    position: relative;
+    padding: 10px 0 20px 42px;
+  }
+  .routine-timeline::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    bottom: 24px;
+    left: 20px;
+    width: 4px;
+    background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 35%, #0284c7 70%, #0d9488 100%);
+    border-radius: 4px;
+  }
+  .routine-timeline-node {
+    position: relative;
+    margin-bottom: 26px;
+  }
+  .routine-timeline-node:last-child {
+    margin-bottom: 0;
+  }
+  .routine-node-marker {
+    position: absolute;
+    left: -42px;
+    top: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #3b82f6;
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 2;
+    transition: all 0.25s ease;
+  }
+  .routine-timeline-node.completed .routine-node-marker {
+    border-color: #10b981 !important;
+    background: #10b981 !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+    font-size: 20px;
+    font-weight: 800;
+  }
+  .routine-today-marker {
+    position: relative;
+    margin: 14px 0 24px 0;
+    display: flex;
+    align-items: center;
+  }
+  .routine-today-dot {
+    position: absolute;
+    left: -42px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+  }
+  .routine-today-dot-inner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #f59e0b;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 3px #f59e0b, 0 0 10px rgba(245, 158, 11, 0.6);
+    animation: routine-pulse-ring 2s infinite;
+  }
+  @keyframes routine-pulse-ring {
+    0% { box-shadow: 0 0 0 2px #f59e0b, 0 0 6px rgba(245, 158, 11, 0.6); }
+    50% { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.4), 0 0 12px rgba(245, 158, 11, 0.8); }
+    100% { box-shadow: 0 0 0 2px #f59e0b, 0 0 6px rgba(245, 158, 11, 0.6); }
+  }
+  .routine-today-badge {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    color: #b45309;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+  }
+  .routine-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .routine-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+  }
+  .routine-timeline-node.completed .routine-card {
+    border-color: #86efac;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+  }
+  .routine-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .routine-card-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .routine-pill-rule {
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.2px;
+  }
+  .routine-pill-date {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--card-subtle);
+    border: 1px solid var(--border);
+    padding: 2px 9px;
+    border-radius: 6px;
+  }
+  .routine-pill-category {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    background: var(--card-subtle);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .routine-status-badge {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+  .routine-status-badge.done {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .routine-status-badge.current {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+  .routine-status-badge.upcoming {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+  .routine-status-badge.overdue {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+  .routine-card-title {
+    font-size: 16.5px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .routine-timeline-node.completed .routine-card-title {
+    color: #166534;
+  }
+  .routine-hint-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0369a1;
+    background: #e0f2fe;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .routine-card-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .routine-subtasks-list {
+    background: var(--card-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .routine-subtask-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-primary);
+    line-height: 1.45;
+  }
+  .routine-subtask-bullet {
+    color: var(--primary);
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .routine-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .routine-action-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .routine-action-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-toggle-routine {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-toggle-routine:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+  .btn-toggle-routine.is-done {
+    background: #10b981;
+    border-color: #059669;
+    color: #ffffff;
+  }
+  .btn-toggle-routine.is-done:hover {
+    background: #059669;
+  }
+  .routine-note-drawer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+  .routine-note-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 12.5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    background: #ffffff;
+    color: var(--text-primary);
+    min-height: 52px;
+    resize: vertical;
+  }
+  .routine-note-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+
   /* ================= 5. 常用链接 (Snoopy Links) ================= */
   .links-grid {
     display: grid;
@@ -4445,8 +4795,8 @@ html_template = """<!DOCTYPE html>
       </button>
 
       <button class="nav-tab" data-tab="links" onclick="switchTab('links')">
-        <img src="__IMG_JOE_COOL__" alt="常用链接" />
-        <span>常用链接</span>
+        <img src="__IMG_JOE_COOL__" alt="每月要完成的事" />
+        <span>每月要完成的事</span>
       </button>
 
       <button class="nav-tab" data-tab="notes" onclick="switchTab('notes')">
@@ -4752,41 +5102,89 @@ html_template = """<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- ================= 5. 常用链接 (常用链接 · Snoopy Links) ================= -->
+    <!-- ================= 5. 每月要完成的事 (每月要完成的事 · Snoopy Routine) ================= -->
     <div class="tab-pane" id="pane-links">
       <div class="module-header-banner theme-links">
         <div class="module-banner-left">
-          <img src="__IMG_JOE_COOL__" class="module-banner-avatar" alt="常用链接" />
+          <img src="__IMG_JOE_COOL__" class="module-banner-avatar" alt="每月要完成的事" />
           <div>
             <div class="module-banner-title">
-              <span id="linksModuleTitleText">常用链接 · Snoopy Links</span>
-              <button class="module-edit-btn" onclick="openEditModuleModal('links')" title="自定义常用链接板块">✏️</button>
-              <span class="persona-tag" id="linksModuleTagText">😎 Joe Cool</span>
+              <span id="linksModuleTitleText">每月要完成的事 · Monthly Routine</span>
+              <button class="module-edit-btn" onclick="openEditModuleModal('links')" title="自定义月度事项板块">✏️</button>
+              <span class="persona-tag" id="linksModuleTagText">🗓️ 月度里程碑</span>
             </div>
           </div>
         </div>
 
         <div class="module-banner-right">
           <div class="stat-box">
-            <div class="stat-num" id="statLinkCount" style="color:#0891b2;">0</div>
-            <div class="stat-label">已收录链接</div>
+            <div class="stat-num" id="statMonthlyProgress" style="color:#0891b2;">0 / 4</div>
+            <div class="stat-label">本月已完成</div>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="openAddLinkModal()">➕ 添加自定义链接</button>
+          <div class="stat-box">
+            <div class="stat-num" id="statMonthlyNextDate" style="color:#6366f1; font-size:15px; font-weight:800;">11月9日</div>
+            <div class="stat-label">最近节点</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openAddMonthlyRoutineModal()">➕ 添加月度事项</button>
         </div>
       </div>
 
-      <div class="card">
+      <!-- 月度事项主卡片 -->
+      <div class="card" style="margin-bottom:20px;">
         <div class="card-body">
-          <!-- 分类筛选与分类管理工具栏 -->
-          <div class="links-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border);">
-            <div class="links-category-tabs" id="linksCategoryTabs" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-              <!-- 动态分类标签: 全部 | 内部协同 | 区域协同 | ... -->
+          <!-- 月份选择与进度条栏 -->
+          <div class="monthly-month-bar">
+            <div class="monthly-month-nav">
+              <button class="btn btn-sm btn-ghost" onclick="changeRoutineMonth(-1)" title="查看上个月">◀ 上月</button>
+              <span class="monthly-month-title" id="currentRoutineMonthDisplay">2026年 11月</span>
+              <button class="btn btn-sm btn-ghost" onclick="changeRoutineMonth(1)" title="查看下个月">下月 ▶</button>
+              <button class="btn btn-sm btn-outline" onclick="resetRoutineMonthToCurrent()" style="margin-left:6px; font-size:12px;">回到本月</button>
             </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <button class="btn btn-sm btn-ghost" onclick="openManageCategoriesModal()" title="自定义修改已有分类名称" style="font-size:12px;">🏷️ 管理/修改分类名称</button>
+            <div class="monthly-progress-box">
+              <span style="font-size:12.5px; color:var(--text-secondary); font-weight:600;">月度事项推进：</span>
+              <div class="routine-progress-track">
+                <div class="routine-progress-fill" id="routineProgressFill" style="width:0%;"></div>
+              </div>
+              <span id="routineProgressPercent" style="font-size:13px; font-weight:800; color:var(--text-primary); min-width:38px;">0%</span>
             </div>
           </div>
 
+          <!-- 提示横幅 -->
+          <div class="routine-quote-banner">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">🐶</span>
+              <span><strong>固定节奏，从容推进</strong>：每月按时召开例会、定期发送技术运营月报与遗留任务双周报，每项工作清晰闭环。</span>
+            </div>
+            <span style="font-size:12px; color:#1e40af; opacity:0.85; white-space:nowrap;">时间线视图</span>
+          </div>
+
+          <!-- 动态渲染的月度时间线 -->
+          <div class="routine-timeline" id="monthlyTimelineContainer">
+            <!-- 由 renderMonthlyRoutines() 动态填充 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 可折叠的常用链接工具箱 (保留原有网址收录与快捷直达能力) -->
+      <div class="card" style="margin-top:20px; border:1px solid var(--border);">
+        <div class="card-header" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:14px 18px; user-select:none; background:var(--card-subtle);" onclick="toggleLinksCollapse()">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:17px;">🔗</span>
+            <span style="font-weight:700; font-size:14px; color:var(--text-primary);">常用办公链接（快捷导航工具箱）</span>
+            <span class="badge" id="statLinkCountBadge" style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px;">已收录</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); openAddLinkModal()" style="font-size:12px;">➕ 添加新链接</button>
+            <span id="linksCollapseIcon" style="font-size:12px; color:var(--text-muted); font-weight:700;">▼ 展开</span>
+          </div>
+        </div>
+        <div id="linksCollapseBody" style="display:none; padding:16px 18px; border-top:1px solid var(--border);">
+          <div class="links-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+            <div class="links-category-tabs" id="linksCategoryTabs" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"></div>
+            <div>
+              <button class="btn btn-sm btn-ghost" onclick="openManageCategoriesModal()" style="font-size:12px;">🏷️ 管理/修改分类名称</button>
+            </div>
+          </div>
           <div class="links-grid" id="linksFullGrid"></div>
         </div>
       </div>
@@ -5425,6 +5823,60 @@ html_template = """<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- ================= MODAL: ADD / EDIT MONTHLY ROUTINE ================= -->
+  <div class="modal-overlay" id="monthlyRoutineModal">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title" id="monthlyRoutineModalTitle">➕ 添加月度事项</div>
+        <button class="btn btn-sm btn-ghost" onclick="closeModal('monthlyRoutineModal')">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+        <input type="hidden" id="inputRoutineId" />
+        <div class="form-group" style="margin-bottom:0;">
+          <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">事项名称</label>
+          <input type="text" id="inputRoutineTitle" placeholder="例如：开部门例会（内部）/ 发送技术运营月报" style="font-size:14px; font-weight:600;" />
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">时间规则类型</label>
+            <select id="selectRoutineType" onchange="handleRoutineTypeChange()" style="width:100%;">
+              <option value="date">固定公历日期 (每月几号)</option>
+              <option value="week">周期周次 (每月第几周)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label id="labelRoutineValue" style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">具体日期 (1~31 号)</label>
+            <input type="number" id="inputRoutineValue" min="1" max="31" value="9" style="font-size:14px; font-weight:600;" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">分类标签</label>
+            <input type="text" id="inputRoutineCategory" placeholder="如：🏢 内部例会" value="🏢 内部例会" style="font-size:13px;" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">图标 Emoji</label>
+            <input type="text" id="inputRoutineIcon" value="👥" style="width:100%; font-size:16px; text-align:center;" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">执行要点 / 检查清单 (每行一项)</label>
+          <textarea id="inputRoutineSubtasks" rows="3" placeholder="例如：&#10;• 对齐本月核心工作重点&#10;• 梳理跨组协同诉求&#10;• 输出会议纪要并抄送" style="font-size:13px; line-height:1.5;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <button type="button" class="btn btn-ghost" id="btnDeleteRoutineInModal" style="color:#dc2626; display:none;" onclick="deleteCurrentEditRoutine()">🗑️ 删除该事项</button>
+        <div style="display:flex; gap:8px; margin-left:auto;">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('monthlyRoutineModal')">取消</button>
+          <button type="button" class="btn btn-primary" onclick="saveMonthlyRoutineItem()">保存事项</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL: ADD / EDIT CUSTOM LINK ================= -->
   <div class="modal-overlay" id="linkModal">
     <div class="modal-box" style="max-width: 480px;">
@@ -5788,6 +6240,8 @@ const STORAGE_KEYS = {
   LEADER_TRANSITS: 'snoopy_leader_transits_v1',
   NORDIC_BUCKET_LIST: 'snoopy_nordic_bucket_list_v1',
   BLACKBOARD_RECORDS: 'snoopy_blackboard_records_v1',
+  MONTHLY_ROUTINES: 'snoopy_monthly_routines_v1',
+  MONTHLY_CHECKLIST: 'snoopy_monthly_checklist_v1',
   THEME: 'snoopy_theme_v6'
 };
 
@@ -6989,6 +7443,7 @@ function refreshAllViewsFromDatabase() {
   if (typeof renderTodos === 'function') renderTodos();
   if (typeof renderNotes === 'function') renderNotes();
   if (typeof renderLinks === 'function') renderLinks();
+  if (typeof renderMonthlyRoutines === 'function') renderMonthlyRoutines();
   if (typeof renderHomeDashboard === 'function') renderHomeDashboard();
   if (typeof updateTzSimulator === 'function') updateTzSimulator();
 }
@@ -7120,6 +7575,9 @@ function switchTab(tabId) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (tabId === 'dashboard') {
     renderHomeDashboard();
+  } else if (tabId === 'links') {
+    renderMonthlyRoutines();
+    renderLinks();
   }
 }
 
@@ -12314,19 +12772,562 @@ function deleteTodo(id) {
   renderTodos();
 }
 
+// ================= 每月要完成的事 (Monthly Routine Timeline) =================
+const DEFAULT_MONTHLY_ROUTINES = [
+  {
+    id: 1,
+    title: "开部门例会（内部）",
+    type: "date",
+    value: 9,
+    timingDisplay: "每月 9 号",
+    category: "🏢 内部例会",
+    icon: "👥",
+    color: "#3b82f6",
+    subtasks: [
+      "对齐本月团队核心工作重点与交付目标",
+      "梳理重点支撑事项及跨组协同诉求",
+      "输出部门例会纪要并同步相关责任人"
+    ],
+    description: "每月9日定期召开内部部门例会，对齐团队月度核心工作与关键交付目标。"
+  },
+  {
+    id: 2,
+    title: "发送技术运营月报 + 遗留任务双周报",
+    type: "week",
+    value: 2,
+    timingDisplay: "每月第二周",
+    category: "📊 运营月报 & 双周报",
+    icon: "📊",
+    color: "#8b5cf6",
+    subtasks: [
+      "【技术运营月报】汇总当月技术运行健康度、重大保障与关键指标分析",
+      "【遗留任务双周报】梳理上半月遗留任务推进状态与责任人闭环进度",
+      "完成汇报材料终审并正式发送相关管理层与对齐人"
+    ],
+    description: "每月第二周完成编制并发送技术运营月报，同步上半月遗留任务双周跟踪报告。"
+  },
+  {
+    id: 3,
+    title: "开NIS部门例会",
+    type: "date",
+    value: 20,
+    timingDisplay: "每月 20 号",
+    category: "💼 NIS跨部门",
+    icon: "💼",
+    color: "#0284c7",
+    subtasks: [
+      "参加NIS部门月度例会，汇报重大项目与业务支撑进展",
+      "对齐NIS侧最新规范要求与跨体系重点协同课题",
+      "记录NIS会后待办并纳管至双周跟踪列表"
+    ],
+    description: "每月20日定期参加NIS部门月度例会，汇报业务进展与对接协同议题。"
+  },
+  {
+    id: 4,
+    title: "发送遗留任务双周报",
+    type: "week",
+    value: 4,
+    timingDisplay: "每月第四周",
+    category: "📋 遗留任务双周报",
+    icon: "📋",
+    color: "#0d9488",
+    subtasks: [
+      "全量盘点下半月及全月遗留任务闭环清零情况",
+      "标注入库新风险点、阻塞点与下月重点攻克计划",
+      "完成下半月双周报终审并正式发送抄送各相关方"
+    ],
+    description: "每月第四周跟踪梳理月末遗留任务闭环清零情况，编制并发送下半月遗留任务双周报。"
+  }
+];
+
+let currentRoutineYearMonth = null;
+
+function initCurrentRoutineYearMonth() {
+  if (!currentRoutineYearMonth) {
+    const now = new Date();
+    currentRoutineYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+  return currentRoutineYearMonth;
+}
+
+function changeRoutineMonth(delta) {
+  initCurrentRoutineYearMonth();
+  const parts = currentRoutineYearMonth.split('-');
+  let y = parseInt(parts[0], 10);
+  let m = parseInt(parts[1], 10);
+  m += delta;
+  if (m < 1) {
+    m = 12;
+    y -= 1;
+  } else if (m > 12) {
+    m = 1;
+    y += 1;
+  }
+  currentRoutineYearMonth = `${y}-${String(m).padStart(2, '0')}`;
+  renderMonthlyRoutines();
+}
+
+function resetRoutineMonthToCurrent() {
+  const now = new Date();
+  currentRoutineYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  renderMonthlyRoutines();
+}
+
+function getRoutineDateDetails(routine, year, month) {
+  if (routine.type === 'date') {
+    const maxDay = new Date(year, month, 0).getDate();
+    const day = Math.min(routine.value, maxDay);
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][dateObj.getDay()];
+    return {
+      type: 'date',
+      sortDay: day,
+      dateStr: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      displayDate: `${month}月${day}日 (${dayOfWeek})`,
+      ruleText: `每月 ${routine.value} 号`,
+      exactDay: day
+    };
+  } else {
+    const weekNum = routine.value;
+    const startDay = (weekNum - 1) * 7 + 1;
+    const maxDay = new Date(year, month, 0).getDate();
+    const endDay = Math.min(weekNum * 7, maxDay);
+
+    let fridayDay = null;
+    for (let d = startDay; d <= endDay; d++) {
+      const dt = new Date(year, month - 1, d);
+      if (dt.getDay() === 5) {
+        fridayDay = d;
+        break;
+      }
+    }
+    const fridayHint = fridayDay ? `建议周五交付：${month}月${fridayDay}日` : `本周内提交`;
+    return {
+      type: 'week',
+      sortDay: fridayDay || (startDay + 4),
+      dateRangeStr: `${month}月${startDay}日 ~ ${month}月${endDay}日`,
+      displayDate: `${month}月第${weekNum}周 (${month}月${startDay}日~${endDay}日)`,
+      ruleText: `每月第 ${weekNum} 周`,
+      fridayHint: fridayHint,
+      exactDay: fridayDay || (startDay + 4)
+    };
+  }
+}
+
+function renderMonthlyRoutines() {
+  initCurrentRoutineYearMonth();
+  const [yearStr, monthStr] = currentRoutineYearMonth.split('-');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+
+  const monthTitleEl = document.getElementById('currentRoutineMonthDisplay');
+  if (monthTitleEl) {
+    monthTitleEl.textContent = `${year}年 ${month}月`;
+  }
+
+  let routines = getData(STORAGE_KEYS.MONTHLY_ROUTINES, null);
+  if (!routines || !Array.isArray(routines) || routines.length === 0) {
+    routines = DEFAULT_MONTHLY_ROUTINES;
+    setData(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
+  }
+
+  const allChecklists = getData(STORAGE_KEYS.MONTHLY_CHECKLIST, {});
+  const monthChecklist = allChecklists[currentRoutineYearMonth] || {};
+
+  const now = new Date();
+  const isCurrentCalendarMonth = (now.getFullYear() === year && (now.getMonth() + 1) === month);
+  const todayDay = now.getDate();
+  const todayDayOfWeek = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
+
+  const computedItems = routines.map(r => {
+    const details = getRoutineDateDetails(r, year, month);
+    const check = monthChecklist[String(r.id)] || { completed: false, completedAt: null, note: '' };
+    return {
+      ...r,
+      details,
+      check
+    };
+  });
+
+  computedItems.sort((a, b) => a.details.sortDay - b.details.sortDay);
+
+  const totalCount = computedItems.length;
+  const completedCount = computedItems.filter(i => i.check.completed).length;
+  const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  const statProgressEl = document.getElementById('statMonthlyProgress');
+  if (statProgressEl) statProgressEl.textContent = `${completedCount} / ${totalCount}`;
+
+  const progressFillEl = document.getElementById('routineProgressFill');
+  if (progressFillEl) progressFillEl.style.width = `${percent}%`;
+
+  const progressPercentEl = document.getElementById('routineProgressPercent');
+  if (progressPercentEl) progressPercentEl.textContent = `${percent}%`;
+
+  const nextItem = computedItems.find(i => !i.check.completed && (!isCurrentCalendarMonth || i.details.sortDay >= todayDay)) || computedItems.find(i => !i.check.completed) || computedItems[0];
+  const statNextDateEl = document.getElementById('statMonthlyNextDate');
+  if (statNextDateEl && nextItem) {
+    if (nextItem.type === 'date') {
+      statNextDateEl.textContent = `${month}月${nextItem.value}日`;
+    } else {
+      statNextDateEl.textContent = `第${nextItem.value}周`;
+    }
+  }
+
+  const container = document.getElementById('monthlyTimelineContainer');
+  if (!container) return;
+
+  let timelineHtml = '';
+  let todayMarkerInserted = false;
+
+  computedItems.forEach((item) => {
+    if (isCurrentCalendarMonth && !todayMarkerInserted && todayDay < item.details.sortDay) {
+      timelineHtml += `
+        <div class="routine-today-marker">
+          <div class="routine-today-dot">
+            <div class="routine-today-dot-inner"></div>
+          </div>
+          <div class="routine-today-badge">
+            <span>📍 今天在这里 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
+          </div>
+        </div>
+      `;
+      todayMarkerInserted = true;
+    }
+
+    const isCompleted = !!item.check.completed;
+    let statusClass = 'upcoming';
+    let statusText = '⏳ 即将到来';
+
+    if (isCompleted) {
+      statusClass = 'done';
+      statusText = '✅ 本月已完成';
+    } else if (isCurrentCalendarMonth) {
+      if (item.type === 'date') {
+        if (todayDay === item.value) {
+          statusClass = 'current';
+          statusText = '🔥 今日执行';
+        } else if (todayDay > item.value) {
+          statusClass = 'overdue';
+          statusText = '⚠️ 本月待完成';
+        }
+      } else {
+        const startD = (item.value - 1) * 7 + 1;
+        const endD = item.value * 7;
+        if (todayDay >= startD && todayDay <= endD) {
+          statusClass = 'current';
+          statusText = '🔵 本周重点';
+        } else if (todayDay > endD) {
+          statusClass = 'overdue';
+          statusText = '⚠️ 本月待完成';
+        }
+      }
+    }
+
+    let subtasksHtml = '';
+    if (item.subtasks && item.subtasks.length > 0) {
+      subtasksHtml = `
+        <div class="routine-subtasks-list">
+          ${item.subtasks.map(s => `
+            <div class="routine-subtask-item">
+              <span class="routine-subtask-bullet">▫️</span>
+              <span>${escapeHtml(s)}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    const ruleColor = item.color || '#3b82f6';
+    const ruleBg = ruleColor + '18';
+
+    timelineHtml += `
+      <div class="routine-timeline-node ${isCompleted ? 'completed' : ''}" id="routine-node-${item.id}">
+        <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor};">
+          ${isCompleted ? '✓' : escapeHtml(item.icon || '📌')}
+        </div>
+
+        <div class="routine-card">
+          <div class="routine-card-header">
+            <div class="routine-card-tags">
+              <span class="routine-pill-rule" style="background:${ruleBg}; color:${ruleColor};">${escapeHtml(item.timingDisplay)}</span>
+              <span class="routine-pill-date">${escapeHtml(item.details.displayDate)}</span>
+              <span class="routine-pill-category">${escapeHtml(item.category || '月度例行')}</span>
+            </div>
+            <div class="routine-status-badge ${statusClass}">
+              ${statusText}
+            </div>
+          </div>
+
+          <div class="routine-card-title">${escapeHtml(item.title)}</div>
+
+          ${item.details.fridayHint ? `
+            <div class="routine-hint-bar">
+              <span>📅</span>
+              <span>${escapeHtml(item.details.fridayHint)}</span>
+            </div>
+          ` : ''}
+
+          ${item.description ? `<div class="routine-card-desc">${escapeHtml(item.description)}</div>` : ''}
+
+          ${subtasksHtml}
+
+          <div class="routine-card-footer">
+            <div class="routine-action-left">
+              <button class="btn-toggle-routine ${isCompleted ? 'is-done' : ''}" onclick="toggleMonthlyRoutineComplete(${item.id})">
+                ${isCompleted ? '✅ 本月已完成 (点击取消)' : '⭕ 标记本月完成'}
+              </button>
+              <button class="btn btn-sm btn-ghost" onclick="toggleRoutineNoteBox(${item.id})">
+                📝 ${item.check.note ? '查看/修改纪要备忘' : '添加本月备注'}
+              </button>
+            </div>
+            <div class="routine-action-right">
+              <button class="btn btn-sm btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项">✏️</button>
+              ${item.isCustom ? `<button class="btn btn-sm btn-ghost" style="color:#dc2626;" onclick="deleteMonthlyRoutine(${item.id})" title="删除">✕</button>` : ''}
+            </div>
+          </div>
+
+          <div class="routine-note-drawer" id="routine-note-box-${item.id}" style="${item.check.note ? 'display:block;' : 'display:none;'}">
+            <div style="font-size:12px; font-weight:700; margin-bottom:6px; color:var(--text-secondary);">📌 本月备忘与执行记录：</div>
+            <textarea class="routine-note-textarea" id="routine-note-input-${item.id}" placeholder="输入该项工作的会议室号、邮件主题或纪要链接..." onblur="saveMonthlyRoutineNote(${item.id})">${escapeHtml(item.check.note || '')}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  if (isCurrentCalendarMonth && !todayMarkerInserted) {
+    timelineHtml += `
+      <div class="routine-today-marker">
+        <div class="routine-today-dot">
+          <div class="routine-today-dot-inner"></div>
+        </div>
+        <div class="routine-today-badge">
+          <span>📍 今天在这里 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = timelineHtml;
+}
+
+function toggleMonthlyRoutineComplete(routineId) {
+  initCurrentRoutineYearMonth();
+  const allChecklists = getData(STORAGE_KEYS.MONTHLY_CHECKLIST, {});
+  if (!allChecklists[currentRoutineYearMonth]) {
+    allChecklists[currentRoutineYearMonth] = {};
+  }
+  const cur = allChecklists[currentRoutineYearMonth][String(routineId)] || { completed: false, completedAt: null, note: '' };
+  cur.completed = !cur.completed;
+  cur.completedAt = cur.completed ? new Date().toLocaleString() : null;
+  allChecklists[currentRoutineYearMonth][String(routineId)] = cur;
+
+  setData(STORAGE_KEYS.MONTHLY_CHECKLIST, allChecklists);
+  syncKeyToHostDatabase(STORAGE_KEYS.MONTHLY_CHECKLIST, allChecklists);
+
+  renderMonthlyRoutines();
+
+  if (cur.completed) {
+    showToast('✨ 已成功标记为本月完成！');
+  }
+}
+
+function toggleRoutineNoteBox(routineId) {
+  const box = document.getElementById(`routine-note-box-${routineId}`);
+  if (!box) return;
+  if (box.style.display === 'none' || !box.style.display) {
+    box.style.display = 'block';
+    const inp = document.getElementById(`routine-note-input-${routineId}`);
+    if (inp) inp.focus();
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function saveMonthlyRoutineNote(routineId) {
+  initCurrentRoutineYearMonth();
+  const inp = document.getElementById(`routine-note-input-${routineId}`);
+  if (!inp) return;
+  const note = inp.value.trim();
+
+  const allChecklists = getData(STORAGE_KEYS.MONTHLY_CHECKLIST, {});
+  if (!allChecklists[currentRoutineYearMonth]) {
+    allChecklists[currentRoutineYearMonth] = {};
+  }
+  const cur = allChecklists[currentRoutineYearMonth][String(routineId)] || { completed: false, completedAt: null, note: '' };
+  if (cur.note !== note) {
+    cur.note = note;
+    allChecklists[currentRoutineYearMonth][String(routineId)] = cur;
+    setData(STORAGE_KEYS.MONTHLY_CHECKLIST, allChecklists);
+    syncKeyToHostDatabase(STORAGE_KEYS.MONTHLY_CHECKLIST, allChecklists);
+    showToast('💾 本月纪要备忘已保存');
+  }
+}
+
+function toggleLinksCollapse() {
+  const body = document.getElementById('linksCollapseBody');
+  const icon = document.getElementById('linksCollapseIcon');
+  if (!body) return;
+  if (body.style.display === 'none' || !body.style.display) {
+    body.style.display = 'block';
+    if (icon) icon.textContent = '▲ 收起';
+  } else {
+    body.style.display = 'none';
+    if (icon) icon.textContent = '▼ 展开';
+  }
+}
+
+function openAddMonthlyRoutineModal() {
+  document.getElementById('monthlyRoutineModalTitle').textContent = '➕ 添加月度事项';
+  document.getElementById('inputRoutineId').value = '';
+  document.getElementById('inputRoutineTitle').value = '';
+  document.getElementById('selectRoutineType').value = 'date';
+  document.getElementById('inputRoutineValue').value = '15';
+  document.getElementById('inputRoutineCategory').value = '🏢 部门事项';
+  document.getElementById('inputRoutineIcon').value = '📌';
+  document.getElementById('inputRoutineSubtasks').value = '';
+  const delBtn = document.getElementById('btnDeleteRoutineInModal');
+  if (delBtn) delBtn.style.display = 'none';
+  handleRoutineTypeChange();
+  openModal('monthlyRoutineModal');
+}
+
+function openEditMonthlyRoutineModal(routineId) {
+  const routines = getData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
+  const item = routines.find(r => r.id === routineId);
+  if (!item) return;
+
+  document.getElementById('monthlyRoutineModalTitle').textContent = '✏️ 编辑月度事项';
+  document.getElementById('inputRoutineId').value = item.id;
+  document.getElementById('inputRoutineTitle').value = item.title || '';
+  document.getElementById('selectRoutineType').value = item.type || 'date';
+  document.getElementById('inputRoutineValue').value = item.value || 1;
+  document.getElementById('inputRoutineCategory').value = item.category || '月度例行';
+  document.getElementById('inputRoutineIcon').value = item.icon || '📌';
+  document.getElementById('inputRoutineSubtasks').value = (item.subtasks || []).join('\n');
+
+  const delBtn = document.getElementById('btnDeleteRoutineInModal');
+  if (delBtn) {
+    delBtn.style.display = item.isCustom ? 'inline-block' : 'none';
+  }
+  handleRoutineTypeChange();
+  openModal('monthlyRoutineModal');
+}
+
+function handleRoutineTypeChange() {
+  const sel = document.getElementById('selectRoutineType');
+  const label = document.getElementById('labelRoutineValue');
+  const valInp = document.getElementById('inputRoutineValue');
+  if (!sel || !label || !valInp) return;
+  if (sel.value === 'date') {
+    label.textContent = '具体日期 (1~31 号)';
+    valInp.min = '1';
+    valInp.max = '31';
+    if (parseInt(valInp.value, 10) > 31) valInp.value = '31';
+  } else {
+    label.textContent = '周期周次 (第 1~5 周)';
+    valInp.min = '1';
+    valInp.max = '5';
+    if (parseInt(valInp.value, 10) > 5) valInp.value = '2';
+  }
+}
+
+function saveMonthlyRoutineItem() {
+  const idVal = document.getElementById('inputRoutineId').value;
+  const title = document.getElementById('inputRoutineTitle').value.trim();
+  const type = document.getElementById('selectRoutineType').value;
+  const value = parseInt(document.getElementById('inputRoutineValue').value, 10);
+  const category = document.getElementById('inputRoutineCategory').value.trim() || '月度例行';
+  const icon = document.getElementById('inputRoutineIcon').value.trim() || '📌';
+  const subtasksRaw = document.getElementById('inputRoutineSubtasks').value.trim();
+
+  if (!title) {
+    alert('请输入事项名称');
+    return;
+  }
+  if (isNaN(value) || value < 1) {
+    alert('请输入有效的日期或周次');
+    return;
+  }
+
+  const subtasks = subtasksRaw ? subtasksRaw.split('\n').map(s => s.replace(/^[•\-\*▫️\s]+/, '').trim()).filter(Boolean) : [];
+
+  let routines = getData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
+  const timingDisplay = (type === 'date') ? `每月 ${value} 号` : `每月第 ${value} 周`;
+
+  if (idVal) {
+    const id = parseInt(idVal, 10);
+    const idx = routines.findIndex(r => r.id === id);
+    if (idx !== -1) {
+      routines[idx] = {
+        ...routines[idx],
+        title,
+        type,
+        value,
+        timingDisplay,
+        category,
+        icon,
+        subtasks,
+        description: routines[idx].description || `每月按时完成 ${title}`
+      };
+    }
+  } else {
+    const newId = Date.now();
+    routines.push({
+      id: newId,
+      title,
+      type,
+      value,
+      timingDisplay,
+      category,
+      icon,
+      color: '#3b82f6',
+      subtasks,
+      description: `每月按时完成 ${title}`,
+      isCustom: true
+    });
+  }
+
+  setData(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
+  syncKeyToHostDatabase(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
+
+  closeModal('monthlyRoutineModal');
+  renderMonthlyRoutines();
+  showToast('✅ 月度事项已保存');
+}
+
+function deleteMonthlyRoutine(routineId) {
+  if (!confirm('确定要删除该月度事项吗？')) return;
+  let routines = getData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
+  routines = routines.filter(r => r.id !== routineId);
+  setData(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
+  syncKeyToHostDatabase(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
+  renderMonthlyRoutines();
+  showToast('🗑️ 事项已删除');
+}
+
+function deleteCurrentEditRoutine() {
+  const idVal = document.getElementById('inputRoutineId').value;
+  if (idVal) {
+    deleteMonthlyRoutine(parseInt(idVal, 10));
+    closeModal('monthlyRoutineModal');
+  }
+}
+
 // ================= 常用链接 (Snoopy Links) =================
 let currentLinkCategoryFilter = 'ALL';
 
 function renderLinks() {
   // 1. Settings (Custom module title & persona tag)
   const settings = getData(STORAGE_KEYS.LINK_SETTINGS, {
-    title: '常用链接 · Snoopy Links',
-    tag: '😎 Joe Cool'
+    title: '每月要完成的事 · Monthly Routine',
+    tag: '🗓️ 月度里程碑'
   });
   const titleEl = document.getElementById('linksModuleTitleText');
-  if (titleEl) titleEl.textContent = settings.title || '常用链接 · Snoopy Links';
+  if (titleEl) titleEl.textContent = settings.title || '每月要完成的事 · Monthly Routine';
   const tagEl = document.getElementById('linksModuleTagText');
-  if (tagEl) tagEl.textContent = settings.tag || '😎 Joe Cool';
+  if (tagEl) tagEl.textContent = settings.tag || '🗓️ 月度里程碑';
 
   // 2. Fetch and normalize links
   let links = getData(STORAGE_KEYS.LINKS, []);
@@ -12338,6 +13339,13 @@ function renderLinks() {
 
   const countEl = document.getElementById('statLinkCount');
   if (countEl) countEl.textContent = links.length;
+  const countBadge = document.getElementById('statLinkCountBadge');
+  if (countBadge) countBadge.textContent = `${links.length} 个链接`;
+
+  // Always refresh monthly routines when links render
+  if (typeof renderMonthlyRoutines === 'function') {
+    renderMonthlyRoutines();
+  }
 
   // 3. Extract unique categories
   const allCats = Array.from(new Set(links.map(l => l.category || '🏢 内部协同'))).filter(Boolean);
@@ -12419,6 +13427,7 @@ function renderLinks() {
 function filterLinksByCategory(cat) {
   currentLinkCategoryFilter = cat;
   renderLinks();
+renderMonthlyRoutines();
 }
 
 function setLinkIconEmoji(emoji) {
@@ -12541,6 +13550,7 @@ function saveCustomLink() {
   setData(STORAGE_KEYS.LINKS, links);
   closeModal('linkModal');
   renderLinks();
+renderMonthlyRoutines();
 }
 
 function deleteLink(id) {
@@ -12549,6 +13559,7 @@ function deleteLink(id) {
   links = links.filter(l => l.id !== id);
   setData(STORAGE_KEYS.LINKS, links);
   renderLinks();
+renderMonthlyRoutines();
   showToast('链接已删除');
 }
 
@@ -12616,6 +13627,7 @@ function submitRenameCategory(oldCat, inputId) {
   }
 
   renderLinks();
+renderMonthlyRoutines();
   openManageCategoriesModal();
   showToast(`🏷️ 分类已更名为【${newCat}】`);
 }
@@ -12644,9 +13656,9 @@ const DEFAULT_MODULE_CONFIGS = {
     tagEl: 'timezoneModuleTagText'
   },
   links: {
-    name: '常用链接',
-    defaultTitle: '常用链接 · Snoopy Links',
-    defaultTag: '😎 Joe Cool',
+    name: '每月要完成的事',
+    defaultTitle: '每月要完成的事 · Monthly Routine',
+    defaultTag: '🗓️ 月度里程碑',
     titleEl: 'linksModuleTitleText',
     tagEl: 'linksModuleTagText'
   },
@@ -13211,6 +14223,8 @@ function exportDataJSON() {
     notes: getData(STORAGE_KEYS.NOTES),
     links: getData(STORAGE_KEYS.LINKS),
     linkSettings: getData(STORAGE_KEYS.LINK_SETTINGS),
+    monthlyRoutines: getData(STORAGE_KEYS.MONTHLY_ROUTINES),
+    monthlyChecklist: getData(STORAGE_KEYS.MONTHLY_CHECKLIST),
     englishCheckin: getData(STORAGE_KEYS.ENGLISH_CHECKIN)
   };
   const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
@@ -13298,9 +14312,13 @@ function initSeeds() {
 
   if (!localStorage.getItem(STORAGE_KEYS.LINK_SETTINGS)) {
     setData(STORAGE_KEYS.LINK_SETTINGS, {
-      title: "常用链接 · Snoopy Links",
-      tag: "😎 Joe Cool"
+      title: "每月要完成的事 · Monthly Routine",
+      tag: "🗓️ 月度里程碑"
     });
+  }
+
+  if (!localStorage.getItem(STORAGE_KEYS.MONTHLY_ROUTINES)) {
+    setData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
   }
 
   if (!localStorage.getItem(STORAGE_KEYS.LINKS)) {
@@ -13418,6 +14436,7 @@ renderTodos();
 renderTimezones();
 setInterval(renderTimezones, 1000);
 renderLinks();
+renderMonthlyRoutines();
 renderNotes();
 initDailyEnglish();
 updateTzSimulator();
