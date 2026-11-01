@@ -2112,6 +2112,7 @@ html_template = """<!DOCTYPE html>
     color: #f8fafc;
     min-height: 440px;
     position: relative;
+    cursor: text;
   }
 
   /* Chalkboard Top Header Bar */
@@ -2224,6 +2225,7 @@ html_template = """<!DOCTYPE html>
     flex: 1;
     min-height: 420px;
     position: relative;
+    cursor: text;
   }
   .chalkboard-direct-textarea {
     width: 100%;
@@ -4484,7 +4486,7 @@ html_template = """<!DOCTYPE html>
           <div class="chalkboard-screw bottom-right"></div>
 
           <!-- Chalkboard Inner Slate -->
-          <div class="chalkboard-slate" id="chalkboardSlate">
+          <div class="chalkboard-slate" id="chalkboardSlate" onclick="handleChalkboardClick(event)">
 
             <!-- Chalkboard Header Bar: Clean date navigation on top-left -->
             <div class="chalkboard-header-bar">
@@ -4498,12 +4500,15 @@ html_template = """<!DOCTYPE html>
             </div>
 
             <!-- Blackboard Direct Typing Canvas -->
-            <div class="chalkboard-content" id="chalkboardContentArea">
+            <div class="chalkboard-content" id="chalkboardContentArea" onclick="handleChalkboardClick(event)">
               <textarea
                 id="chalkboardDirectInput"
                 class="chalkboard-direct-textarea"
                 placeholder=""
                 spellcheck="false"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
                 oninput="handleDirectBlackboardInput()"
               ></textarea>
             </div>
@@ -6873,11 +6878,20 @@ function syncKeyToHostDatabase(key, val) {
       _hostDbVersions[key] = data.version || data.lastModified;
       updateHostDbStatusBadge(true);
     } else if (result.status === 409 && data && data.error === 'SYNC_CONFLICT') {
-      localStorage.setItem(key, JSON.stringify(data.currentValue));
       _hostDbVersions[key] = data.currentVersion;
       _hostDbLastMod = Math.max(_hostDbLastMod, data.currentVersion || 0);
-      refreshAllViewsFromDatabase();
-      showToast('检测到另一台设备刚刚更新了这项内容，已保留服务器上的最新版本');
+      const isTypingChalkboard = (key === STORAGE_KEYS.BLACKBOARD_RECORDS && document.activeElement && document.activeElement.id === 'chalkboardDirectInput');
+      if (isTypingChalkboard) {
+        // While user is actively typing on the chalkboard, do not wipe out their active draft
+        setTimeout(() => {
+          const currentLocal = getData(key, null);
+          if (currentLocal) syncKeyToHostDatabase(key, currentLocal);
+        }, 300);
+      } else {
+        localStorage.setItem(key, JSON.stringify(data.currentValue));
+        refreshAllViewsFromDatabase();
+        showToast('检测到另一台设备刚刚更新了这项内容，已保留服务器上的最新版本');
+      }
     }
   }).catch(err => {
     console.warn('Host DB Sync error:', err);
@@ -6949,8 +6963,10 @@ function pollHostDatabaseChanges() {
         _hostDbLastMod = resData.lastModified;
         const remote = resData.data || {};
         Object.assign(_hostDbVersions, resData.versions || {});
+        const isTypingChalkboard = (document.activeElement && document.activeElement.id === 'chalkboardDirectInput');
         Object.keys(remote).forEach(k => {
           try {
+            if (k === STORAGE_KEYS.BLACKBOARD_RECORDS && isTypingChalkboard) return;
             localStorage.setItem(k, JSON.stringify(remote[k]));
           } catch(e) {}
         });
@@ -7240,16 +7256,43 @@ function renderChalkboard(dateStr) {
   // Update streak count
   updateBlackboardStreak();
 
-  // Populate textarea directly
+  // Populate textarea directly (only when not actively typing to avoid cursor jump or IME interruption)
   const textarea = document.getElementById('chalkboardDirectInput');
   if (textarea) {
-    const record = records[currentBlackboardDate];
-    let val = '';
-    if (record) {
-      val = record.content || record.notes || [record.highlight, record.notes, record.reflection].filter(Boolean).join('\\n\\n') || '';
+    if (document.activeElement !== textarea) {
+      const record = records[currentBlackboardDate];
+      let val = '';
+      if (record) {
+        val = record.content || record.notes || [record.highlight, record.notes, record.reflection].filter(Boolean).join('\\n\\n') || '';
+      }
+      textarea.value = val;
     }
-    textarea.value = val;
   }
+}
+
+let _blackboardDebounceTimer = null;
+let _isBlackboardComposing = false;
+let _blackboardListenersInitialized = false;
+
+function initBlackboardInputListeners() {
+  if (_blackboardListenersInitialized) return;
+  const textarea = document.getElementById('chalkboardDirectInput');
+  if (!textarea) return;
+  _blackboardListenersInitialized = true;
+  textarea.addEventListener('compositionstart', () => {
+    _isBlackboardComposing = true;
+  });
+  textarea.addEventListener('compositionend', () => {
+    _isBlackboardComposing = false;
+    handleDirectBlackboardInput();
+  });
+  textarea.addEventListener('blur', () => {
+    if (_blackboardDebounceTimer) {
+      clearTimeout(_blackboardDebounceTimer);
+      _blackboardDebounceTimer = null;
+    }
+    commitBlackboardDirectInput();
+  });
 }
 
 function handleDirectBlackboardInput() {
@@ -7257,16 +7300,41 @@ function handleDirectBlackboardInput() {
   if (!textarea) return;
 
   const text = textarea.value;
+  // 1. Immediately cache in localStorage so no keystroke or Chinese character is lost
+  try {
+    const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
+    if (!records[currentBlackboardDate]) {
+      records[currentBlackboardDate] = { date: currentBlackboardDate };
+    }
+    records[currentBlackboardDate].content = text;
+    records[currentBlackboardDate].notes = text; // Keep notes field in sync
+    records[currentBlackboardDate].updatedAt = Date.now();
+    localStorage.setItem(STORAGE_KEYS.BLACKBOARD_RECORDS, JSON.stringify(records));
+  } catch (e) {}
+
+  // 2. If IME Pinyin composition is active, wait until composition completes
+  if (_isBlackboardComposing) return;
+
+  // 3. Debounce sync to remote backend (500ms) to prevent network lag, 409 conflicts, and IME cursor interruption
+  if (_blackboardDebounceTimer) {
+    clearTimeout(_blackboardDebounceTimer);
+  }
+  _blackboardDebounceTimer = setTimeout(() => {
+    commitBlackboardDirectInput();
+  }, 500);
+}
+
+function commitBlackboardDirectInput() {
+  const textarea = document.getElementById('chalkboardDirectInput');
+  if (!textarea) return;
   const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
   if (!records[currentBlackboardDate]) {
     records[currentBlackboardDate] = { date: currentBlackboardDate };
   }
-  records[currentBlackboardDate].content = text;
-  records[currentBlackboardDate].notes = text; // Keep notes field in sync
+  records[currentBlackboardDate].content = textarea.value;
+  records[currentBlackboardDate].notes = textarea.value;
   records[currentBlackboardDate].updatedAt = Date.now();
   setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
-
-  updateBlackboardStreak();
 }
 
 function updateBlackboardStreak() {
@@ -7278,6 +7346,11 @@ function updateBlackboardStreak() {
 
 function eraseCurrentBlackboard() {
   if (!confirm(`确定要擦掉 ${currentBlackboardDate} 的黑板板书吗？\\n（擦除后可直接在黑板上重新输入）`)) return;
+
+  if (_blackboardDebounceTimer) {
+    clearTimeout(_blackboardDebounceTimer);
+    _blackboardDebounceTimer = null;
+  }
 
   const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
   records[currentBlackboardDate] = {
@@ -7297,12 +7370,15 @@ function eraseCurrentBlackboard() {
   }
 
   updateBlackboardStreak();
-  showToast('🧽 黑板已擦拭一新，可直接在黑板上打字记录！');
+  showToast('🧽 黑板已擦拭一新');
 }
 
 function handleChalkboardClick(e) {
+  if (e && e.target && (e.target.closest('button') || e.target.closest('.chalk-nav-btn'))) return;
   const textarea = document.getElementById('chalkboardDirectInput');
-  if (textarea) textarea.focus();
+  if (textarea && document.activeElement !== textarea) {
+    textarea.focus();
+  }
 }
 
 function openEditBlackboardModal() {
@@ -13336,6 +13412,7 @@ renderNotes();
 initDailyEnglish();
 updateTzSimulator();
 renderHomeDashboard();
+initBlackboardInputListeners();
 initHostDatabaseSync();
 
 window.APP_VERSION = '__APP_VERSION__';
