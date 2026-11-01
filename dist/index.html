@@ -4951,13 +4951,18 @@
       <div class="modal-drag-handle-bar" style="width: 100%; padding: 8px 0 4px 0; background: #f8fafc; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: center; align-items: center; cursor: grab; touch-action: none; user-select: none; border-bottom: 1px solid #f1f5f9;" title="按住可自由拖动卡片">
         <div style="width: 44px; height: 4px; background: #94a3b8; border-radius: 2px;"></div>
       </div>
-      <div class="modal-header" id="meetingModalHeader" style="cursor: grab; user-select: none; touch-action: none; padding-top: 10px;">
+      <div class="modal-header" id="meetingModalHeader" style="cursor: grab; user-select: none; touch-action: none; padding-top: 10px; display: flex; align-items: center; justify-content: space-between;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:#e0f2fe; color:#0284c7; font-size:14px; font-weight:bold; cursor:grab;" title="按住可自由拖拽移动卡片">✥</span>
           <div class="modal-title" id="meetingModalTitle">登记主管会议预约</div>
           <span style="font-size:11.5px; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:12px; font-weight:normal; margin-left:4px;">✋ 按住顶部栏可随意移动</span>
         </div>
-        <button class="btn btn-sm btn-ghost" onclick="closeModal('meetingModal')">✕</button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('left')" title="移动到左侧，查看右侧日程" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">◀ 靠左</button>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('center')" title="复位居中" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">⤢ 居中</button>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('right')" title="移动到右侧，查看左侧日程" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">靠右 ▶</button>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="closeModal('meetingModal')" style="font-size:15px; margin-left:4px;">✕</button>
+        </div>
       </div>
       <div class="modal-body">
         <form id="meetingForm" onsubmit="event.preventDefault(); saveMeeting();">
@@ -14418,6 +14423,8 @@ function initModalDragSystem() {
       curY = 0;
       initX = 0;
       initY = 0;
+      box._curTranslateX = 0;
+      box._curTranslateY = 0;
       box.style.transform = '';
       box.style.animation = '';
     };
@@ -14433,8 +14440,8 @@ function initModalDragSystem() {
 
       startX = clientX;
       startY = clientY;
-      initX = curX;
-      initY = curY;
+      initX = (box._curTranslateX !== undefined) ? box._curTranslateX : curX;
+      initY = (box._curTranslateY !== undefined) ? box._curTranslateY : curY;
 
       box.style.animation = 'none';
       box.style.transition = 'none';
@@ -14463,6 +14470,8 @@ function initModalDragSystem() {
 
       curX = initX + (clientX - startX);
       curY = initY + (clientY - startY);
+      box._curTranslateX = curX;
+      box._curTranslateY = curY;
 
       box.style.transform = `translate(${curX}px, ${curY}px)`;
     }
@@ -14490,6 +14499,32 @@ function initModalDragSystem() {
       h.addEventListener('touchstart', startDrag, { passive: false });
     });
   });
+}
+
+function dockMeetingModal(pos) {
+  const box = document.getElementById('meetingModalBox');
+  if (!box) return;
+  box.style.animation = 'none';
+  box.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
+  const overlay = document.getElementById('meetingModal');
+  const overlayW = overlay ? overlay.clientWidth : window.innerWidth;
+  const boxW = box.offsetWidth || 620;
+
+  if (pos === 'left') {
+    const shift = -Math.max(20, Math.floor((overlayW - boxW) / 2 - 24));
+    box.style.transform = `translate(${shift}px, 0px)`;
+    box._curTranslateX = shift;
+    box._curTranslateY = 0;
+  } else if (pos === 'right') {
+    const shift = Math.max(20, Math.floor((overlayW - boxW) / 2 - 24));
+    box.style.transform = `translate(${shift}px, 0px)`;
+    box._curTranslateX = shift;
+    box._curTranslateY = 0;
+  } else {
+    box.style.transform = 'translate(0px, 0px)';
+    box._curTranslateX = 0;
+    box._curTranslateY = 0;
+  }
 }
 
 // ================= UTILITIES & HELPERS =================
