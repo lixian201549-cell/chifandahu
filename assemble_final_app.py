@@ -4493,7 +4493,7 @@ html_template = """<!DOCTYPE html>
                 <span class="chalk-date-pill" id="chalkDatePill">📅 2026年10月22日 周四</span>
                 <button class="chalk-nav-btn" onclick="changeBlackboardDayOffset(1)" title="翻看后一天板书">明天 ▶</button>
                 <button class="chalk-nav-btn" id="btnChalkToday" style="display:none;" onclick="jumpToTodayBlackboard()">回到今天</button>
-                <span class="chalk-streak-badge" id="chalkStreakBadge">⭐ 连续自学 1 天</span>
+                <span class="chalk-streak-badge" id="chalkStreakBadge" style="display:none !important;"></span>
               </div>
             </div>
 
@@ -4502,7 +4502,7 @@ html_template = """<!DOCTYPE html>
               <textarea
                 id="chalkboardDirectInput"
                 class="chalkboard-direct-textarea"
-                placeholder="🖍️ 点击这里直接写板书…… 记录今天学到的词汇、专业知识、避坑要点或一句心得感悟。&#10;（实时自动保存）"
+                placeholder=""
                 spellcheck="false"
                 oninput="handleDirectBlackboardInput()"
               ></textarea>
@@ -7224,15 +7224,14 @@ function renderChalkboard(dateStr) {
 
   const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
 
-  // Auto-seed for today if completely first visit
+  // Auto-seed for today if completely first visit (clean & empty per user request)
   const rawStore = localStorage.getItem(STORAGE_KEYS.BLACKBOARD_RECORDS);
   if (!rawStore && currentBlackboardDate === todayStr) {
-    const defaultText = "• 涉外排期要点：重要会议前提前确认线上会议与同声传译就绪；\\n• 决策推进法：复杂事宜先对齐背景、再列出关键诉求；\\n• 语言与生活：每天学一个地道词汇，在日常对话中勇敢脱口而出。\\n\\n“Stay hungry, stay foolish.” —— 保持对新知识的渴望与谦逊。";
     records[todayStr] = {
-      content: defaultText,
-      notes: defaultText,
-      highlight: "“Stay hungry, stay foolish.” —— 保持对新知识的渴望与谦逊。",
-      reflection: "放慢脚步，从容面对日常。永远抬头向上看！",
+      content: '',
+      notes: '',
+      highlight: '',
+      reflection: '',
       date: todayStr
     };
     setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
@@ -7271,14 +7270,9 @@ function handleDirectBlackboardInput() {
 }
 
 function updateBlackboardStreak() {
-  const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
-  let studyDaysCount = Object.keys(records).filter(k => {
-    const r = records[k];
-    return r && ((r.content && r.content.trim()) || (r.notes && r.notes.trim()) || r.highlight || r.title);
-  }).length;
   const streakBadge = document.getElementById('chalkStreakBadge');
   if (streakBadge) {
-    streakBadge.textContent = `⭐ 连续自学 ${Math.max(1, studyDaysCount)} 天`;
+    streakBadge.style.display = 'none';
   }
 }
 
