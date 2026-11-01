@@ -2245,6 +2245,15 @@ html_template = """<!DOCTYPE html>
     box-sizing: border-box;
     padding: 6px 8px 16px 8px;
     tab-size: 2;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+  }
+  .chalkboard-direct-textarea b,
+  .chalkboard-direct-textarea strong {
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.95), 0 0 6px rgba(253, 224, 71, 0.5) !important;
   }
   .chalkboard-direct-textarea::placeholder {
     color: rgba(248, 250, 252, 0.35);
@@ -3468,14 +3477,14 @@ html_template = """<!DOCTYPE html>
   }
   .routine-timeline {
     position: relative;
-    padding: 6px 0 14px 32px;
+    padding: 8px 0 16px 86px;
   }
   .routine-timeline::before {
     content: '';
     position: absolute;
-    top: 12px;
-    bottom: 18px;
-    left: 14px;
+    top: 14px;
+    bottom: 20px;
+    left: 43px;
     width: 3px;
     background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 35%, #0284c7 70%, #0d9488 100%);
     border-radius: 3px;
@@ -3489,54 +3498,59 @@ html_template = """<!DOCTYPE html>
   }
   .routine-node-marker {
     position: absolute;
-    left: -32px;
-    top: 10px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+    left: -86px;
+    top: 9px;
+    width: 76px;
+    height: 30px;
+    border-radius: 15px;
     background: #ffffff;
-    border: 2.5px solid #3b82f6;
-    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+    border: 2px solid #3b82f6;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.18);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 800;
+    color: #1d4ed8;
     z-index: 2;
     transition: all 0.25s ease;
+    padding: 0 4px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    letter-spacing: -0.2px;
   }
   .routine-timeline-node.completed .routine-node-marker {
     border-color: #10b981 !important;
     background: #10b981 !important;
     color: #ffffff !important;
     box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
-    font-size: 14px;
-    font-weight: 800;
   }
   .routine-today-marker {
     position: relative;
     margin: 8px 0 12px 0;
     display: flex;
     align-items: center;
+    gap: 8px;
   }
   .routine-today-dot {
     position: absolute;
-    left: -32px;
-    width: 28px;
-    height: 28px;
+    left: -86px;
+    width: 76px;
+    height: 26px;
+    border-radius: 13px;
+    background: #f59e0b;
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
     z-index: 3;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+    white-space: nowrap;
   }
   .routine-today-dot-inner {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #f59e0b;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 2px #f59e0b, 0 0 8px rgba(245, 158, 11, 0.6);
-    animation: routine-pulse-ring 2s infinite;
+    display: none;
   }
   @keyframes routine-pulse-ring {
     0% { box-shadow: 0 0 0 2px #f59e0b, 0 0 6px rgba(245, 158, 11, 0.6); }
@@ -4858,7 +4872,7 @@ html_template = """<!DOCTYPE html>
                   <button class="chalk-nav-btn" onclick="adjustBlackboardFontSize(2)" title="放大黑板字体" style="padding:1px 6px; font-size:11px; line-height:1.2;">A+</button>
                 </div>
 
-                <button class="chalk-nav-btn" id="btnBlackboardBold" onclick="toggleBlackboardBold()" title="加粗黑板字体" style="padding:2px 9px; font-weight:800; font-size:12px; line-height:1.2;">
+                <button class="chalk-nav-btn" id="btnBlackboardBold" onmousedown="event.preventDefault()" onclick="toggleBlackboardBold()" title="加粗选中文字 (Cmd/Ctrl+B)" style="padding:2px 9px; font-weight:800; font-size:12px; line-height:1.2;">
                   B
                 </button>
 
@@ -4871,16 +4885,16 @@ html_template = """<!DOCTYPE html>
 
             <!-- Blackboard Direct Typing Canvas -->
             <div class="chalkboard-content" id="chalkboardContentArea" onclick="handleChalkboardClick(event)">
-              <textarea
+              <div
                 id="chalkboardDirectInput"
                 class="chalkboard-direct-textarea"
-                placeholder=""
+                contenteditable="true"
                 spellcheck="false"
                 autocomplete="off"
                 autocorrect="off"
                 autocapitalize="off"
                 oninput="handleDirectBlackboardInput()"
-              ></textarea>
+              ></div>
             </div>
 
           </div>
@@ -7746,19 +7760,27 @@ function renderChalkboard(dateStr) {
   // Update streak count
   updateBlackboardStreak();
 
-  // Populate textarea directly (only when not actively typing to avoid cursor jump or IME interruption)
-  const textarea = document.getElementById('chalkboardDirectInput');
-  if (textarea) {
+  // Populate editor directly (only when not actively typing to avoid cursor jump or IME interruption)
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (editor) {
     if (typeof initBlackboardFontSettings === 'function') initBlackboardFontSettings();
-    const isEditing = (document.activeElement === textarea) || _isBlackboardComposing;
+    const isEditing = (document.activeElement === editor) || _isBlackboardComposing;
     if (!isEditing) {
       const record = records[currentBlackboardDate];
       let val = '';
       if (record) {
         val = record.content || record.notes || [record.highlight, record.notes, record.reflection].filter(Boolean).join('\\n\\n') || '';
       }
-      if (textarea.value !== val) {
-        textarea.value = val;
+      if (editor.tagName === 'TEXTAREA') {
+        if (editor.value !== val) editor.value = val;
+      } else {
+        let htmlVal = val;
+        if (val && !/<[a-z][\s\S]*>/i.test(val)) {
+          htmlVal = escapeHtml(val).replace(/\\r?\\n/g, '<br>');
+        }
+        if (editor.innerHTML !== htmlVal) {
+          editor.innerHTML = htmlVal;
+        }
       }
     }
   }
@@ -7770,17 +7792,33 @@ let _blackboardListenersInitialized = false;
 
 function initBlackboardInputListeners() {
   if (_blackboardListenersInitialized) return;
-  const textarea = document.getElementById('chalkboardDirectInput');
-  if (!textarea) return;
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (!editor) return;
   _blackboardListenersInitialized = true;
-  textarea.addEventListener('compositionstart', () => {
+
+  if (editor.tagName === 'DIV' && !('value' in editor)) {
+    Object.defineProperty(editor, 'value', {
+      get() { return this.innerText || this.textContent || ''; },
+      set(v) {
+        let h = v;
+        if (v && !/<[a-z][\\s\\S]*>/i.test(v)) h = escapeHtml(v).replace(/\\r?\\n/g, '<br>');
+        this.innerHTML = h;
+      },
+      configurable: true
+    });
+  }
+
+  editor.addEventListener('compositionstart', () => {
     _isBlackboardComposing = true;
   });
-  textarea.addEventListener('compositionend', () => {
+  editor.addEventListener('compositionend', () => {
     _isBlackboardComposing = false;
     handleDirectBlackboardInput();
   });
-  textarea.addEventListener('blur', () => {
+  editor.addEventListener('input', () => {
+    handleDirectBlackboardInput();
+  });
+  editor.addEventListener('blur', () => {
     if (_isBlackboardComposing) return;
     if (_blackboardDebounceTimer) {
       clearTimeout(_blackboardDebounceTimer);
@@ -7794,18 +7832,20 @@ function handleDirectBlackboardInput() {
   // If user is currently composing Chinese Pinyin, DO NOT update storage or sync until confirmed!
   if (_isBlackboardComposing) return;
 
-  const textarea = document.getElementById('chalkboardDirectInput');
-  if (!textarea) return;
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (!editor) return;
 
-  const text = textarea.value;
-  // 1. Immediately cache in localStorage so no confirmed Chinese text is lost
+  const html = (editor.tagName === 'TEXTAREA') ? editor.value : editor.innerHTML;
+  const plain = (editor.tagName === 'TEXTAREA') ? editor.value : (editor.innerText || editor.textContent || '');
+
+  // 1. Immediately cache in localStorage so no confirmed text is lost
   try {
     const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
     if (!records[currentBlackboardDate]) {
       records[currentBlackboardDate] = { date: currentBlackboardDate };
     }
-    records[currentBlackboardDate].content = text;
-    records[currentBlackboardDate].notes = text; // Keep notes field in sync
+    records[currentBlackboardDate].content = html;
+    records[currentBlackboardDate].notes = plain;
     records[currentBlackboardDate].updatedAt = Date.now();
     localStorage.setItem(STORAGE_KEYS.BLACKBOARD_RECORDS, JSON.stringify(records));
   } catch (e) {}
@@ -7821,14 +7861,17 @@ function handleDirectBlackboardInput() {
 
 function commitBlackboardDirectInput() {
   if (_isBlackboardComposing) return;
-  const textarea = document.getElementById('chalkboardDirectInput');
-  if (!textarea) return;
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (!editor) return;
+  const html = (editor.tagName === 'TEXTAREA') ? editor.value : editor.innerHTML;
+  const plain = (editor.tagName === 'TEXTAREA') ? editor.value : (editor.innerText || editor.textContent || '');
+
   const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
   if (!records[currentBlackboardDate]) {
     records[currentBlackboardDate] = { date: currentBlackboardDate };
   }
-  records[currentBlackboardDate].content = textarea.value;
-  records[currentBlackboardDate].notes = textarea.value;
+  records[currentBlackboardDate].content = html;
+  records[currentBlackboardDate].notes = plain;
   records[currentBlackboardDate].updatedAt = Date.now();
   setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
 }
@@ -7859,10 +7902,11 @@ function eraseCurrentBlackboard() {
   };
   setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
 
-  const textarea = document.getElementById('chalkboardDirectInput');
-  if (textarea) {
-    textarea.value = '';
-    textarea.focus();
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (editor) {
+    if (editor.tagName === 'TEXTAREA') editor.value = '';
+    else editor.innerHTML = '';
+    editor.focus();
   }
 
   updateBlackboardStreak();
@@ -7928,32 +7972,18 @@ function jumpToTodayBlackboard() {
 // ================= 小黑板字体与历史记录控制 =================
 function initBlackboardFontSettings() {
   const size = parseInt(localStorage.getItem('snoopy_blackboard_fontsize') || '16', 10);
-  const isBold = localStorage.getItem('snoopy_blackboard_bold') === 'true';
-  applyBlackboardFontSettings(size, isBold);
+  applyBlackboardFontSettings(size);
 }
 
-function applyBlackboardFontSettings(size, isBold) {
-  const textarea = document.getElementById('chalkboardDirectInput');
+function applyBlackboardFontSettings(size) {
+  const editor = document.getElementById('chalkboardDirectInput');
   const sizeDisp = document.getElementById('blackboardFontSizeDisplay');
-  const boldBtn = document.getElementById('btnBlackboardBold');
 
-  if (textarea) {
-    textarea.style.fontSize = size + 'px';
-    textarea.style.fontWeight = isBold ? '700' : '500';
+  if (editor) {
+    editor.style.fontSize = size + 'px';
   }
   if (sizeDisp) {
     sizeDisp.textContent = size + 'px';
-  }
-  if (boldBtn) {
-    if (isBold) {
-      boldBtn.style.background = '#fde047';
-      boldBtn.style.color = '#142a20';
-      boldBtn.style.borderColor = '#eab308';
-    } else {
-      boldBtn.style.background = 'rgba(255, 255, 255, 0.08)';
-      boldBtn.style.color = '#e2e8f0';
-      boldBtn.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-    }
   }
 }
 
@@ -7963,16 +7993,15 @@ function adjustBlackboardFontSize(delta) {
   if (cur < 12) cur = 12;
   if (cur > 30) cur = 30;
   localStorage.setItem('snoopy_blackboard_fontsize', String(cur));
-  const isBold = localStorage.getItem('snoopy_blackboard_bold') === 'true';
-  applyBlackboardFontSettings(cur, isBold);
+  applyBlackboardFontSettings(cur);
 }
 
 function toggleBlackboardBold() {
-  let isBold = localStorage.getItem('snoopy_blackboard_bold') === 'true';
-  isBold = !isBold;
-  localStorage.setItem('snoopy_blackboard_bold', String(isBold));
-  const size = parseInt(localStorage.getItem('snoopy_blackboard_fontsize') || '16', 10);
-  applyBlackboardFontSettings(size, isBold);
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (!editor) return;
+  editor.focus();
+  document.execCommand('bold', false, null);
+  handleDirectBlackboardInput();
 }
 
 function openBlackboardHistoryModal() {
@@ -13240,7 +13269,7 @@ function renderMonthlyRoutines() {
       timelineHtml += `
         <div class="routine-today-marker">
           <div class="routine-today-dot">
-            <div class="routine-today-dot-inner"></div>
+            📍 今天
           </div>
           <div class="routine-today-badge">
             <span>今日进度 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
@@ -13282,10 +13311,18 @@ function renderMonthlyRoutines() {
     const ruleColor = item.color || '#3b82f6';
     const ruleBg = ruleColor + '18';
 
+    let axisDateLabel = '';
+    if (item.type === 'date') {
+      axisDateLabel = `${month}月${item.value}日`;
+    } else {
+      axisDateLabel = `第${item.value}周`;
+    }
+    const markerContent = isCompleted ? `✓ ${axisDateLabel}` : axisDateLabel;
+
     timelineHtml += `
       <div class="routine-timeline-node ${isCompleted ? 'completed' : ''}" id="routine-node-${item.id}">
-        <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor}; font-weight:800; font-size:14px;">
-          ${isCompleted ? '✓' : (index + 1)}
+        <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor};" title="计划时间：${escapeHtml(item.timingDisplay)}">
+          ${markerContent}
         </div>
 
         <div class="routine-card">
@@ -13335,7 +13372,7 @@ function renderMonthlyRoutines() {
     timelineHtml += `
       <div class="routine-today-marker">
         <div class="routine-today-dot">
-          <div class="routine-today-dot-inner"></div>
+          📍 今天
         </div>
         <div class="routine-today-badge">
           <span>今日进度 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
