@@ -30,6 +30,9 @@ def test_monthly_routines():
             'id="tomorrowReminderModal"',
             'id="inputReminderDate"',
             'id="reminderMessagePreview"',
+            'id="blackboardHistoryModal"',
+            'id="blackboardFontSizeDisplay"',
+            'id="btnBlackboardBold"',
         ]
         for elem in required_elements:
             assert elem in content, f"Missing {elem} in {name}"
@@ -68,6 +71,10 @@ def test_monthly_routines():
             "setReminderDateTomorrow",
             "updateTomorrowReminderPreview",
             "copyTomorrowReminderContent",
+            "openBlackboardHistoryModal",
+            "closeBlackboardHistoryModal",
+            "adjustBlackboardFontSize",
+            "toggleBlackboardBold",
         ]
         for fn in js_functions:
             assert fn in content, f"Missing JS function {fn} in {name}"

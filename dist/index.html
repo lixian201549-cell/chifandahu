@@ -3426,39 +3426,40 @@
   }
   .routine-timeline {
     position: relative;
-    padding: 10px 0 20px 42px;
+    padding: 6px 0 14px 32px;
   }
   .routine-timeline::before {
     content: '';
     position: absolute;
-    top: 16px;
-    bottom: 24px;
-    left: 20px;
-    width: 4px;
+    top: 12px;
+    bottom: 18px;
+    left: 14px;
+    width: 3px;
     background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 35%, #0284c7 70%, #0d9488 100%);
-    border-radius: 4px;
+    border-radius: 3px;
   }
   .routine-timeline-node {
     position: relative;
-    margin-bottom: 26px;
+    margin-bottom: 14px;
   }
   .routine-timeline-node:last-child {
     margin-bottom: 0;
   }
   .routine-node-marker {
     position: absolute;
-    left: -42px;
-    top: 18px;
-    width: 40px;
-    height: 40px;
+    left: -32px;
+    top: 10px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: #ffffff;
-    border: 3px solid #3b82f6;
-    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.25);
+    border: 2.5px solid #3b82f6;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 13px;
+    font-weight: 800;
     z-index: 2;
     transition: all 0.25s ease;
   }
@@ -3466,58 +3467,58 @@
     border-color: #10b981 !important;
     background: #10b981 !important;
     color: #ffffff !important;
-    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
-    font-size: 20px;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+    font-size: 14px;
     font-weight: 800;
   }
   .routine-today-marker {
     position: relative;
-    margin: 14px 0 24px 0;
+    margin: 8px 0 12px 0;
     display: flex;
     align-items: center;
   }
   .routine-today-dot {
     position: absolute;
-    left: -42px;
-    width: 40px;
-    height: 40px;
+    left: -32px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 3;
   }
   .routine-today-dot-inner {
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: #f59e0b;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 3px #f59e0b, 0 0 10px rgba(245, 158, 11, 0.6);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #f59e0b, 0 0 8px rgba(245, 158, 11, 0.6);
     animation: routine-pulse-ring 2s infinite;
   }
   @keyframes routine-pulse-ring {
     0% { box-shadow: 0 0 0 2px #f59e0b, 0 0 6px rgba(245, 158, 11, 0.6); }
-    50% { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.4), 0 0 12px rgba(245, 158, 11, 0.8); }
+    50% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.4), 0 0 10px rgba(245, 158, 11, 0.8); }
     100% { box-shadow: 0 0 0 2px #f59e0b, 0 0 6px rgba(245, 158, 11, 0.6); }
   }
   .routine-today-badge {
     background: #fffbeb;
     border: 1px solid #fcd34d;
     color: #b45309;
-    padding: 4px 14px;
-    border-radius: 20px;
-    font-size: 12.5px;
-    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+    gap: 4px;
+    box-shadow: 0 1px 4px rgba(245, 158, 11, 0.12);
   }
   .routine-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 20px 22px;
+    border-radius: var(--radius-sm);
+    padding: 11px 15px;
     box-shadow: var(--shadow-sm);
     transition: all 0.2s ease;
     position: relative;
@@ -3536,43 +3537,43 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 6px;
   }
   .routine-card-tags {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
   .routine-pill-rule {
-    font-size: 11.5px;
-    font-weight: 800;
-    padding: 2px 10px;
-    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1.5px 8px;
+    border-radius: 10px;
     letter-spacing: 0.2px;
   }
   .routine-pill-date {
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 600;
     color: var(--text-primary);
     background: var(--card-subtle);
     border: 1px solid var(--border);
-    padding: 2px 9px;
-    border-radius: 6px;
+    padding: 1.5px 7px;
+    border-radius: 4px;
   }
   .routine-pill-category {
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--text-muted);
     background: var(--card-subtle);
-    padding: 2px 8px;
-    border-radius: 6px;
+    padding: 1.5px 6px;
+    border-radius: 4px;
   }
   .routine-status-badge {
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 12px;
+    padding: 1.5px 8px;
+    border-radius: 10px;
   }
   .routine-status-badge.done {
     background: #dcfce7;
@@ -3595,11 +3596,11 @@
     border: 1px solid #fecaca;
   }
   .routine-card-title {
-    font-size: 16.5px;
-    font-weight: 800;
+    font-size: 13.5px;
+    font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 8px;
-    line-height: 1.4;
+    margin-bottom: 4px;
+    line-height: 1.35;
   }
   .routine-timeline-node.completed .routine-card-title {
     color: #166534;
@@ -3607,38 +3608,38 @@
   .routine-hint-bar {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 700;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
     color: #0369a1;
     background: #e0f2fe;
-    padding: 3px 10px;
-    border-radius: 6px;
-    margin-bottom: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-bottom: 6px;
   }
   .routine-card-desc {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
-    line-height: 1.5;
-    margin-bottom: 12px;
+    line-height: 1.45;
+    margin-bottom: 8px;
   }
   .routine-subtasks-list {
     background: var(--card-subtle);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    margin-bottom: 14px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
   .routine-subtask-item {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    font-size: 12.5px;
+    gap: 6px;
+    font-size: 11.5px;
     color: var(--text-primary);
-    line-height: 1.45;
+    line-height: 1.4;
   }
   .routine-subtask-bullet {
     color: var(--primary);
@@ -3650,29 +3651,30 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
-    padding-top: 12px;
+    gap: 8px;
+    padding-top: 7px;
+    margin-top: 4px;
     border-top: 1px solid var(--border);
   }
   .routine-action-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
   .routine-action-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
   }
   .btn-toggle-routine {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     font-weight: 700;
-    font-size: 12.5px;
-    padding: 6px 14px;
-    border-radius: 6px;
+    font-size: 11.5px;
+    padding: 3.5px 10px;
+    border-radius: 5px;
     border: 1px solid var(--border);
     background: #ffffff;
     color: var(--text-primary);
@@ -4796,7 +4798,7 @@
           <!-- Chalkboard Inner Slate -->
           <div class="chalkboard-slate" id="chalkboardSlate" onclick="handleChalkboardClick(event)">
 
-            <!-- Chalkboard Header Bar: Clean date navigation on top-left -->
+            <!-- Chalkboard Header Bar: Date navigation on left, font & history controls on right -->
             <div class="chalkboard-header-bar">
               <div class="chalk-date-group">
                 <button class="chalk-nav-btn" onclick="changeBlackboardDayOffset(-1)" title="翻看前一天板书">◀ 昨天</button>
@@ -4804,6 +4806,24 @@
                 <button class="chalk-nav-btn" onclick="changeBlackboardDayOffset(1)" title="翻看后一天板书">明天 ▶</button>
                 <button class="chalk-nav-btn" id="btnChalkToday" style="display:none;" onclick="jumpToTodayBlackboard()">回到今天</button>
                 <span class="chalk-streak-badge" id="chalkStreakBadge" style="display:none !important;"></span>
+              </div>
+
+              <!-- 右侧：字体大小调节、加粗、查看以往记录 -->
+              <div class="chalk-tools-group" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <div style="display:inline-flex; align-items:center; gap:2px; background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:6px; border:1px solid rgba(255,255,255,0.18);">
+                  <button class="chalk-nav-btn" onclick="adjustBlackboardFontSize(-2)" title="缩小黑板字体" style="padding:1px 6px; font-size:11px; line-height:1.2;">A-</button>
+                  <span id="blackboardFontSizeDisplay" style="font-size:11.5px; font-weight:700; color:#fde047; min-width:32px; text-align:center; user-select:none;">16px</span>
+                  <button class="chalk-nav-btn" onclick="adjustBlackboardFontSize(2)" title="放大黑板字体" style="padding:1px 6px; font-size:11px; line-height:1.2;">A+</button>
+                </div>
+
+                <button class="chalk-nav-btn" id="btnBlackboardBold" onclick="toggleBlackboardBold()" title="加粗黑板字体" style="padding:2px 9px; font-weight:800; font-size:12px; line-height:1.2;">
+                  B
+                </button>
+
+                <button class="chalk-nav-btn" onclick="openBlackboardHistoryModal()" title="查看以往黑板记录" style="padding:2px 10px; font-size:11.5px; line-height:1.2; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
+                  <span>📖</span>
+                  <span>以往记录</span>
+                </button>
               </div>
             </div>
 
@@ -4915,27 +4935,13 @@
         </div>
       </div>
 
-      <!-- 可折叠的常用链接工具箱 (保留原有网址收录与快捷直达能力) -->
-      <div class="card" style="margin-top:20px; border:1px solid var(--border);">
-        <div class="card-header" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:14px 18px; user-select:none; background:var(--card-subtle);" onclick="toggleLinksCollapse()">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:17px;">🔗</span>
-            <span style="font-weight:700; font-size:14px; color:var(--text-primary);">常用办公链接（快捷导航工具箱）</span>
-            <span class="badge" id="statLinkCountBadge" style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px;">已收录</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); openAddLinkModal()" style="font-size:12px;">➕ 添加新链接</button>
-            <span id="linksCollapseIcon" style="font-size:12px; color:var(--text-muted); font-weight:700;">▼ 展开</span>
-          </div>
-        </div>
-        <div id="linksCollapseBody" style="display:none; padding:16px 18px; border-top:1px solid var(--border);">
-          <div class="links-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
-            <div class="links-category-tabs" id="linksCategoryTabs" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"></div>
-            <div>
-              <button class="btn btn-sm btn-ghost" onclick="openManageCategoriesModal()" style="font-size:12px;">🏷️ 管理/修改分类名称</button>
-            </div>
-          </div>
-          <div class="links-grid" id="linksFullGrid"></div>
+      <!-- 常用办公链接板块已按要求删除 (保留隐藏兼容容器保证后台脚本平稳运行) -->
+      <div style="display:none;" aria-hidden="true">
+        <span id="statLinkCountBadge"></span>
+        <span id="linksCollapseIcon"></span>
+        <div id="linksCollapseBody">
+          <div id="linksCategoryTabs"></div>
+          <div id="linksFullGrid"></div>
         </div>
       </div>
     </div>
@@ -5266,7 +5272,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.0.9</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.1.0</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -6019,18 +6025,25 @@
 
   <!-- ================= MODAL: BLACKBOARD HISTORY ================= -->
   <div class="modal-overlay" id="blackboardHistoryModal" style="display:none;" onclick="if(event.target===this)closeBlackboardHistoryModal()">
-    <div class="modal-box" style="max-width: 520px;">
+    <div class="modal-box" style="max-width: 580px; max-height: 85vh; display:flex; flex-direction:column;">
       <div class="modal-header">
-        <div class="modal-title">📖 往期黑板报回顾</div>
+        <div class="modal-title" style="display:flex; align-items:center; gap:8px;">
+          <span>📖</span>
+          <span>黑板历史记录</span>
+        </div>
         <button class="btn btn-sm btn-ghost" onclick="closeBlackboardHistoryModal()">✕</button>
       </div>
-      <div class="modal-body" style="padding: 18px 24px;">
-        <div id="blackboardHistoryList" style="display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto;">
+      <div style="padding: 10px 20px 6px 20px; border-bottom: 1px solid var(--border);">
+        <input type="text" id="inputBlackboardHistorySearch" placeholder="🔍 搜索以往板书内容..." oninput="renderBlackboardHistoryList()" style="width:100%; box-sizing:border-box; font-size:12.5px; padding:6px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card-subtle);" />
+      </div>
+      <div class="modal-body" style="padding: 14px 20px; overflow-y:auto; flex:1;">
+        <div id="blackboardHistoryList" style="display:flex; flex-direction:column; gap:10px;">
           <!-- Dynamically populated -->
         </div>
       </div>
-      <div class="modal-footer" style="padding: 12px 24px; display: flex; justify-content: flex-end;">
-        <button class="btn btn-primary" onclick="closeBlackboardHistoryModal()">关闭</button>
+      <div class="modal-footer" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items:center;">
+        <span style="font-size:11.5px; color:var(--text-muted);">💡 点击任意记录可直接切回当天黑板并编辑</span>
+        <button class="btn btn-primary btn-sm" onclick="closeBlackboardHistoryModal()">关闭</button>
       </div>
     </div>
   </div>
@@ -9245,6 +9258,7 @@ function renderChalkboard(dateStr) {
   // Populate textarea directly (only when not actively typing to avoid cursor jump or IME interruption)
   const textarea = document.getElementById('chalkboardDirectInput');
   if (textarea) {
+    if (typeof initBlackboardFontSettings === 'function') initBlackboardFontSettings();
     const isEditing = (document.activeElement === textarea) || _isBlackboardComposing;
     if (!isEditing) {
       const record = records[currentBlackboardDate];
@@ -9420,37 +9434,62 @@ function jumpToTodayBlackboard() {
   renderChalkboard();
 }
 
+// ================= 小黑板字体与历史记录控制 =================
+function initBlackboardFontSettings() {
+  const size = parseInt(localStorage.getItem('snoopy_blackboard_fontsize') || '16', 10);
+  const isBold = localStorage.getItem('snoopy_blackboard_bold') === 'true';
+  applyBlackboardFontSettings(size, isBold);
+}
+
+function applyBlackboardFontSettings(size, isBold) {
+  const textarea = document.getElementById('chalkboardDirectInput');
+  const sizeDisp = document.getElementById('blackboardFontSizeDisplay');
+  const boldBtn = document.getElementById('btnBlackboardBold');
+
+  if (textarea) {
+    textarea.style.fontSize = size + 'px';
+    textarea.style.fontWeight = isBold ? '700' : '500';
+  }
+  if (sizeDisp) {
+    sizeDisp.textContent = size + 'px';
+  }
+  if (boldBtn) {
+    if (isBold) {
+      boldBtn.style.background = '#fde047';
+      boldBtn.style.color = '#142a20';
+      boldBtn.style.borderColor = '#eab308';
+    } else {
+      boldBtn.style.background = 'rgba(255, 255, 255, 0.08)';
+      boldBtn.style.color = '#e2e8f0';
+      boldBtn.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+    }
+  }
+}
+
+function adjustBlackboardFontSize(delta) {
+  let cur = parseInt(localStorage.getItem('snoopy_blackboard_fontsize') || '16', 10);
+  cur += delta;
+  if (cur < 12) cur = 12;
+  if (cur > 30) cur = 30;
+  localStorage.setItem('snoopy_blackboard_fontsize', String(cur));
+  const isBold = localStorage.getItem('snoopy_blackboard_bold') === 'true';
+  applyBlackboardFontSettings(cur, isBold);
+}
+
+function toggleBlackboardBold() {
+  let isBold = localStorage.getItem('snoopy_blackboard_bold') === 'true';
+  isBold = !isBold;
+  localStorage.setItem('snoopy_blackboard_bold', String(isBold));
+  const size = parseInt(localStorage.getItem('snoopy_blackboard_fontsize') || '16', 10);
+  applyBlackboardFontSettings(size, isBold);
+}
+
 function openBlackboardHistoryModal() {
   const modal = document.getElementById('blackboardHistoryModal');
-  const listEl = document.getElementById('blackboardHistoryList');
-  if (!modal || !listEl) return;
-
-  const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
-  const dates = Object.keys(records).sort().reverse();
-
-  if (dates.length === 0) {
-    listEl.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted); font-size:13px;">暂无往期板书记录，每天记录一点吧！</div>`;
-  } else {
-    listEl.innerHTML = dates.map(d => {
-      const r = records[d];
-      const isCur = (d === currentBlackboardDate);
-      return `
-        <div style="padding:10px 14px; background:var(--card-subtle); border:1px solid ${isCur ? 'var(--primary)' : 'var(--border)'}; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-size:13px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
-              <span>📅 ${d}</span>
-              ${isCur ? '<span class="badge" style="background:#e0f2fe; color:#0284c7; font-size:10.5px;">当前黑板</span>' : ''}
-            </div>
-            <div style="font-size:12px; color:var(--text-secondary); margin-top:3px; max-width:340px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              ${escapeHtml(r.highlight || r.title || r.notes || '自学记录')}
-            </div>
-          </div>
-          <button class="btn btn-sm btn-ghost" onclick="loadHistoryDateToBlackboard('${d}')">翻看 →</button>
-        </div>
-      `;
-    }).join('');
-  }
-
+  if (!modal) return;
+  const searchInp = document.getElementById('inputBlackboardHistorySearch');
+  if (searchInp) searchInp.value = '';
+  renderBlackboardHistoryList();
   modal.style.display = 'flex';
 }
 
@@ -9459,10 +9498,88 @@ function closeBlackboardHistoryModal() {
   if (modal) modal.style.display = 'none';
 }
 
+function renderBlackboardHistoryList() {
+  const listEl = document.getElementById('blackboardHistoryList');
+  if (!listEl) return;
+  const searchInp = document.getElementById('inputBlackboardHistorySearch');
+  const query = (searchInp && searchInp.value ? searchInp.value.trim().toLowerCase() : '');
+
+  const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
+  const dates = Object.keys(records).sort().reverse();
+
+  let validDates = dates.filter(d => {
+    const r = records[d];
+    if (!r) return false;
+    const txt = (r.content || r.notes || r.highlight || r.title || '').trim();
+    if (!txt) return false;
+    if (query) {
+      return d.toLowerCase().includes(query) || txt.toLowerCase().includes(query);
+    }
+    return true;
+  });
+
+  if (validDates.length === 0) {
+    listEl.innerHTML = query
+      ? `<div style="text-align:center; padding:28px 16px; color:var(--text-muted); font-size:13px;">未搜索到包含“${escapeHtml(query)}”的板书记录</div>`
+      : `<div style="text-align:center; padding:28px 16px; color:var(--text-muted); font-size:13px;">暂无以往板书记录。您在黑板上随手书写的内容，系统都会按日期自动永久归档~</div>`;
+    return;
+  }
+
+  const todayStr = getTodayDateStr();
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+  listEl.innerHTML = validDates.map(d => {
+    const r = records[d];
+    const isCur = (d === currentBlackboardDate);
+    const isToday = (d === todayStr);
+
+    let dateLabel = d;
+    try {
+      const parts = d.split('-');
+      const dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      dateLabel = `${parseInt(parts[1], 10)}月${parseInt(parts[2], 10)}日 (${weekDays[dt.getDay()]})`;
+    } catch (e) {}
+
+    const rawText = (r.content || r.notes || r.highlight || '').trim();
+    const firstLine = rawText.split('\n')[0] || '板书记录';
+
+    return `
+      <div style="padding:10px 14px; background:var(--card-subtle); border:1px solid ${isCur ? '#3b82f6' : 'var(--border)'}; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:13px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+            <span>📅 ${dateLabel}</span>
+            ${isToday ? '<span class="badge" style="background:#fef3c7; color:#d97706; font-size:10.5px; padding:1px 6px;">今日</span>' : ''}
+            ${isCur ? '<span class="badge" style="background:#e0f2fe; color:#0284c7; font-size:10.5px; padding:1px 6px;">当前展示</span>' : ''}
+          </div>
+          <div style="font-size:12px; color:var(--text-secondary); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${escapeHtml(firstLine)}
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+          <button class="btn btn-sm btn-ghost" onclick="copySingleHistoryBlackboard('${d}')" title="复制当天板书">📋</button>
+          <button class="btn btn-sm btn-primary" onclick="loadHistoryDateToBlackboard('${d}')" style="font-size:12px; padding:3px 9px;">载入黑板 →</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function copySingleHistoryBlackboard(dateStr) {
+  const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
+  const r = records[dateStr];
+  if (!r) return;
+  const txt = (r.content || r.notes || r.highlight || '').trim();
+  if (!txt) {
+    showToast('该天板书无文字内容');
+    return;
+  }
+  copyToClipboard(txt, `已复制 ${dateStr} 的黑板记录！`);
+}
+
 function loadHistoryDateToBlackboard(dateStr) {
   closeBlackboardHistoryModal();
   renderChalkboard(dateStr);
-  showToast(`已翻至 ${dateStr} 的黑板板书`);
+  showToast(`已切换至 ${dateStr} 的黑板板书`);
 }
 
 function fillEnglishTemplateToBlackboard() {
@@ -11947,9 +12064,9 @@ function updateTomorrowReminderPreview() {
   const trip = getTripForDate(targetDateStr);
 
   const lines = [];
-  lines.push(`曦总日程安排 · ${dateFormatted}`);
+  lines.push(`📅 曦总日程安排 · ${dateFormatted}`);
   if (trip) {
-    lines.push(`📍 出差地：${trip.destination} (${trip.tzName || ''}当地时间)`);
+    lines.push(`📍 出差目的地：${trip.destination} (${trip.tzName || ''}当地时间)`);
   }
   lines.push('');
 
@@ -11966,7 +12083,8 @@ function updateTomorrowReminderPreview() {
         timeLabel = `${dtInfo.cairoStart} - ${dtInfo.cairoEnd}`;
       }
 
-      lines.push(`${index + 1}. ${subject}  ${timeLabel}`);
+      const locText = mItem.location ? `  📍 ${mItem.location}` : '';
+      lines.push(`${index + 1}. 📌 ${subject}  ⏰ ${timeLabel}${locText}`);
     });
   }
 
@@ -16018,9 +16136,10 @@ initDailyEnglish();
 updateTzSimulator();
 renderHomeDashboard();
 initBlackboardInputListeners();
+initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.0.9';
+window.APP_VERSION = 'v1.1.0';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
