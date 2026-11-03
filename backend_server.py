@@ -203,6 +203,18 @@ def db_set_key(key, value, expected_updated_at=None):
             except Exception:
                 current_value = current[0]
             return False, current[1], current_value
+
+        # Protection: Prevent unversioned requests from wiping existing non-empty data with empty data
+        # (e.g. race condition where a newly opened device triggers default empty seeds before syncing)
+        if expected_updated_at is None and current and current[0]:
+            try:
+                curr_parsed = json.loads(current[0])
+                if isinstance(curr_parsed, (list, dict)) and len(curr_parsed) > 0:
+                    if value is None or (isinstance(value, (list, dict)) and len(value) == 0):
+                        conn.rollback()
+                        return False, current[1], curr_parsed
+            except Exception:
+                pass
         conn.execute("""
             INSERT INTO platform_storage (key, val, updated_at)
             VALUES (?, ?, ?)

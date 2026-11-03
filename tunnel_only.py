@@ -31,6 +31,10 @@ def main():
             if match:
                 with open(URL_FILE, "w", encoding="utf-8") as f:
                     f.write(match.group(1))
+            if "Tunnel not found" in line:
+                print("Cloudflare quick tunnel expired. Exiting so PM2 restarts with a fresh tunnel...")
+                process.terminate()
+                break
         return process.wait()
     except KeyboardInterrupt:
         return 0
