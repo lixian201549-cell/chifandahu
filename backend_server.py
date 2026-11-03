@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import base64
 import hashlib
 import hmac
+import io
 import json
 import os
 import secrets
@@ -9,6 +11,8 @@ import shutil
 import sqlite3
 import threading
 import time
+import zipfile
+import xml.etree.ElementTree as ET
 from http.cookies import SimpleCookie
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
@@ -242,6 +246,158 @@ def db_batch_set(data_dict):
 
 def _valid_storage_key(key):
     return isinstance(key, str) and key.startswith(ALLOWED_KEY_PREFIX) and len(key) <= 128
+
+
+def parse_xlsx_sheets(file_bytes, target_sheet="NIS重点遗留任务"):
+    """
+    Parse an Excel .xlsx workbook from raw bytes.
+    Extracts all worksheets, accurately aligns cell columns by coordinates,
+    and prioritizes the requested target sheet (e.g. 'NIS重点遗留任务').
+    """
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(file_bytes))
+    except Exception as e:
+        return {"success": False, "error": f"Invalid zip/xlsx archive: {str(e)}"}
+
+    strings = []
+    if "xl/sharedStrings.xml" in zf.namelist():
+        try:
+            sst_root = ET.fromstring(zf.read("xl/sharedStrings.xml"))
+            for si in sst_root.findall("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}si"):
+                texts = [t.text or "" for t in si.findall(".//{http://schemas.openxmlformats.org/spreadsheetml/2006/main}t")]
+                strings.append("".join(texts))
+        except Exception:
+            pass
+
+    rel_map = {}
+    if "xl/_rels/workbook.xml.rels" in zf.namelist():
+        try:
+            rels_root = ET.fromstring(zf.read("xl/_rels/workbook.xml.rels"))
+            for rel in rels_root:
+                r_id = rel.attrib.get("Id")
+                target = rel.attrib.get("Target", "")
+                if target.startswith("/"): target = target[1:]
+                if not target.startswith("xl/"): target = "xl/" + target
+                rel_map[r_id] = target
+        except Exception:
+            pass
+
+    sheets = []
+    if "xl/workbook.xml" in zf.namelist():
+        try:
+            wb_root = ET.fromstring(zf.read("xl/workbook.xml"))
+            sheets_elem = wb_root.find("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}sheets")
+            if sheets_elem is not None:
+                for s in sheets_elem:
+                    name = s.attrib.get("name", "")
+                    r_id = s.attrib.get("{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id", "")
+                    sheet_id = s.attrib.get("sheetId", "")
+                    target = rel_map.get(r_id, f"xl/worksheets/sheet{sheet_id}.xml")
+                    sheets.append({"name": name, "rId": r_id, "sheetId": sheet_id, "target": target})
+        except Exception:
+            pass
+
+    if not sheets:
+        # Fallback to scanning worksheets in zip
+        for name in zf.namelist():
+            if name.startswith("xl/worksheets/sheet") and name.endswith(".xml"):
+                sheets.append({"name": os.path.splitext(os.path.basename(name))[0], "rId": "", "sheetId": "1", "target": name})
+
+    if not sheets:
+        return {"success": False, "error": "No worksheets found in xlsx workbook"}
+
+    target_clean = (target_sheet or "NIS重点遗留任务").strip().lower().replace(" ", "")
+    matched = None
+    for s in sheets:
+        if s["name"].strip().lower() == (target_sheet or "").strip().lower():
+            matched = s; break
+    if not matched:
+        for s in sheets:
+            if s["name"].strip().lower().replace(" ", "") == target_clean:
+                matched = s; break
+    if not matched:
+        for s in sheets:
+            n = s["name"].strip().lower().replace(" ", "")
+            if target_clean in n or n in target_clean:
+                matched = s; break
+    if not matched:
+        for s in sheets:
+            n = s["name"].lower()
+            if "nis" in n and ("遗留" in n or "任务" in n):
+                matched = s; break
+    if not matched:
+        for s in sheets:
+            if "遗留任务" in s["name"]:
+                matched = s; break
+    if not matched:
+        matched = sheets[0]
+
+    def col_to_idx(col_str):
+        idx = 0
+        for ch in col_str:
+            idx = idx * 26 + (ord(ch) - 64)
+        return idx - 1
+
+    def parse_sheet(target_file):
+        if target_file not in zf.namelist():
+            return "", 0
+        try:
+            ws_root = ET.fromstring(zf.read(target_file))
+        except Exception:
+            return "", 0
+        rows = []
+        for row in ws_root.findall(".//{http://schemas.openxmlformats.org/spreadsheetml/2006/main}row"):
+            cells = row.findall("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}c")
+            row_vals = []
+            for c in cells:
+                r_attr = c.attrib.get("r", "")
+                col_idx = -1
+                if r_attr:
+                    col_letters = "".join(filter(str.isalpha, r_attr)).upper()
+                    if col_letters:
+                        col_idx = col_to_idx(col_letters)
+                c_type = c.attrib.get("t", "")
+                val = ""
+                v_elem = c.find("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}v")
+                if v_elem is not None and v_elem.text:
+                    if c_type == "s" and v_elem.text.isdigit():
+                        idx = int(v_elem.text)
+                        val = strings[idx] if idx < len(strings) else ""
+                    else:
+                        val = v_elem.text
+                else:
+                    is_elem = c.find("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}is")
+                    if is_elem is not None:
+                        t_elem = is_elem.find("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}t")
+                        if t_elem is not None and t_elem.text:
+                            val = t_elem.text
+
+                while len(row_vals) <= col_idx:
+                    row_vals.append("")
+                if col_idx >= 0:
+                    row_vals[col_idx] = val
+                else:
+                    row_vals.append(val)
+            if any(str(v).strip() for v in row_vals):
+                rows.append("\t".join(str(v).strip() for v in row_vals))
+        return "\n".join(rows), len(rows)
+
+    all_sheets = []
+    for s in sheets:
+        tsv_text, r_count = parse_sheet(s["target"])
+        all_sheets.append({"name": s["name"], "text": tsv_text, "rowCount": r_count})
+
+    matched_entry = next((item for item in all_sheets if item["name"] == matched["name"]), all_sheets[0])
+    is_target_matched = (matched["name"].strip().lower().replace(" ", "") == target_clean or "nis" in matched["name"].lower() or target_clean in matched["name"].strip().lower().replace(" ", ""))
+
+    return {
+        "success": True,
+        "sheetName": matched["name"],
+        "text": matched_entry["text"],
+        "rowCount": matched_entry["rowCount"],
+        "matched": is_target_matched,
+        "allSheets": all_sheets
+    }
 
 
 class PlatformHTTPHandler(SimpleHTTPRequestHandler):
@@ -510,6 +666,20 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
                 "lastModified": last_mod,
                 "keys": len(data_dict),
             })
+            return
+
+        if path == "/api/parse-excel":
+            b64_str = request_data.get("fileBase64", "")
+            target_sheet = request_data.get("targetSheet", "NIS重点遗留任务")
+            if not b64_str:
+                self._json_response(400, {"success": False, "error": "fileBase64 is required"})
+                return
+            try:
+                file_bytes = base64.b64decode(b64_str)
+                res = parse_xlsx_sheets(file_bytes, target_sheet=target_sheet)
+                self._json_response(200, res)
+            except Exception as exc:
+                self._json_response(500, {"success": False, "error": str(exc)})
             return
 
         self._json_response(404, {"success": False, "error": "Not found"})

@@ -6570,6 +6570,9 @@ html_template = """<!DOCTYPE html>
             <div style="font-size:11.5px; color:#b45309;">
               标准 14 列：问题状态、*问题描述、*责任人、提出时间、*要求完成日期、更新完成时间、问题进展、审核意见、备注、汇报时间、逾期任务、本期新增、本期关闭、领域
             </div>
+            <div style="margin-top:4px; font-size:11.5px; color:#1e40af; background:#eff6ff; padding:2px 8px; border-radius:4px; display:inline-block; font-weight:700; border:1px solid #bfdbfe;">
+              🎯 Excel 文件导入规则：系统已设定仅提取「NIS重点遗留任务」Sheet 的数据，自动过滤其他无关工作表。
+            </div>
           </div>
           <div style="display:flex; gap:8px; flex-shrink:0;">
             <button type="button" class="btn btn-sm" onclick="copyLegacyTaskHeader()" style="background:#ffffff; border:1px solid #cbd5e1; font-size:11.5px; font-weight:600; color:#475569;" title="复制标准表头到剪贴板">
@@ -6581,6 +6584,19 @@ html_template = """<!DOCTYPE html>
             <button type="button" class="btn btn-sm btn-ghost" onclick="clearAllLegacyTasks()" style="color:#dc2626; border:1px solid #fecaca; background:#fff; font-size:11.5px; font-weight:600;" title="清空现有全部遗留任务">
               🗑️ 清空现有清单
             </button>
+          </div>
+        </div>
+
+        <!-- Excel 多工作表定位与选择指示条 (只提取 NIS重点遗留任务) -->
+        <div id="legacySheetSelectorContainer" style="display:none; margin-bottom:4px; padding:7px 12px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; font-size:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:14px;">📑</span>
+            <span style="color:#0369a1; font-weight:700;">工作表范围：</span>
+            <span id="legacySheetTargetBadge" style="background:#e0f2fe; color:#0284c7; font-size:11.5px; padding:2px 8px; border-radius:4px; font-weight:700; border:1px solid #7dd3fc;">🎯 已锁定提取「NIS重点遗留任务」</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="color:#64748b; font-size:11.5px;">切换工作表:</span>
+            <select id="legacyImportSheetSelect" onchange="onLegacySheetSelected(this.value)" style="padding:3px 8px; font-size:12px; border-radius:4px; border:1px solid #93c5fd; background:#fff; font-weight:700; color:#1d4ed8; cursor:pointer; outline:none;"></select>
           </div>
         </div>
 
@@ -6600,7 +6616,7 @@ html_template = """<!DOCTYPE html>
               </button>
             </div>
           </div>
-          <textarea id="inputLegacyImportText" rows="7" placeholder="请在 Excel / 飞书 / WPS 表格中选中整张任务清单，按 Ctrl+C 复制后直接在此粘贴（Ctrl+V）...&#10;&#10;支持 14 列：问题状态 | *问题描述 | *责任人 | 提出时间 | *要求完成日期 | 更新完成时间 | 问题进展 | 审核意见 | 备注 | 汇报时间 | 逾期任务 | 本期新增 | 本期关闭 | 领域" style="font-family:monospace; font-size:12px; line-height:1.45; border-radius:8px;" oninput="handleLegacyImportTextChange()" onpaste="setTimeout(handleLegacyImportTextChange, 50)" onchange="handleLegacyImportTextChange()"></textarea>
+          <textarea id="inputLegacyImportText" rows="7" placeholder="请在 Excel / 飞书 / WPS 表格中选中整张任务清单，按 Ctrl+C 复制后直接在此粘贴（Ctrl+V），或点击右上角「📂 从电脑选择文件...」上传 Excel 文件。&#10;&#10;📌 上传 Excel (.xlsx) 时，系统将自动定位并仅提取「NIS重点遗留任务」工作表的数据。&#10;&#10;标准 14 列：问题状态 | *问题描述 | *责任人 | 提出时间 | *要求完成日期 | 更新完成时间 | 问题进展 | 审核意见 | 备注 | 汇报时间 | 逾期任务 | 本期新增 | 本期关闭 | 领域" style="font-family:monospace; font-size:12px; line-height:1.45; border-radius:8px;" oninput="handleLegacyImportTextChange()" onpaste="setTimeout(handleLegacyImportTextChange, 50)" onchange="handleLegacyImportTextChange()"></textarea>
           <!-- 未识别到数据时的友好提示 -->
           <div id="legacyImportEmptyTip" style="display:none; margin-top:8px; padding:10px 12px; background:#fff1f2; border:1px solid #fecdd3; border-radius:6px; font-size:12px; color:#9f1239;">
             ⚠️ 暂未能解析出任务行。提示：请确保复制的内容包含「*问题描述」与「*责任人」两项核心内容；或点击上方「✨ 填入示例数据体验」查看标准格式。
@@ -10862,11 +10878,16 @@ function handleMeetingLegacyTaskSelect(taskId) {
 // 14 标准字段批量导入逻辑
 // ==========================================
 
+let _currentLegacyWorkbookSheets = [];
+
 function openLegacyImportModal() {
   document.getElementById('inputLegacyImportText').value = '';
   document.getElementById('legacyImportPreviewArea').style.display = 'none';
   document.getElementById('btnConfirmLegacyImport').disabled = true;
   parsedLegacyImportTasks = [];
+  _currentLegacyWorkbookSheets = [];
+  const container = document.getElementById('legacySheetSelectorContainer');
+  if (container) container.style.display = 'none';
   openModal('legacyImportModal');
 }
 
@@ -10901,11 +10922,22 @@ async function handleLegacyFileInput(event) {
 
   const ext = file.name.split('.').pop().toLowerCase();
   if (ext === 'xlsx') {
-    showToast('正在解析 Excel (.xlsx) 文件...');
+    showToast('正在解析 Excel 并精准定位「NIS重点遗留任务」工作表...');
     try {
-      const text = await readXlsxFile(file);
-      document.getElementById('inputLegacyImportText').value = text;
+      const res = await readXlsxFile(file, { targetSheet: 'NIS重点遗留任务', returnDetails: true });
+      if (!res || !res.text || !res.text.trim()) {
+        showToast('⚠️ 未能从该 Excel 中读取到内容，请核对工作表');
+        return;
+      }
+      _currentLegacyWorkbookSheets = res.allSheets || [];
+      updateLegacySheetSelector(res.sheetName, _currentLegacyWorkbookSheets);
+      document.getElementById('inputLegacyImportText').value = res.text;
       handleLegacyImportTextChange();
+      if (res.matched) {
+        showToast(`✅ 成功定位并提取工作表【${res.sheetName}】（共 ${res.rowCount || 0} 行）！`);
+      } else {
+        showToast(`ℹ️ 未检测到「NIS重点遗留任务」，已提取【${res.sheetName}】（可在上方切换工作表）`);
+      }
     } catch (e) {
       alert('解析 XLSX 失败，建议在 Excel 中复制后直接粘贴到文本框：' + e.message);
     }
@@ -10920,9 +10952,62 @@ async function handleLegacyFileInput(event) {
   event.target.value = '';
 }
 
+function updateLegacySheetSelector(activeSheetName, sheets) {
+  const container = document.getElementById('legacySheetSelectorContainer');
+  const select = document.getElementById('legacyImportSheetSelect');
+  const badge = document.getElementById('legacySheetTargetBadge');
+  if (!container || !select) return;
+
+  if (!sheets || sheets.length <= 1) {
+    if (sheets && sheets.length === 1) {
+      container.style.display = 'flex';
+      const isTarget = (sheets[0].name.trim() === 'NIS重点遗留任务' || sheets[0].name.includes('NIS重点遗留任务'));
+      if (badge) {
+        badge.textContent = isTarget ? '🎯 已锁定提取「NIS重点遗留任务」' : ('📄 当前工作表：' + sheets[0].name);
+      }
+      select.innerHTML = '<option value="' + escapeHtml(sheets[0].name) + '">' + escapeHtml(sheets[0].name) + ' (' + sheets[0].rowCount + '行)</option>';
+    } else {
+      container.style.display = 'none';
+    }
+    return;
+  }
+
+  container.style.display = 'flex';
+  const hasTarget = sheets.some(s => s.name.trim() === 'NIS重点遗留任务' || s.name.replace(/\\s+/g, '') === 'NIS重点遗留任务' || s.name.includes('NIS重点遗留任务'));
+  if (badge) {
+    badge.textContent = hasTarget ? '🎯 已自动锁定「NIS重点遗留任务」' : '📑 多工作表（未找到NIS重点遗留任务，已默认提取第1个）';
+  }
+
+  select.innerHTML = sheets.map(s => {
+    const isTarget = (s.name.trim() === 'NIS重点遗留任务' || s.name.replace(/\\s+/g, '') === 'NIS重点遗留任务' || s.name.includes('NIS重点遗留任务'));
+    const isSelected = (s.name === activeSheetName);
+    const label = escapeHtml(s.name) + (isTarget ? ' 🎯[目标Sheet]' : '') + ' (' + s.rowCount + '行)';
+    return '<option value="' + escapeHtml(s.name) + '" ' + (isSelected ? 'selected' : '') + '>' + label + '</option>';
+  }).join('');
+}
+
+function onLegacySheetSelected(sheetName) {
+  if (!_currentLegacyWorkbookSheets || !_currentLegacyWorkbookSheets.length) return;
+  const s = _currentLegacyWorkbookSheets.find(item => item.name === sheetName);
+  if (s) {
+    document.getElementById('inputLegacyImportText').value = s.text;
+    handleLegacyImportTextChange();
+    showToast(`已切换至工作表【${s.name}】（共 ${s.rowCount} 行）`);
+  }
+}
+
 function normalizeDateStr(val) {
   if (!val) return '';
-  val = String(val).trim().replace(/\\//g, '-').replace(/\\./g, '-');
+  val = String(val).trim();
+  const num = parseFloat(val);
+  if (!isNaN(num) && num >= 35000 && num <= 65000 && /^\\d+(\\.\\d+)?$/.test(val)) {
+    const d = new Date(Math.round((num - 25569) * 86400 * 1000));
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+  val = val.replace(/\\//g, '-').replace(/\\./g, '-');
   const m = val.match(/\\d{4}-\\d{1,2}-\\d{1,2}/);
   if (m) {
     const parts = m[0].split('-');
@@ -11647,91 +11732,263 @@ function downloadStandardExcelTemplate() {
   showToast("📥 标准 Excel CSV 模板已下载！");
 }
 
-// In-browser XLSX ZIP Reader supporting Excel .xlsx files
-async function readXlsxFile(file) {
+// In-browser XLSX ZIP Reader supporting multi-sheet Excel .xlsx files
+async function fallbackServerParseXlsx(file, targetSheetName, returnDetails) {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const b64 = window.btoa(binary);
+
+    const res = await fetch('/api/parse-excel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileBase64: b64, targetSheet: targetSheetName })
+    });
+    const json = await res.json();
+    if (json && json.success) {
+      if (returnDetails) return json;
+      return json.text;
+    }
+    throw new Error(json.error || 'Server parse failed');
+  } catch (e) {
+    console.error('Server fallback parse error:', e);
+    return null;
+  }
+}
+
+async function readXlsxFile(file, options) {
+  const targetSheetName = (typeof options === 'string' ? options : (options && options.targetSheet)) || 'NIS重点遗留任务';
+  const returnDetails = (options && typeof options === 'object' && options.returnDetails);
+
+  function unescapeXml(text) {
+    if (!text) return '';
+    return text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;|&apos;/g, "'")
+      .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)));
+  }
+
+  function colLetterToIndex(colStr) {
+    let index = 0;
+    for (let i = 0; i < colStr.length; i++) {
+      index = index * 26 + (colStr.charCodeAt(i) - 64);
+    }
+    return index - 1;
+  }
+
   try {
     const arrayBuffer = await file.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
 
-    // Scan ZIP entries
+    // 1. Scan ZIP entries via Central Directory (fallback to local headers)
     const entries = {};
-    let pos = 0;
-    while (pos + 30 <= bytes.length) {
-      if (bytes[pos] !== 0x50 || bytes[pos+1] !== 0x4b || bytes[pos+2] !== 0x03 || bytes[pos+3] !== 0x04) break;
-      const method = bytes[pos+8] | (bytes[pos+9] << 8);
-      const compSize = bytes[pos+18] | (bytes[pos+19] << 8) | (bytes[pos+20] << 16) | (bytes[pos+21] << 24);
-      const fnameLen = bytes[pos+26] | (bytes[pos+27] << 8);
-      const extraLen = bytes[pos+28] | (bytes[pos+29] << 8);
-      const fnameBytes = bytes.slice(pos + 30, pos + 30 + fnameLen);
-      const fname = new TextDecoder('utf-8').decode(fnameBytes);
-      const dataStart = pos + 30 + fnameLen + extraLen;
-      const compData = bytes.slice(dataStart, dataStart + compSize);
-      entries[fname] = { method, data: compData };
-      pos = dataStart + compSize;
+    let eocdPos = -1;
+    for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65536 - 22); i--) {
+      if (bytes[i] === 0x50 && bytes[i+1] === 0x4b && bytes[i+2] === 0x05 && bytes[i+3] === 0x06) {
+        eocdPos = i;
+        break;
+      }
+    }
+
+    if (eocdPos !== -1) {
+      const cdOffset = (bytes[eocdPos+16] | (bytes[eocdPos+17] << 8) | (bytes[eocdPos+18] << 16) | (bytes[eocdPos+19] << 24)) >>> 0;
+      let pos = cdOffset;
+      while (pos + 46 <= bytes.length) {
+        if (bytes[pos] !== 0x50 || bytes[pos+1] !== 0x4b || bytes[pos+2] !== 0x01 || bytes[pos+3] !== 0x02) break;
+        const method = bytes[pos+10] | (bytes[pos+11] << 8);
+        const compSize = (bytes[pos+20] | (bytes[pos+21] << 8) | (bytes[pos+22] << 16) | (bytes[pos+23] << 24)) >>> 0;
+        const fnameLen = bytes[pos+28] | (bytes[pos+29] << 8);
+        const extraLen = bytes[pos+30] | (bytes[pos+31] << 8);
+        const commentLen = bytes[pos+32] | (bytes[pos+33] << 8);
+        const lh = (bytes[pos+42] | (bytes[pos+43] << 8) | (bytes[pos+44] << 16) | (bytes[pos+45] << 24)) >>> 0;
+        
+        const fname = new TextDecoder('utf-8').decode(bytes.slice(pos + 46, pos + 46 + fnameLen));
+        if (lh + 30 <= bytes.length && bytes[lh] === 0x50 && bytes[lh+1] === 0x4b && bytes[lh+2] === 0x03 && bytes[lh+3] === 0x04) {
+          const lhFnameLen = bytes[lh+26] | (bytes[lh+27] << 8);
+          const lhExtraLen = bytes[lh+28] | (bytes[lh+29] << 8);
+          const dataStart = lh + 30 + lhFnameLen + lhExtraLen;
+          entries[fname] = { method, data: bytes.slice(dataStart, dataStart + compSize) };
+        }
+        pos += 46 + fnameLen + extraLen + commentLen;
+      }
+    } else {
+      let pos = 0;
+      while (pos + 30 <= bytes.length) {
+        if (bytes[pos] !== 0x50 || bytes[pos+1] !== 0x4b || bytes[pos+2] !== 0x03 || bytes[pos+3] !== 0x04) break;
+        const method = bytes[pos+8] | (bytes[pos+9] << 8);
+        const compSize = (bytes[pos+18] | (bytes[pos+19] << 8) | (bytes[pos+20] << 16) | (bytes[pos+21] << 24)) >>> 0;
+        const fnameLen = bytes[pos+26] | (bytes[pos+27] << 8);
+        const extraLen = bytes[pos+28] | (bytes[pos+29] << 8);
+        const fname = new TextDecoder('utf-8').decode(bytes.slice(pos + 30, pos + 30 + fnameLen));
+        const dataStart = pos + 30 + fnameLen + extraLen;
+        entries[fname] = { method, data: bytes.slice(dataStart, dataStart + compSize) };
+        pos = dataStart + compSize;
+      }
     }
 
     async function decompress(entry) {
-      if (!entry) return '';
+      if (!entry || !entry.data || entry.data.length === 0) return '';
       if (entry.method === 0) return new TextDecoder('utf-8').decode(entry.data);
       if (entry.method === 8 && typeof DecompressionStream !== 'undefined') {
-        const ds = new DecompressionStream('deflate-raw');
-        const writer = ds.writable.getWriter();
-        writer.write(entry.data);
-        writer.close();
-        const reader = ds.readable.getReader();
-        const chunks = [];
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
+        try {
+          const ds = new DecompressionStream('deflate-raw');
+          const writer = ds.writable.getWriter();
+          writer.write(entry.data);
+          writer.close();
+          const reader = ds.readable.getReader();
+          const chunks = [];
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+          }
+          let totalLen = chunks.reduce((acc, c) => acc + c.length, 0);
+          let res = new Uint8Array(totalLen);
+          let offset = 0;
+          for (const c of chunks) { res.set(c, offset); offset += c.length; }
+          return new TextDecoder('utf-8').decode(res);
+        } catch (e) {
+          console.warn('Decompress error:', e);
+          return '';
         }
-        let totalLen = chunks.reduce((acc, c) => acc + c.length, 0);
-        let res = new Uint8Array(totalLen);
-        let offset = 0;
-        for (const c of chunks) { res.set(c, offset); offset += c.length; }
-        return new TextDecoder('utf-8').decode(res);
       }
       return '';
     }
 
+    // Shared Strings
     const sstXml = await decompress(entries['xl/sharedStrings.xml']);
-    const sheetEntry = entries['xl/worksheets/sheet1.xml'] || entries['xl/worksheets/sheet.xml'] || Object.entries(entries).find(([k]) => k.startsWith('xl/worksheets/'))?.[1];
-    const sheetXml = await decompress(sheetEntry);
-
     const strings = [];
     if (sstXml) {
-      const siMatches = sstXml.match(/<si>[\s\S]*?<\/si>/g) || [];
+      const siMatches = sstXml.match(/<si>[\s\S]*?<\/si>/gi) || [];
       for (const si of siMatches) {
-        const tMatches = si.match(/<t[^>]*>([\s\S]*?)<\/t>/g) || [];
+        const tMatches = si.match(/<t[^>]*>([\s\S]*?)<\/t>/gi) || [];
         const text = tMatches.map(m => m.replace(/<[^>]+>/g, '')).join('');
-        strings.push(text);
+        strings.push(unescapeXml(text));
       }
     }
 
-    const rows = [];
-    if (sheetXml) {
-      const rowMatches = sheetXml.match(/<row[^>]*>[\s\S]*?<\/row>/g) || [];
-      for (const r of rowMatches) {
-        const cellMatches = r.match(/<c[^>]*>[\s\S]*?<\/c>/g) || [];
-        const rowVals = [];
-        for (const c of cellMatches) {
-          const isString = /t="s"/.test(c);
-          const valMatch = c.match(/<v>([^<]*)<\/v>/);
-          if (valMatch) {
-            const val = valMatch[1];
-            rowVals.push(isString ? (strings[parseInt(val, 10)] || '') : val);
-          } else {
-            const inlineMatch = c.match(/<t[^>]*>([\s\S]*?)<\/t>/);
-            if (inlineMatch) rowVals.push(inlineMatch[1]);
-          }
+    // Relationships
+    const relsXml = await decompress(entries['xl/_rels/workbook.xml.rels']);
+    const relMap = {};
+    if (relsXml) {
+      const relMatches = relsXml.match(/<Relationship\s+[^>]+>/gi) || [];
+      for (const rel of relMatches) {
+        const idM = rel.match(/Id="([^"]+)"/);
+        const targetM = rel.match(/Target="([^"]+)"/);
+        if (idM && targetM) {
+          let t = targetM[1];
+          if (t.startsWith('/')) t = t.substring(1);
+          if (!t.startsWith('xl/')) t = 'xl/' + t;
+          relMap[idM[1]] = t;
         }
-        if (rowVals.length > 0) rows.push(rowVals.join('\\t'));
       }
     }
-    return rows.join('\\n');
+
+    // Workbook sheets
+    const wbXml = await decompress(entries['xl/workbook.xml']);
+    const sheets = [];
+    if (wbXml) {
+      const sheetMatches = wbXml.match(/<sheet\s+[^>]+>/gi) || [];
+      for (const s of sheetMatches) {
+        const nameM = s.match(/name="([^"]+)"/);
+        const rIdM = s.match(/r:id="([^"]+)"/) || s.match(/id="([^"]+)"/);
+        const sheetIdM = s.match(/sheetId="([^"]+)"/);
+        const name = nameM ? unescapeXml(nameM[1]) : '';
+        const rId = rIdM ? rIdM[1] : '';
+        const sheetId = sheetIdM ? sheetIdM[1] : '';
+        const target = (rId && relMap[rId]) || ('xl/worksheets/sheet' + sheetId + '.xml');
+        sheets.push({ name, rId, sheetId, target });
+      }
+    }
+
+    function parseSheetXmlToTsv(sheetXml) {
+      if (!sheetXml) return { tsv: '', rowCount: 0 };
+      const rows = [];
+      const rowMatches = sheetXml.match(/<row\s+[^>]*>[\s\S]*?<\/row>/gi) || [];
+      for (const r of rowMatches) {
+        const cellMatches = r.match(/<c\s+[^>]*>[\s\S]*?<\/c>|<c\s+[^>]*\/>/gi) || [];
+        const rowVals = [];
+        for (const c of cellMatches) {
+          const rM = c.match(/r="([A-Z]+)(\d+)"/);
+          let colIdx = -1;
+          if (rM) colIdx = colLetterToIndex(rM[1]);
+
+          const isString = /t="s"/.test(c);
+          let val = '';
+          const valMatch = c.match(/<v>([^<]*)<\/v>/);
+          if (valMatch) {
+            const rawVal = valMatch[1];
+            val = isString ? (strings[parseInt(rawVal, 10)] || '') : rawVal;
+          } else {
+            const inlineMatch = c.match(/<t[^>]*>([\s\S]*?)<\/t>/i);
+            if (inlineMatch) val = inlineMatch[1];
+          }
+
+          val = unescapeXml(val);
+
+          if (colIdx >= 0) {
+            rowVals[colIdx] = val;
+          } else {
+            rowVals.push(val);
+          }
+        }
+        for (let i = 0; i < rowVals.length; i++) {
+          if (rowVals[i] === undefined || rowVals[i] === null) rowVals[i] = '';
+        }
+        if (rowVals.some(v => v.trim() !== '')) {
+          rows.push(rowVals.join(String.fromCharCode(9)));
+        }
+      }
+      return { tsv: rows.join(String.fromCharCode(10)), rowCount: rows.length };
+    }
+
+    const allSheets = [];
+    for (const s of sheets) {
+      const sXml = await decompress(entries[s.target]);
+      if (sXml) {
+        const { tsv, rowCount } = parseSheetXmlToTsv(sXml);
+        allSheets.push({ name: s.name, text: tsv, rowCount });
+      }
+    }
+
+    if (allSheets.length === 0) {
+      const defaultEntry = entries['xl/worksheets/sheet1.xml'] || entries['xl/worksheets/sheet.xml'] || Object.entries(entries).find(([k]) => k.startsWith('xl/worksheets/'))?.[1];
+      const defaultXml = await decompress(defaultEntry);
+      const { tsv, rowCount } = parseSheetXmlToTsv(defaultXml);
+      allSheets.push({ name: 'Sheet1', text: tsv, rowCount });
+    }
+
+    const targetClean = targetSheetName.trim().toLowerCase().replace(/\s+/g, '');
+    let matched = allSheets.find(s => s.name.trim().toLowerCase() === targetSheetName.trim().toLowerCase())
+      || allSheets.find(s => s.name.trim().toLowerCase().replace(/\s+/g, '') === targetClean)
+      || allSheets.find(s => s.name.toLowerCase().includes(targetClean) || targetClean.includes(s.name.toLowerCase()))
+      || allSheets.find(s => s.name.toLowerCase().includes('nis') && (s.name.includes('遗留') || s.name.includes('任务')))
+      || allSheets.find(s => s.name.includes('遗留任务'))
+      || allSheets[0];
+
+    const isMatched = (matched.name.trim().toLowerCase().replace(/\s+/g, '') === targetClean || matched.name.toLowerCase().includes('nis') || targetClean.includes(matched.name.toLowerCase().replace(/\s+/g, '')));
+
+    if (returnDetails) {
+      return {
+        text: matched.text,
+        sheetName: matched.name,
+        rowCount: matched.rowCount,
+        matched: isMatched,
+        allSheets: allSheets
+      };
+    }
+    return matched.text;
   } catch (err) {
-    console.warn('XLSX native extraction error, falling back to text:', err);
-    return null;
+    console.warn('XLSX native extraction error, falling back to server parse:', err);
+    return await fallbackServerParseXlsx(file, targetSheetName, returnDetails);
   }
 }
 
