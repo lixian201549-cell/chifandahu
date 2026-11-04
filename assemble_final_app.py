@@ -10446,10 +10446,44 @@ function handleLegacySearch(val) {
   renderLegacyTasks();
 }
 
-// 整个面板准入规则：只允许 open 任务与 申请关闭 任务，彻底排除已闭环/已完成
+// 整个面板准入规则：只允许 open 任务与 申请关闭 任务，彻底排除已闭环/已完成及换行切断产生的审核意见碎片
 function isAllowedPanelTask(t) {
   if (!t) return false;
+  const title = (t.title || '').trim();
+  const owner = (t.owner || '').trim();
   const s = String(t.status || '').trim().toLowerCase();
+
+  // 1. 标题必须存在 (来自 B 列)
+  if (!title) return false;
+
+  // 2. 彻底过滤审核意见碎片、换行杂项、纯序号或领域标签
+  if (title.indexOf('关键任务整理出来') !== -1) return false;
+  if (title.indexOf('今天发送纪要') !== -1) return false;
+  if (title.indexOf('宣传加强') !== -1) return false;
+  if (title.indexOf('保供的重新汇报') !== -1) return false;
+  if (title.indexOf('修改后的材料发出') !== -1) return false;
+  if (title.indexOf('群组发送') !== -1) return false;
+  if (title.indexOf('跟曦总同步进展') !== -1) return false;
+  if (title.indexOf('DTRB结论同步') !== -1) return false;
+  if (title.indexOf('材料发送邮件') !== -1) return false;
+  if (title.indexOf('护城河及ODN体验后更新材料') !== -1) return false;
+  if (title.indexOf('长期任务，目标需要多部门') !== -1) return false;
+  if (title.indexOf('ODN服务差距总结出整体观点') !== -1) return false;
+  if (title.indexOf('第二篇Mostafa') !== -1) return false;
+  if (title.indexOf('订未收部分') !== -1) return false;
+  if (/^【\d{1,2}\/\d{1,2}】/.test(title)) return false;
+  if (/^\d{1,2}\/\d{1,2}/.test(title)) return false;
+  if (title.startsWith('@')) return false;
+  if (/^\d+$/.test(title)) return false;
+  if (/\d+%/.test(title)) return false;
+  if (title === 'FBB' || title === 'TMO' || title === 'NFV' || title === '其他' || title === 'SITE' || title === 'IT' || title === 'MBB') return false;
+
+  if (owner === 'SITE' || owner === 'Y' || owner.indexOf('今天发送纪要') !== -1 || owner.indexOf('关键进展同步') !== -1 || /\d+%/.test(owner) || /^\d+$/.test(owner)) {
+    return false;
+  }
+  if (!owner && title.length > 30) return false;
+
+  // 3. 排除所有已闭环 / 已关闭 / 已完成
   if (
     s === 'completed' ||
     s === 'closed' ||
@@ -11605,12 +11639,32 @@ function parseLegacyTaskRows(rawText) {
     var reviewCol = (hasHeader && colMap.reviewOpinion !== -1) ? colMap.reviewOpinion : 7;
     var minutesCol = (hasHeader && colMap.hasMinutes !== -1) ? colMap.hasMinutes : -1;
 
-    // 核心提取：B 列（titleCol）是遗留任务，C 列（ownerCol）是同一行对应的责任人
+    // 核心提取：B 列（titleCol）是且仅是遗留任务，C 列（ownerCol）是同一行对应的责任人
     var title = (cols[titleCol] || '').trim();
     var owner = (cols[ownerCol] || '').trim();
     var rawStatus = (cols[statusCol] || '').trim();
     var reportTime = (cols[reportCol] || '').trim();
     var reviewOpinion = (reviewCol !== -1 && cols[reviewCol]) ? cols[reviewCol].trim() : '';
+
+    // 严禁非 B 列内容进入遗留任务：若 B 列为空，坚决不作任务导入！
+    if (!title) return;
+
+    // 过滤换行截断导致的审核意见碎片与杂项
+    if (title.indexOf('关键任务整理出来') !== -1) return;
+    if (title.indexOf('今天发送纪要') !== -1) return;
+    if (title.indexOf('宣传加强') !== -1) return;
+    if (title.indexOf('保供的重新汇报') !== -1) return;
+    if (title.indexOf('修改后的材料发出') !== -1) return;
+    if (title.indexOf('群组发送') !== -1) return;
+    if (title.indexOf('跟曦总同步进展') !== -1) return;
+    if (title.indexOf('DTRB结论同步') !== -1) return;
+    if (title.indexOf('材料发送邮件') !== -1) return;
+    if (/^【\d{1,2}\/\d{1,2}】/.test(title)) return;
+    if (/^\d{1,2}\/\d{1,2}/.test(title)) return;
+    if (title.startsWith('@')) return;
+    if (/^\d+$/.test(title) || /\d+%/.test(title)) return;
+    if (title === 'FBB' || title === 'TMO' || title === 'NFV' || title === '其他' || title === 'SITE' || title === 'IT' || title === 'MBB') return;
+    if (owner === 'SITE' || owner === 'Y' || owner.indexOf('今天发送纪要') !== -1) return;
 
     var hasMinutes = false;
     if (minutesCol !== -1 && cols[minutesCol]) {
@@ -11620,8 +11674,6 @@ function parseLegacyTaskRows(rawText) {
     if (!hasMinutes && reviewOpinion) {
       hasMinutes = true;
     }
-
-    if (!title && !owner) return;
 
     var normalizedStatus = 'Open';
     if (rawStatus.indexOf('关') !== -1 || rawStatus.indexOf('闭') !== -1 || rawStatus.indexOf('完成') !== -1 || rawStatus.toLowerCase() === 'completed' || rawStatus.toLowerCase() === 'closed') {
@@ -12392,6 +12444,8 @@ async function readXlsxFile(file, options) {
           }
 
           val = unescapeXml(val);
+          // 彻底防止单元格内换行破坏行结构：将单元格内部的换行符替换为空格
+          val = val.split(String.fromCharCode(10)).join(' ').split(String.fromCharCode(13)).join(' ').trim();
 
           if (colIdx >= 0) {
             rowVals[colIdx] = val;
