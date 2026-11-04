@@ -3483,6 +3483,97 @@
     color: #ffffff !important;
     box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
   }
+  .routine-axis-cute-hint {
+    position: absolute;
+    left: -86px;
+    top: 42px;
+    width: 76px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.25;
+    padding: 2px 3px;
+    border-radius: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    z-index: 2;
+  }
+  .routine-axis-cute-hint.hint-upcoming {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  .routine-axis-cute-hint.hint-urgent {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+  }
+  .routine-axis-cute-hint.hint-today {
+    background: #fdf2f8;
+    color: #db2777;
+    border: 1px solid #fbcfe8;
+  }
+  .routine-axis-cute-hint.hint-overdue {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #f87171;
+  }
+  .routine-axis-cute-hint.hint-done {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+  }
+  .routine-cute-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+  }
+  .routine-cute-badge.hint-upcoming {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  .routine-cute-badge.hint-urgent {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+  }
+  .routine-cute-badge.hint-today {
+    background: #fdf2f8;
+    color: #db2777;
+    border: 1px solid #fbcfe8;
+  }
+  .routine-cute-badge.hint-overdue {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #f87171;
+  }
+  .routine-cute-badge.hint-done {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+  }
+  .routine-pill-actual {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    border-radius: 5px;
+    padding: 3px 9px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .routine-pill-actual:hover {
+    filter: brightness(0.95);
+  }
   .routine-today-marker {
     position: relative;
     margin: 8px 0 12px 0;
@@ -5513,16 +5604,16 @@
 
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
           <div style="display:flex; align-items:center; gap:6px;">
-            <label style="font-size:12px; color:var(--text-secondary); font-weight:600;">跳转日期：</label>
-            <input type="date" id="timelineDateSelector" style="width:125px; padding:4px 8px; font-size:12px;" onchange="handleTimelineDateChange()" />
+            <label style="font-size:12px; color:#0369a1; font-weight:700;">跳转日期：</label>
+            <input type="date" id="timelineDateSelector" style="width:125px; padding:4px 8px; font-size:12px; font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff; border-radius:6px;" onchange="handleTimelineDateChange()" />
           </div>
-          <button class="btn" id="btnRemindTomorrowMeetings" onclick="openTomorrowMeetingReminderModal()" style="font-weight:700; color:#4338ca; border:1px solid #c7d2fe; background:#eef2ff;" title="一键提醒领导明日日程并复制">
+          <button class="btn" id="btnRemindTomorrowMeetings" onclick="openTomorrowMeetingReminderModal()" style="font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff;" title="一键提醒领导明日日程并复制">
             📋 提醒领导明日会议
           </button>
-          <button class="btn" onclick="exportExecutiveScheduleBriefing()">
+          <button class="btn" onclick="exportExecutiveScheduleBriefing()" style="font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff;" title="复制排版周报">
             复制排版周报
           </button>
-          <button class="btn btn-primary" onclick="openLeaderTripModal()">
+          <button class="btn" onclick="openLeaderTripModal()" style="font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff;" title="登记出差">
             ✈️ 登记出差
           </button>
           <button class="btn" id="btnRegisterTransit" onclick="openTransitModal()" style="font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff;" title="登记领导跨时区在途飞行/行程">
@@ -5576,10 +5667,10 @@
           <button class="btn btn-sm" onclick="openLegacyImportModal()" style="font-weight:700; background:transparent !important; color:#92400e; border:1.5px solid #d97706;" title="从 Excel/飞书复制粘贴或上传文件批量导入">
             📥 导入清单
           </button>
-          <button class="btn btn-sm" onclick="clearAllLegacyTasks()" style="font-weight:600; background:transparent !important; color:#dc2626; border:1.5px solid #fca5a5;" title="清空全部遗留任务数据">
+          <button class="btn btn-sm" onclick="clearAllLegacyTasks()" style="font-weight:700; background:transparent !important; color:#92400e; border:1.5px solid #d97706;" title="清空全部遗留任务数据">
             🗑️ 清空清单
           </button>
-          <button class="btn btn-sm" onclick="openAddLegacyTaskModal()" style="font-weight:700; background:transparent !important; color:#1d4ed8; border:1.5px solid #3b82f6;" title="新增重点遗留任务">
+          <button class="btn btn-sm" onclick="openAddLegacyTaskModal()" style="font-weight:700; background:transparent !important; color:#92400e; border:1.5px solid #d97706;" title="新增重点遗留任务">
             ＋ 新增任务
           </button>
         </div>
@@ -5806,7 +5897,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.4.1</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.4.2</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -5931,11 +6022,8 @@
         <div style="display:flex; align-items:center; gap:8px;">
           <div class="modal-title" id="meetingModalTitle">登记主管会议预约</div>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('left')" title="靠左" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">◀ 靠左</button>
-          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('center')" title="居中" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">⤢ 居中</button>
-          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('right')" title="靠右" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">靠右 ▶</button>
-          <button type="button" class="btn btn-sm btn-ghost" onclick="closeModal('meetingModal')" style="font-size:15px; margin-left:4px;">✕</button>
+        <div>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="closeModal('meetingModal')" style="font-size:16px; color:#64748b; padding:2px 8px;" title="关闭">✕</button>
         </div>
       </div>
       <div class="modal-body">
@@ -6404,6 +6492,22 @@
           <div class="form-group" style="margin-bottom:0;">
             <label id="labelRoutineValue" style="font-weight:700; font-size:13px; display:block; margin-bottom:5px;">计划时间 (1~31 号)</label>
             <input type="number" id="inputRoutineValue" min="1" max="31" value="9" style="font-size:14px; font-weight:600;" />
+          </div>
+        </div>
+
+        <!-- 实际执行时间 (待用户根据当月实际发生填写) -->
+        <div class="form-group" style="margin-bottom:0; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-weight:700; font-size:13px; color:#0f172a; margin:0;">🎯 实际执行时间 (选填)</label>
+            <span style="font-size:11.5px; color:#64748b;">待实际发生后填写</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="date" id="inputRoutineActualDate" style="flex:1; font-size:13px; font-weight:600; padding:5px 8px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;" />
+            <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('inputRoutineActualDate').value = new Date().toISOString().slice(0,10)" style="font-size:11.5px; padding:4px 8px; border:1px solid #cbd5e1; background:#fff; font-weight:600;">填入今日</button>
+            <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('inputRoutineActualDate').value = ''" style="font-size:11.5px; color:#94a3b8; padding:4px 6px;">清空</button>
+          </div>
+          <div style="font-size:11px; color:#64748b; margin-top:5px;">
+            💡 计划时间用于计划基线对齐，您可随时在此登记或更新本月实际发生的具体日期。
           </div>
         </div>
       </div>
@@ -12161,7 +12265,7 @@ function getNormalizedTaskReports(task, allMeetings) {
     if (!mTime) return;
 
     var hasMin = (m.hasMinutes === 'yes' || m.hasMinutes === true || Boolean(m.decision && m.decision.trim()));
-    var opinion = m.decision || m.nextPlan || '';
+    var opinion = hasMin ? (m.decision || m.nextPlan || '') : '';
 
     // 检查是否已经在 reports 中
     var existingIdx = reports.findIndex(function(r) {
@@ -12185,7 +12289,7 @@ function getNormalizedTaskReports(task, allMeetings) {
         seq: reports.length + 1,
         reportTime: mTime,
         hasMinutes: hasMin,
-        minutes: m.nextPlan || m.notes || '',
+        minutes: opinion,
         reviewOpinion: opinion,
         meetingId: m.id,
         meetingSubject: m.subject || '',
@@ -12253,6 +12357,78 @@ function isDateInCurrentWeek(dateStr) {
   
   const targetTime = targetDate.getTime();
   return targetTime >= monday.getTime() && targetTime <= sunday.getTime();
+}
+
+// 核心功能：一键复制未发纪要群通知 (供在微信/飞书/企微群催办)
+function copyPendingMinutesGroupNotice() {
+  const allTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const panelTasks = allTasks.filter(isAllowedPanelTask);
+
+  const pendingItems = [];
+  panelTasks.forEach(task => {
+    const reps = getNormalizedTaskReports(task, allMeetings);
+    const unminutedReps = reps.filter(r => !r.hasMinutes);
+    if (unminutedReps.length > 0) {
+      pendingItems.push({
+        task: task,
+        reports: unminutedReps
+      });
+    }
+  });
+
+  if (pendingItems.length === 0) {
+    showToast('🎉 太棒了！当前没有待发送会议纪要的重点遗留任务。');
+    return;
+  }
+
+  let text = '【📢 重点遗留任务·待发送会议纪要催办通知】\n';
+  text += '各位主管、责任人好：\n';
+  text += '截至目前，以下 ' + pendingItems.length + ' 项重点遗留任务已完成汇报，但尚未发送正式会议纪要，请相关责任人尽快梳理并在群内或邮件发出纪要：\n\n';
+
+  pendingItems.forEach((item, idx) => {
+    const t = item.task;
+    text += (idx + 1) + '. 【' + (t.title || '未命名遗留任务') + '】\n';
+    text += '   👤 责任人：' + (t.owner || '待定') + '\n';
+    item.reports.forEach(r => {
+      text += '   🕒 汇报时间：' + (r.reportTime || '已汇报') + ' (第' + (r.seq || 1) + '次汇报) ⚠️ 待发纪要\n';
+    });
+    text += '\n';
+  });
+
+  text += '请各位责任人及时跟进并发送纪要，感谢大家的配合与支持！💪';
+
+  fallbackCopyText(text, '🎉 已一键复制未发纪要催办通知，可直接在群内粘贴发送！');
+}
+
+function fallbackCopyText(text, successMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(successMsg || '已复制到剪贴板！');
+    }).catch(() => {
+      execCommandCopy(text, successMsg);
+    });
+  } else {
+    execCommandCopy(text, successMsg);
+  }
+}
+
+function execCommandCopy(text, successMsg) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.top = '-9999px';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast(successMsg || '已复制到剪贴板！');
+  } catch (err) {
+    prompt('请复制以下内容：', text);
+  }
+  document.body.removeChild(ta);
 }
 
 function renderLegacyTasks() {
@@ -12411,7 +12587,21 @@ function renderLegacyCardsView(tasks, allMeetings) {
     return;
   }
 
-  container.innerHTML = tasks.map(task => {
+  const filterNoticeHTML = legacyKpiFilter !== 'all' ? `
+    <div style="grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; background:${legacyKpiFilter === 'pending_minutes' ? '#fef2f2' : '#eff6ff'}; border:1px solid ${legacyKpiFilter === 'pending_minutes' ? '#fca5a5' : '#bfdbfe'}; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:12px; color:${legacyKpiFilter === 'pending_minutes' ? '#991b1b' : '#1e40af'};">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span>🔍 当前筛选：<strong>${legacyKpiFilter === 'this_week' ? '本周汇报遗留任务 (' + tasks.length + '项)' : '待发送会议纪要 (' + tasks.length + '项)'}</strong></span>
+        ${legacyKpiFilter === 'pending_minutes' ? `
+          <button class="btn btn-sm" onclick="copyPendingMinutesGroupNotice()" style="background:#dc2626; color:#ffffff; font-weight:700; border:none; padding:4px 12px; border-radius:6px; box-shadow:0 2px 4px rgba(220,38,38,0.25); cursor:pointer;" title="一键复制未发纪要催办清单并在群里通知">
+            📋 一键复制未发纪要群通知
+          </button>
+        ` : ''}
+      </div>
+      <button class="btn btn-xs btn-ghost" onclick="setLegacyKpiFilter('all')" style="color:${legacyKpiFilter === 'pending_minutes' ? '#b91c1c' : '#2563eb'}; font-weight:700; text-decoration:underline; cursor:pointer;">✕ 显示全部遗留任务</button>
+    </div>
+  ` : '';
+
+  container.innerHTML = filterNoticeHTML + tasks.map(task => {
     const reports = getNormalizedTaskReports(task, allMeetings);
     const reportCount = reports.length;
     const isApplying = isTaskApplyingClosed(task);
@@ -12459,7 +12649,6 @@ function renderLegacyCardsView(tasks, allMeetings) {
                     </div>
                     ${badgeHTML}
                   </div>
-                  ${r.reviewOpinion ? `<div class="legacy-report-opinion-quote"><strong>纪要决议:</strong> ${escapeHtml(r.reviewOpinion)}</div>` : ''}
                 </div>
               `;
             }).join('')}
@@ -12501,9 +12690,16 @@ function renderLegacyTableView(tasks, allMeetings) {
   }
 
   const filterNoticeHTML = legacyKpiFilter !== 'all' ? `
-    <div style="display:flex; justify-content:space-between; align-items:center; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:6px 12px; margin-bottom:12px; font-size:12px; color:#1e40af;">
-      <span>🔍 当前筛选：<strong>${legacyKpiFilter === 'this_week' ? '本周汇报遗留任务 (' + tasks.length + '项)' : '待发送会议纪要 (' + tasks.length + '项)'}</strong></span>
-      <button class="btn btn-xs btn-ghost" onclick="setLegacyKpiFilter('all')" style="color:#2563eb; font-weight:700; text-decoration:underline; cursor:pointer;">✕ 显示全部遗留任务</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:${legacyKpiFilter === 'pending_minutes' ? '#fef2f2' : '#eff6ff'}; border:1px solid ${legacyKpiFilter === 'pending_minutes' ? '#fca5a5' : '#bfdbfe'}; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:12px; color:${legacyKpiFilter === 'pending_minutes' ? '#991b1b' : '#1e40af'};">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span>🔍 当前筛选：<strong>${legacyKpiFilter === 'this_week' ? '本周汇报遗留任务 (' + tasks.length + '项)' : '待发送会议纪要 (' + tasks.length + '项)'}</strong></span>
+        ${legacyKpiFilter === 'pending_minutes' ? `
+          <button class="btn btn-sm" onclick="copyPendingMinutesGroupNotice()" style="background:#dc2626; color:#ffffff; font-weight:700; border:none; padding:4px 12px; border-radius:6px; box-shadow:0 2px 4px rgba(220,38,38,0.25); cursor:pointer;" title="一键复制未发纪要催办清单并在群里通知">
+            📋 一键复制未发纪要群通知
+          </button>
+        ` : ''}
+      </div>
+      <button class="btn btn-xs btn-ghost" onclick="setLegacyKpiFilter('all')" style="color:${legacyKpiFilter === 'pending_minutes' ? '#b91c1c' : '#2563eb'}; font-weight:700; text-decoration:underline; cursor:pointer;">✕ 显示全部遗留任务</button>
     </div>
   ` : '';
 
@@ -12544,7 +12740,6 @@ function renderLegacyTableView(tasks, allMeetings) {
                   const hasMin = Boolean(rep.hasMinutes);
                   const seqText = `第${rep.seq || (rIdx + 1)}次`;
                   const timeText = rep.reportTime || '时间待确认';
-                  const opinion = rep.reviewOpinion || rep.minutes || '';
 
                   let badgeHTML = '';
                   if (isFuture) {
@@ -12578,11 +12773,6 @@ function renderLegacyTableView(tasks, allMeetings) {
                           ${badgeHTML}
                         </div>
                       </div>
-                      ${opinion ? `
-                        <div class="legacy-report-opinion-quote" title="${escapeHtml(opinion)}">
-                          <span style="color:#0284c7; font-weight:700;">纪要批示:</span> ${escapeHtml(opinion.length > 55 ? opinion.slice(0, 55) + '...' : opinion)}
-                        </div>
-                      ` : ''}
                     </div>
                   `;
                 }).join('')}
@@ -17482,16 +17672,116 @@ function getRoutineDateDetails(routine, year, month) {
       }
     }
     const fridayHint = fridayDay ? `建议周五交付：${month}月${fridayDay}日` : `本周内提交`;
+    const targetDay = fridayDay || Math.min(startDay + 4, maxDay);
     return {
       type: 'week',
-      sortDay: fridayDay || (startDay + 4),
+      sortDay: targetDay,
+      dateStr: `${year}-${String(month).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`,
       dateRangeStr: `${month}月${startDay}日 ~ ${month}月${endDay}日`,
       displayDate: `${month}月${startDay}日 ~ ${month}月${endDay}日`,
       ruleText: `${month}月${startDay}日 ~ ${month}月${endDay}日`,
       fridayHint: fridayHint,
-      exactDay: fridayDay || (startDay + 4)
+      exactDay: targetDay
     };
   }
+}
+
+// 计算两日期间的工作日天数 (周一至周五，不含周六日)
+function getWorkDaysBetween(d1, d2) {
+  if (!d1 || !d2) return 0;
+  const start = new Date(d1);
+  const end = new Date(d2);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  
+  if (start.getTime() === end.getTime()) return 0;
+  
+  const isFuture = end.getTime() > start.getTime();
+  const from = isFuture ? new Date(start) : new Date(end);
+  const to = isFuture ? new Date(end) : new Date(start);
+  
+  let count = 0;
+  let cur = new Date(from);
+  while (cur.getTime() < to.getTime()) {
+    cur.setDate(cur.getDate() + 1);
+    const day = cur.getDay();
+    if (day !== 0 && day !== 6) {
+      count++;
+    }
+  }
+  return isFuture ? count : -count;
+}
+
+// 在轴上和卡片头呈现可爱的小提示 (剩余工作日 / 达成提示)
+function getCuteWorkDaysHint(targetDateStr, isCompleted) {
+  if (isCompleted) {
+    return {
+      text: '🎉 已达成通关',
+      badgeClass: 'hint-done',
+      axisHint: '🎉 已通关',
+      workDays: 0
+    };
+  }
+  if (!targetDateStr) {
+    return {
+      text: '待定',
+      badgeClass: 'hint-upcoming',
+      axisHint: '待定',
+      workDays: 999
+    };
+  }
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(targetDateStr);
+  target.setHours(0, 0, 0, 0);
+  
+  const workDays = getWorkDaysBetween(today, target);
+  
+  if (workDays === 0) {
+    return {
+      text: '🌟 就在今天！',
+      badgeClass: 'hint-today',
+      axisHint: '🌟 就在今天',
+      workDays: 0
+    };
+  } else if (workDays === 1) {
+    return {
+      text: '⚡ 还有 1 个工作日 (明天)',
+      badgeClass: 'hint-urgent',
+      axisHint: '🐾 剩 1 工作日',
+      workDays: 1
+    };
+  } else if (workDays > 1) {
+    const badgeClass = workDays <= 2 ? 'hint-urgent' : 'hint-upcoming';
+    return {
+      text: `🐾 还有 ${workDays} 个工作日`,
+      badgeClass: badgeClass,
+      axisHint: `🐾 剩 ${workDays} 工作日`,
+      workDays: workDays
+    };
+  } else {
+    const overdueDays = Math.abs(workDays);
+    return {
+      text: `⚠️ 已过 ${overdueDays} 个工作日`,
+      badgeClass: 'hint-overdue',
+      axisHint: `⚠️ 过 ${overdueDays} 工作日`,
+      workDays: workDays
+    };
+  }
+}
+
+function formatDisplayDateOnly(dateStr) {
+  if (!dateStr) return '';
+  const parts = String(dateStr).split('-');
+  if (parts.length === 3) {
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    const dt = new Date(parseInt(parts[0], 10), m - 1, d);
+    const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    return `${m}月${d}日 (${days[dt.getDay()]})`;
+  }
+  return dateStr;
 }
 
 function renderMonthlyRoutines() {
@@ -17593,6 +17883,10 @@ function renderMonthlyRoutines() {
     }
 
     const isCompleted = !!item.check.completed;
+    const actualDate = item.check.actualDate || item.actualDate || '';
+    const effectiveDateStr = actualDate || item.details.dateStr;
+    const cuteHint = getCuteWorkDaysHint(effectiveDateStr, isCompleted);
+
     let statusClass = 'upcoming';
     let statusText = '待办';
 
@@ -17637,6 +17931,11 @@ function renderMonthlyRoutines() {
 
     timelineHtml += `
       <div class="routine-timeline-node ${isCompleted ? 'completed' : ''}" id="routine-node-${item.id}">
+        <!-- 轴上的可爱小提示 (剩余工作日 / 达成提示) -->
+        <div class="routine-axis-cute-hint ${cuteHint.badgeClass}" title="${cuteHint.text}">
+          ${cuteHint.axisHint}
+        </div>
+
         <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor};" title="${escapeHtml(item.details.displayDate)}">
           ${markerContent}
         </div>
@@ -17644,7 +17943,19 @@ function renderMonthlyRoutines() {
         <div class="routine-card">
           <div class="routine-card-header">
             <div class="routine-card-tags">
-              <span class="routine-pill-date" style="background:${ruleBg}; color:${ruleColor}; font-weight:700; border:1px solid ${ruleColor}33; border-radius:5px; padding:3px 9px; font-size:12px;">📅 ${escapeHtml(item.details.displayDate)}</span>
+              <span class="routine-pill-date" style="background:${ruleBg}; color:${ruleColor}; font-weight:700; border:1px solid ${ruleColor}33; border-radius:5px; padding:3px 9px; font-size:12px;">📅 计划：${escapeHtml(item.details.displayDate)}</span>
+              ${actualDate ? `
+                <span class="routine-pill-actual" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-weight:700;" onclick="openEditMonthlyRoutineModal(${item.id})" title="实际发生时间：${escapeHtml(actualDate)} (点击修改)">
+                  🎯 实际：${formatDisplayDateOnly(actualDate)} ✏️
+                </span>
+              ` : `
+                <span class="routine-pill-actual" style="background:#f1f5f9; color:#64748b; border:1px dashed #cbd5e1;" onclick="openEditMonthlyRoutineModal(${item.id})" title="计划时间已锁定，实际时间可能会不同，点击填写本月实际时间">
+                  🎯 实际时间：待填写 ✏️
+                </span>
+              `}
+              <span class="routine-cute-badge ${cuteHint.badgeClass}">
+                ${cuteHint.text}
+              </span>
             </div>
             <div class="routine-status-badge ${statusClass}">
               ${statusText}
@@ -17669,7 +17980,7 @@ function renderMonthlyRoutines() {
               </button>
             </div>
             <div class="routine-action-right">
-              <button class="btn btn-sm btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项">编辑</button>
+              <button class="btn btn-sm btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项与实际时间">编辑</button>
               ${item.isCustom ? `<button class="btn btn-sm btn-ghost" style="color:#dc2626;" onclick="deleteMonthlyRoutine(${item.id})" title="删除">删除</button>` : ''}
             </div>
           </div>
@@ -17771,6 +18082,8 @@ function openAddMonthlyRoutineModal() {
   document.getElementById('inputRoutineTitle').value = '';
   document.getElementById('selectRoutineType').value = 'date';
   document.getElementById('inputRoutineValue').value = '9';
+  const actualInp = document.getElementById('inputRoutineActualDate');
+  if (actualInp) actualInp.value = '';
   const catInp = document.getElementById('inputRoutineCategory');
   if (catInp) catInp.value = '月度关卡';
   const iconInp = document.getElementById('inputRoutineIcon');
@@ -17787,6 +18100,14 @@ function openEditMonthlyRoutineModal(routineId) {
   const routines = getData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
   const item = routines.find(r => r.id === routineId);
   if (!item) return;
+
+  initCurrentRoutineYearMonth();
+  const allChecklists = getData(STORAGE_KEYS.MONTHLY_CHECKLIST, {});
+  const monthChecklist = allChecklists[currentRoutineYearMonth] || {};
+  const curCheck = monthChecklist[String(routineId)] || {};
+  const actualVal = curCheck.actualDate || item.actualDate || '';
+  const actualInp = document.getElementById('inputRoutineActualDate');
+  if (actualInp) actualInp.value = actualVal;
 
   document.getElementById('monthlyRoutineModalTitle').textContent = '✏️ 编辑月度关卡';
   document.getElementById('inputRoutineId').value = item.id;
@@ -17834,6 +18155,7 @@ function saveMonthlyRoutineItem() {
   const category = document.getElementById('inputRoutineCategory').value.trim() || '月度例行';
   const icon = document.getElementById('inputRoutineIcon').value.trim() || '📌';
   const subtasksRaw = document.getElementById('inputRoutineSubtasks').value.trim();
+  const actualDate = document.getElementById('inputRoutineActualDate') ? document.getElementById('inputRoutineActualDate').value.trim() : '';
 
   if (!title) {
     alert('请输入事项名称');
@@ -17849,6 +18171,12 @@ function saveMonthlyRoutineItem() {
   let routines = getData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
   const timingDisplay = (type === 'date') ? `每月 ${value} 号` : `每月第 ${value} 周`;
 
+  initCurrentRoutineYearMonth();
+  const allChecklists = getData(STORAGE_KEYS.MONTHLY_CHECKLIST, {});
+  if (!allChecklists[currentRoutineYearMonth]) {
+    allChecklists[currentRoutineYearMonth] = {};
+  }
+
   if (idVal) {
     const id = parseInt(idVal, 10);
     const idx = routines.findIndex(r => r.id === id);
@@ -17862,9 +18190,13 @@ function saveMonthlyRoutineItem() {
         category,
         icon,
         subtasks,
+        actualDate,
         description: routines[idx].description || `每月按时完成 ${title}`
       };
     }
+    const curCheck = allChecklists[currentRoutineYearMonth][String(id)] || { completed: false, completedAt: null, note: '' };
+    curCheck.actualDate = actualDate;
+    allChecklists[currentRoutineYearMonth][String(id)] = curCheck;
   } else {
     const newId = Date.now();
     routines.push({
@@ -17877,17 +18209,22 @@ function saveMonthlyRoutineItem() {
       icon,
       color: '#3b82f6',
       subtasks,
+      actualDate,
       description: `每月按时完成 ${title}`,
       isCustom: true
     });
+    allChecklists[currentRoutineYearMonth][String(newId)] = { completed: false, completedAt: null, note: '', actualDate: actualDate };
   }
+
+  setData(STORAGE_KEYS.MONTHLY_CHECKLIST, allChecklists);
+  syncKeyToHostDatabase(STORAGE_KEYS.MONTHLY_CHECKLIST, allChecklists);
 
   setData(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
   syncKeyToHostDatabase(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
 
   closeModal('monthlyRoutineModal');
   renderMonthlyRoutines();
-  showToast('✅ 月度事项已保存');
+  showToast('✅ 月度事项与实际时间已保存');
 }
 
 function deleteMonthlyRoutine(routineId) {
@@ -19068,7 +19405,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.4.1';
+window.APP_VERSION = 'v1.4.2';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
