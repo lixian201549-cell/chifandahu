@@ -10849,6 +10849,26 @@ function isDateInCurrentWeek(dateStr) {
   return targetTime >= monday.getTime() && targetTime <= sunday.getTime();
 }
 
+// 核心规则：还没开会的，不要放进待发纪要！开完会再加进来。
+function isReportPendingMinutes(report) {
+  if (!report) return false;
+  // 1. 已输出纪要，不是待发送
+  if (report.hasMinutes) return false;
+  // 2. 核心规则：还没开会的 (未来排期)，绝不能放进待发纪要
+  if (isReportPending(report)) return false;
+  // 3. 必须有汇报时间
+  if (!report.reportTime) return false;
+  return true;
+}
+
+// 格式化遗留任务标题：避免重复嵌套括号，输出统一规范的标题格式
+function formatTaskTitleForNotice(title) {
+  let t = (title || '未命名遗留任务').trim();
+  // 统一格式化：去除开头的【，去除结尾的】，例如【HC洞察】HC用户发展成功经验洞察 -> HC洞察】HC用户发展成功经验洞察
+  t = t.replace(/^【+/, '').replace(/】+$/, '');
+  return t;
+}
+
 // 核心功能：一键复制未发纪要群通知 (供在微信/飞书/企微群催办)
 function copyPendingMinutesGroupNotice() {
   const allTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
@@ -10858,7 +10878,8 @@ function copyPendingMinutesGroupNotice() {
   const pendingItems = [];
   panelTasks.forEach(task => {
     const reps = getNormalizedTaskReports(task, allMeetings);
-    const unminutedReps = reps.filter(r => !r.hasMinutes);
+    // 还没开会的，不要放进待发纪要，开完会再加进来
+    const unminutedReps = reps.filter(r => isReportPendingMinutes(r));
     if (unminutedReps.length > 0) {
       pendingItems.push({
         task: task,
@@ -10872,23 +10893,21 @@ function copyPendingMinutesGroupNotice() {
     return;
   }
 
-  let text = '【📢 重点遗留任务·待发送会议纪要催办通知】\\n';
-  text += '各位主管、责任人好：\\n';
-  text += '截至目前，以下 ' + pendingItems.length + ' 项重点遗留任务已完成汇报，但尚未发送正式会议纪要，请相关责任人尽快梳理并在群内或邮件发出纪要：\\n\\n';
+  let text = '【📢 重点遗留任务·待发送会议纪要】\\n';
+  text += '各位责任人好：\\n\\n';
 
   pendingItems.forEach((item, idx) => {
     const t = item.task;
-    text += (idx + 1) + '. 【' + (t.title || '未命名遗留任务') + '】\\n';
+    const cleanTitle = formatTaskTitleForNotice(t.title);
+    text += (idx + 1) + '. ' + cleanTitle + '\\n';
     text += '   👤 责任人：' + (t.owner || '待定') + '\\n';
     item.reports.forEach(r => {
-      text += '   🕒 汇报时间：' + (r.reportTime || '已汇报') + ' (第' + (r.seq || 1) + '次汇报) ⚠️ 待发纪要\\n';
+      text += '   🕒 汇报时间：' + (r.reportTime || '已汇报') + ' ⚠️ 待发纪要\\n';
     });
     text += '\\n';
   });
 
-  text += '请各位责任人及时跟进并发送纪要，感谢大家的配合与支持！💪';
-
-  fallbackCopyText(text, '🎉 已一键复制未发纪要催办通知，可直接在群内粘贴发送！');
+  fallbackCopyText(text, '🎉 已一键复制未发纪要通知，可直接在群内粘贴发送！');
 }
 
 function fallbackCopyText(text, successMsg) {
@@ -10942,8 +10961,8 @@ function renderLegacyTasks() {
       if (hasThisWeekRep) {
         thisWeekReportedTasksCount++;
       }
-      // 是否存在待发送会议纪要 (已汇报但尚未输出/发送纪要)
-      if (reps.some(r => !r.hasMinutes)) {
+      // 是否存在待发送会议纪要 (已开完会但尚未输出/发送纪要；还没开会的绝不放进待发纪要)
+      if (reps.some(r => isReportPendingMinutes(r))) {
         pendingMinutesCount++;
       }
     }
@@ -11001,7 +11020,7 @@ function renderLegacyTasks() {
       const hasThisWeek = reps && reps.some(r => isDateInCurrentWeek(r.reportTime));
       if (!hasThisWeek) return false;
     } else if (legacyKpiFilter === 'pending_minutes') {
-      const hasPendingMin = reps && reps.length > 0 && reps.some(r => !r.hasMinutes);
+      const hasPendingMin = reps && reps.length > 0 && reps.some(r => isReportPendingMinutes(r));
       if (!hasPendingMin) return false;
     }
 
