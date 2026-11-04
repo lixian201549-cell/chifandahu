@@ -10604,23 +10604,26 @@ function getNormalizedTaskReports(task, allMeetings) {
   if (!task) return [];
   var reports = [];
 
-  // 1. 载入任务自身的真实手工登记汇报（排除历史导入产生的无意义非日期字符）
+  // 1. 严格过滤：绝不根据审核意见制造汇报！仅允许在界面主动点击“登记汇报”保存的手工记录 (isManual === true)
   if (Array.isArray(task.reports)) {
     task.reports.forEach(function(r) {
-      if (!r || !r.reportTime) return;
-      var rt = String(r.reportTime).trim();
-      if (rt === 'SITE' || rt === 'Y' || rt === 'N' || rt === 'FBB' || rt === 'TMO' || rt === 'NFV') return;
-      reports.push({
-        id: r.id || ('rep_' + Math.random()),
-        seq: r.seq || 1,
-        reportTime: rt,
-        hasMinutes: Boolean(r.hasMinutes),
-        minutes: r.minutes || '',
-        reviewOpinion: r.reviewOpinion || '',
-        meetingId: r.meetingId || null,
-        meetingSubject: r.meetingSubject || '',
-        reporter: r.reporter || task.owner || ''
-      });
+      if (r && r.isManual === true && r.reportTime) {
+        var rt = String(r.reportTime).trim();
+        if (rt && rt !== 'SITE' && rt !== 'Y' && rt !== 'N' && rt !== 'FBB' && rt !== 'TMO' && rt !== 'NFV') {
+          reports.push({
+            id: r.id || ('rep_' + Math.random()),
+            seq: r.seq || 1,
+            reportTime: rt,
+            hasMinutes: Boolean(r.hasMinutes),
+            minutes: r.minutes || '',
+            reviewOpinion: r.reviewOpinion || '',
+            meetingId: r.meetingId || null,
+            meetingSubject: r.meetingSubject || '',
+            isManual: true,
+            reporter: r.reporter || task.owner || ''
+          });
+        }
+      }
     });
   }
 
@@ -11103,7 +11106,8 @@ function saveAddReportSession() {
     hasMinutes: hasMinutes,
     reviewOpinion: reviewOpinion,
     minutes: minutes,
-    reporter: reporter
+    reporter: reporter,
+    isManual: true
   };
   reports.push(newSession);
 
@@ -11733,15 +11737,6 @@ function parseLegacyTaskRows(rawText) {
     if (title === 'FBB' || title === 'TMO' || title === 'NFV' || title === '其他' || title === 'SITE' || title === 'IT' || title === 'MBB') return;
     if (owner === 'SITE' || owner === 'Y' || owner.indexOf('今天发送纪要') !== -1) return;
 
-    var hasMinutes = false;
-    if (minutesCol !== -1 && cols[minutesCol]) {
-      var hm = cols[minutesCol].trim();
-      hasMinutes = (hm.indexOf('是') !== -1 || hm.toLowerCase().indexOf('yes') !== -1 || hm.indexOf('已') !== -1);
-    }
-    if (!hasMinutes && reviewOpinion) {
-      hasMinutes = true;
-    }
-
     var normalizedStatus = 'Open';
     if (rawStatus.indexOf('关') !== -1 || rawStatus.indexOf('闭') !== -1 || rawStatus.indexOf('完成') !== -1 || rawStatus.toLowerCase() === 'completed' || rawStatus.toLowerCase() === 'closed') {
       normalizedStatus = '已闭环';
@@ -11751,41 +11746,16 @@ function parseLegacyTaskRows(rawText) {
       normalizedStatus = 'Open';
     }
 
-    var initialReports = [];
-    if (reportTime) {
-      var timeParts = splitLegacyReportTimes(reportTime);
-      timeParts.forEach(function(tp, pIdx) {
-        var isLast = (pIdx === timeParts.length - 1);
-        initialReports.push({
-          id: 'rep_' + Date.now() + '_' + rIdx + '_' + (pIdx + 1),
-          seq: pIdx + 1,
-          reportTime: tp,
-          hasMinutes: isLast ? hasMinutes : true,
-          minutes: isLast ? reviewOpinion : '',
-          reviewOpinion: isLast ? reviewOpinion : '',
-          reporter: owner || ''
-        });
-      });
-    } else if (hasMinutes || reviewOpinion) {
-      initialReports.push({
-        id: 'rep_' + Date.now() + '_' + rIdx + '_1',
-        seq: 1,
-        reportTime: typeof getTodayDateStr === 'function' ? getTodayDateStr() : '',
-        hasMinutes: true,
-        minutes: reviewOpinion || '',
-        reviewOpinion: reviewOpinion || '',
-        reporter: owner || ''
-      });
-    }
-
+    // 严正指令：导入时绝不根据审核意见生成汇报！审核意见绝非汇报凭据！
+    // 汇报状态纯粹且唯一由“预约会议”中匹配【xxx】决定！
     parsed.push({
       id: Date.now() + rIdx * 10,
       status: normalizedStatus,
       title: title, // 只有 B 列是，绝不塞入其他数据
       owner: owner, // 同一行对应的责任人 (C 列)
-      reportTime: reportTime,
-      reports: initialReports,
-      hasMinutes: hasMinutes,
+      reportTime: '',
+      reports: [],
+      hasMinutes: false,
       reviewOpinion: reviewOpinion,
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -11838,15 +11808,11 @@ function handleLegacyImportTextChange() {
   var tableBody = document.getElementById('legacyImportPreviewTableBody');
   if (tableBody) {
     tableBody.innerHTML = parsedLegacyImportTasks.slice(0, 15).map(function(t, idx) {
-      var hasMin = (t.hasMinutes === true || t.hasMinutes === '是' || (t.reviewOpinion && t.reviewOpinion.trim().length > 0));
-      var reportDesc = (t.reportTime && t.reportTime.trim().length > 0) ? ('🎙️ ' + escapeHtml(t.reportTime)) : '<span style="color:#94a3b8;">待汇报</span>';
-      var minutesDesc = hasMin ? '<span style="color:#047857; font-weight:700;">✅ 已输出</span>' : '<span style="color:#be123c;">❌ 待输出</span>';
-
       return '<tr>' +
         '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; font-weight:700; color:#0f172a;">' + (idx + 1) + '. ' + escapeHtml(t.title) + '</td>' +
         '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#0284c7; font-weight:700; white-space:nowrap;">👤 ' + escapeHtml(t.owner) + '</td>' +
-        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#92400e; font-size:11.5px;">' + reportDesc + '</td>' +
-        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; font-size:11.5px;">' + minutesDesc + '</td>' +
+        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:11.5px;">⚪ 待从预约会议自动匹配</td>' +
+        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:11.5px;">待输出</td>' +
         '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; font-weight:700; font-size:11.5px;">' + escapeHtml(t.status) + '</td>' +
       '</tr>';
     }).join('');
