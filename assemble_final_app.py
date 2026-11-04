@@ -10527,18 +10527,74 @@ function splitLegacyReportTimes(str) {
   return s.split(',').map(function(x) { return x.trim(); }).filter(Boolean);
 }
 
-// 获取某个遗留任务关联的向曦总汇报记录
+// 提取中括号标签 (支持中文【】与英文[])
+function extractLegacyBrackets(str) {
+  if (!str) return [];
+  var s = String(str);
+  var re = /[【\[](.*?)[】\]]/g;
+  var list = [];
+  var match;
+  while ((match = re.exec(s)) !== null) {
+    var val = match[1].trim();
+    if (val) list.push(val);
+  }
+  return list;
+}
+
+// 核心规则：根据预约会议记录的会议名称，如果出现【xxx】，且对应遗留任务名称【xxx】，即判定为已汇报
+function doesMeetingMatchLegacyTask(meeting, task) {
+  if (!meeting || !task) return false;
+  // 1. 显式 ID 绑定
+  if (meeting.legacyTaskId && String(meeting.legacyTaskId) === String(task.id)) {
+    return true;
+  }
+
+  var mSub = String(meeting.subject || '').trim();
+  var tTitle = String(task.title || '').trim();
+  if (!mSub || !tTitle) return false;
+
+  var mBrackets = extractLegacyBrackets(mSub);
+  var tBrackets = extractLegacyBrackets(tTitle);
+
+  // 2. 检查会议名称中的【xxx】
+  for (var i = 0; i < mBrackets.length; i++) {
+    var mb = mBrackets[i];
+    var mbLower = mb.toLowerCase();
+
+    // 与任务中括号比对
+    for (var j = 0; j < tBrackets.length; j++) {
+      var tb = tBrackets[j];
+      var tbLower = tb.toLowerCase();
+      if (mbLower === tbLower) return true;
+      if (mbLower.length >= 4 && tbLower.indexOf(mbLower) !== -1) return true;
+      if (tbLower.length >= 4 && mbLower.indexOf(tbLower) !== -1) return true;
+    }
+
+    // 会议中的【mb】直接出现在任务标题中
+    if (tTitle.indexOf('【' + mb + '】') !== -1 || tTitle.indexOf('[' + mb + ']') !== -1) return true;
+    // 会议中括号提取出的核心关键词（长度>=3）出现在任务标题中
+    if (mb.length >= 3 && tTitle.toLowerCase().indexOf(mbLower) !== -1) return true;
+  }
+
+  // 3. 检查任务中括号【tb】是否直接出现在会议主题中
+  for (var k = 0; k < tBrackets.length; k++) {
+    var tb2 = tBrackets[k];
+    var tb2Lower = tb2.toLowerCase();
+    if (mSub.indexOf('【' + tb2 + '】') !== -1 || mSub.indexOf('[' + tb2 + ']') !== -1) return true;
+    if (tb2.length >= 3 && mSub.toLowerCase().indexOf(tb2Lower) !== -1) return true;
+  }
+
+  return false;
+}
+
+// 获取某个遗留任务关联的所有预约会议
 function getTaskReportMeetings(task, allMeetings) {
-  if (!task || !allMeetings) return [];
-  const taskIdStr = String(task.id);
-  const taskTitle = (task.title || '').trim().toLowerCase();
-  return allMeetings.filter(m => {
-    if (m.legacyTaskId && String(m.legacyTaskId) === taskIdStr) return true;
-    if (taskTitle && m.subject && m.subject.toLowerCase().includes(taskTitle)) return true;
-    return false;
-  }).sort((a, b) => {
-    const timeA = (a.date || '') + ' ' + (a.startTime || a.time || '');
-    const timeB = (b.date || '') + ' ' + (b.startTime || b.time || '');
+  if (!task || !allMeetings || !Array.isArray(allMeetings)) return [];
+  return allMeetings.filter(function(m) {
+    return doesMeetingMatchLegacyTask(m, task);
+  }).sort(function(a, b) {
+    var timeA = (a.date || '') + ' ' + (a.startTime || a.time || '');
+    var timeB = (b.date || '') + ' ' + (b.startTime || b.time || '');
     return timeA.localeCompare(timeB);
   });
 }
@@ -10546,93 +10602,78 @@ function getTaskReportMeetings(task, allMeetings) {
 // 归一化提取任务的历次汇报与对应纪要 (多次汇报 1对1 紧密对应)
 function getNormalizedTaskReports(task, allMeetings) {
   if (!task) return [];
-  let reports = Array.isArray(task.reports) ? [...task.reports] : [];
-  const meetings = getTaskReportMeetings(task, allMeetings || (typeof getData === 'function' ? getData(STORAGE_KEYS.MEETINGS, []) : []));
+  var reports = [];
 
-  if (reports.length === 0) {
-    const rawTimes = [];
-    if (task.reportTime && typeof task.reportTime === 'string') {
-      const parts = splitLegacyReportTimes(task.reportTime);
-      parts.forEach(p => {
-        if (!rawTimes.includes(p)) rawTimes.push(p);
+  // 1. 载入任务自身的真实手工登记汇报（排除历史导入产生的无意义非日期字符）
+  if (Array.isArray(task.reports)) {
+    task.reports.forEach(function(r) {
+      if (!r || !r.reportTime) return;
+      var rt = String(r.reportTime).trim();
+      if (rt === 'SITE' || rt === 'Y' || rt === 'N' || rt === 'FBB' || rt === 'TMO' || rt === 'NFV') return;
+      reports.push({
+        id: r.id || ('rep_' + Math.random()),
+        seq: r.seq || 1,
+        reportTime: rt,
+        hasMinutes: Boolean(r.hasMinutes),
+        minutes: r.minutes || '',
+        reviewOpinion: r.reviewOpinion || '',
+        meetingId: r.meetingId || null,
+        meetingSubject: r.meetingSubject || '',
+        reporter: r.reporter || task.owner || ''
       });
-    }
-
-    meetings.forEach(m => {
-      const mTime = `${m.date || ''} ${m.startTime || m.time || ''}`.trim();
-      if (mTime && !rawTimes.some(r => typeof r === 'string' ? r === mTime : r.time === mTime)) {
-        rawTimes.push({
-          time: mTime,
-          hasMinutes: Boolean(m.decision || (m.notes && m.notes.trim()) || m.status === 'completed'),
-          minutes: m.notes || m.decision || '',
-          reviewOpinion: m.decision || '',
-          meetingId: m.id,
-          reporter: m.reporter || m.requester || task.owner || ''
-        });
-      }
-    });
-
-    if (rawTimes.length === 0) {
-      if (task.hasMinutes === true || task.hasMinutes === '是' || (task.reviewOpinion && task.reviewOpinion.trim().length > 0)) {
-        reports.push({
-          id: 'rep_' + (task.id || Date.now()) + '_init',
-          seq: 1,
-          reportTime: task.createdDate || (typeof getTodayDateStr === 'function' ? getTodayDateStr() : ''),
-          hasMinutes: true,
-          minutes: task.reviewOpinion || '',
-          reviewOpinion: task.reviewOpinion || '',
-          reporter: task.owner || ''
-        });
-      }
-    } else {
-      rawTimes.forEach((item, idx) => {
-        if (typeof item === 'string') {
-          const isLast = (idx === rawTimes.length - 1);
-          const hasMin = Boolean(task.hasMinutes === true || task.hasMinutes === '是' || (task.reviewOpinion && task.reviewOpinion.trim().length > 0));
-          reports.push({
-            id: 'rep_' + (task.id || Date.now()) + '_' + (idx + 1),
-            seq: idx + 1,
-            reportTime: item,
-            hasMinutes: isLast ? hasMin : true,
-            minutes: isLast ? (task.reviewOpinion || '') : '',
-            reviewOpinion: isLast ? (task.reviewOpinion || '') : '',
-            reporter: task.owner || ''
-          });
-        } else {
-          reports.push({
-            id: 'rep_m_' + (item.meetingId || idx),
-            seq: idx + 1,
-            reportTime: item.time,
-            hasMinutes: item.hasMinutes,
-            minutes: item.minutes,
-            reviewOpinion: item.reviewOpinion,
-            meetingId: item.meetingId,
-            reporter: item.reporter || task.owner || ''
-          });
-        }
-      });
-    }
-  } else {
-    meetings.forEach(m => {
-      const mTime = `${m.date || ''} ${m.startTime || m.time || ''}`.trim();
-      const exists = reports.some(r => r.meetingId === m.id || (mTime && r.reportTime && r.reportTime.startsWith(m.date || '___')));
-      if (!exists && mTime) {
-        reports.push({
-          id: 'rep_m_' + m.id,
-          seq: reports.length + 1,
-          reportTime: mTime,
-          hasMinutes: Boolean(m.decision || (m.notes && m.notes.trim()) || m.status === 'completed'),
-          minutes: m.notes || m.decision || '',
-          reviewOpinion: m.decision || '',
-          meetingId: m.id,
-          reporter: m.reporter || m.requester || task.owner || ''
-        });
-      }
     });
   }
 
-  reports.sort((a, b) => (a.reportTime || '').localeCompare(b.reportTime || ''));
-  reports.forEach((r, idx) => { r.seq = idx + 1; });
+  // 2. 关键匹配：从预约会议中自动精准识别汇报记录
+  var meetings = getTaskReportMeetings(task, allMeetings || (typeof getData === 'function' ? getData(STORAGE_KEYS.MEETINGS, []) : []));
+  meetings.forEach(function(m) {
+    var mDate = m.date || '';
+    var mTime = (mDate + ' ' + (m.startTime || m.time || '')).trim();
+    if (!mTime && mDate) mTime = mDate;
+    if (!mTime) return;
+
+    var hasMin = (m.hasMinutes === 'yes' || m.hasMinutes === true || Boolean(m.decision && m.decision.trim()));
+    var opinion = m.decision || m.nextPlan || '';
+
+    // 检查是否已经在 reports 中
+    var existingIdx = reports.findIndex(function(r) {
+      if (r.meetingId && String(r.meetingId) === String(m.id)) return true;
+      if (r.reportTime && mTime && r.reportTime.startsWith(mDate)) return true;
+      return false;
+    });
+
+    if (existingIdx !== -1) {
+      reports[existingIdx].meetingId = m.id;
+      reports[existingIdx].meetingSubject = m.subject || '';
+      if (reports[existingIdx].hasMinutes === undefined || reports[existingIdx].hasMinutes === null) {
+        reports[existingIdx].hasMinutes = hasMin;
+      }
+      if (!reports[existingIdx].reviewOpinion && opinion) {
+        reports[existingIdx].reviewOpinion = opinion;
+      }
+    } else {
+      reports.push({
+        id: 'rep_m_' + m.id,
+        seq: reports.length + 1,
+        reportTime: mTime,
+        hasMinutes: hasMin,
+        minutes: m.nextPlan || m.notes || '',
+        reviewOpinion: opinion,
+        meetingId: m.id,
+        meetingSubject: m.subject || '',
+        reporter: m.reporter || m.requester || task.owner || ''
+      });
+    }
+  });
+
+  // 按汇报时间升序排序并重新标号
+  reports.sort(function(a, b) {
+    return (a.reportTime || '').localeCompare(b.reportTime || '');
+  });
+  reports.forEach(function(r, idx) {
+    r.seq = idx + 1;
+  });
+
   return reports;
 }
 
@@ -10709,7 +10750,7 @@ function renderLegacyTasks() {
         <div class="legacy-kpi-icon" style="background:#fef2f2; color:#dc2626;">🎙️</div>
         <div>
           <div class="legacy-kpi-val">${totalReportsCount}</div>
-          <div class="legacy-kpi-lbl">向曦总汇报(累计场次)</div>
+          <div class="legacy-kpi-lbl">汇报记录(累计场次)</div>
         </div>
       </div>
       <div class="legacy-kpi-card">
@@ -10794,12 +10835,12 @@ function renderLegacyCardsView(tasks, allMeetings) {
         <!-- 汇报与纪要流式卡片 -->
         <div style="margin: 8px 0;">
           <div style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:4px; display:flex; justify-content:space-between;">
-            <span>向曦总汇报记录与纪要 (${reportCount}次)</span>
+            <span>汇报记录&输出纪要 (${reportCount}次)</span>
             <a href="javascript:void(0)" onclick="openAddReportSessionModal(${task.id})" style="color:#2563eb; text-decoration:none;">＋ 登记汇报</a>
           </div>
           <div class="legacy-reports-flow" style="min-width:auto; max-width:100%;">
             ${reports.length === 0 ? `
-              <div style="font-size:11.5px; color:#94a3b8; font-style:italic; padding:6px 0;">尚未向曦总汇报</div>
+              <div style="font-size:11.5px; color:#94a3b8; font-style:italic; padding:6px 0;">尚未汇报</div>
             ` : reports.map((r, rIdx) => `
               <div class="legacy-report-card">
                 <div class="legacy-report-card-header">
@@ -10808,10 +10849,11 @@ function renderLegacyCardsView(tasks, allMeetings) {
                     <span class="legacy-report-time-text">🕒 ${escapeHtml(r.reportTime || '')}</span>
                   </div>
                   <span class="legacy-minutes-badge ${r.hasMinutes ? 'has-minutes' : 'no-minutes'}" onclick="openEditReportSessionModal(${task.id}, ${rIdx})">
-                    ${r.hasMinutes ? '✅ 已出纪要 📝' : '⚠️ 待出纪要 ✏️'}
+                    ${r.hasMinutes ? '✅ 已出纪要 📝' : '⚠️ 待输出纪要 ✏️'}
                   </span>
                 </div>
-                ${r.reviewOpinion ? `<div class="legacy-report-opinion-quote"><strong>曦总批示:</strong> ${escapeHtml(r.reviewOpinion)}</div>` : ''}
+                ${r.meetingSubject ? `<div style="font-size:11px; color:#64748b; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(r.meetingSubject)}">📅 会议: ${escapeHtml(r.meetingSubject)}</div>` : ''}
+                ${r.reviewOpinion ? `<div class="legacy-report-opinion-quote"><strong>纪要决议:</strong> ${escapeHtml(r.reviewOpinion)}</div>` : ''}
               </div>
             `).join('')}
           </div>
@@ -10866,7 +10908,7 @@ function renderLegacyTableView(tasks, allMeetings) {
         <tr style="background:#f8fafc;">
           <th style="min-width:340px; font-weight:700;">遗留任务</th>
           <th style="min-width:110px; font-weight:700;">责任人</th>
-          <th style="min-width:380px; font-weight:700;">向曦总汇报记录与纪要</th>
+          <th style="min-width:380px; font-weight:700;">汇报记录&输出纪要</th>
           <th style="min-width:100px; text-align:center; font-weight:700;">状态</th>
           <th style="min-width:120px; text-align:center; position:sticky; right:0; background:#f8fafc; z-index:2; font-weight:700;">操作</th>
         </tr>
@@ -10882,13 +10924,13 @@ function renderLegacyTableView(tasks, allMeetings) {
             reportsHTML = `
               <div style="display:flex; align-items:center; gap:8px;">
                 <span style="background:#f1f5f9; color:#64748b; font-size:11.5px; padding:3px 8px; border-radius:12px; border:1px solid #e2e8f0; font-weight:600;">
-                  ⚪ 尚未向曦总汇报
+                  ⚪ 尚未汇报
                 </span>
-                <button class="btn btn-xs" onclick="openAddReportSessionModal(${task.id})" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; font-size:11px; font-weight:700; border-radius:4px; padding:2px 8px;" title="登记向曦总汇报时间与纪要">
+                <button class="btn btn-xs" onclick="openAddReportSessionModal(${task.id})" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; font-size:11px; font-weight:700; border-radius:4px; padding:2px 8px;" title="登记汇报时间与纪要">
                   ＋ 登记汇报
                 </button>
-                <button class="btn btn-xs" onclick="scheduleReportMeetingForLegacyTask(${task.id})" style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; font-size:11px; font-weight:700; border-radius:4px; padding:2px 6px;" title="通过秘书处排期向曦总汇报">
-                  🎙️ 预约
+                <button class="btn btn-xs" onclick="scheduleReportMeetingForLegacyTask(${task.id})" style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; font-size:11px; font-weight:700; border-radius:4px; padding:2px 6px;" title="通过会议预约排期汇报">
+                  🎙️ 预约会议
                 </button>
               </div>
             `;
@@ -10910,7 +10952,7 @@ function renderLegacyTableView(tasks, allMeetings) {
                         </div>
                         <div>
                           ${hasMin ? `
-                            <span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与曦总批示">
+                            <span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与批示">
                               ✅ 已出纪要 📝
                             </span>
                           ` : `
@@ -10920,9 +10962,14 @@ function renderLegacyTableView(tasks, allMeetings) {
                           `}
                         </div>
                       </div>
+                      ${rep.meetingSubject ? `
+                        <div style="font-size:11px; color:#64748b; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(rep.meetingSubject)}">
+                          📅 会议: ${escapeHtml(rep.meetingSubject)}
+                        </div>
+                      ` : ''}
                       ${opinion ? `
                         <div class="legacy-report-opinion-quote" title="${escapeHtml(opinion)}">
-                          <span style="color:#0284c7; font-weight:700;">曦总批示:</span> ${escapeHtml(opinion.length > 55 ? opinion.slice(0, 55) + '...' : opinion)}
+                          <span style="color:#0284c7; font-weight:700;">纪要批示:</span> ${escapeHtml(opinion.length > 55 ? opinion.slice(0, 55) + '...' : opinion)}
                         </div>
                       ` : ''}
                     </div>
@@ -10932,7 +10979,7 @@ function renderLegacyTableView(tasks, allMeetings) {
                   <a href="javascript:void(0)" onclick="openAddReportSessionModal(${task.id})" style="font-size:11.5px; color:#2563eb; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:3px;">
                     ＋ 登记第${reports.length + 1}次汇报
                   </a>
-                  <a href="javascript:void(0)" onclick="scheduleReportMeetingForLegacyTask(${task.id})" style="font-size:11px; color:#d97706; text-decoration:underline;" title="通过秘书处会议预约排期向曦总汇报">
+                  <a href="javascript:void(0)" onclick="scheduleReportMeetingForLegacyTask(${task.id})" style="font-size:11px; color:#d97706; text-decoration:underline;" title="通过会议预约排期汇报">
                     🎙️ 会议预约排期
                   </a>
                 </div>
@@ -10956,7 +11003,7 @@ function renderLegacyTableView(tasks, allMeetings) {
                 </span>
               </td>
 
-              <!-- 3. 向曦总汇报记录与纪要 (汇报时间与纪要 1对1 紧密对应) -->
+              <!-- 3. 汇报记录&输出纪要 (汇报时间与纪要 1对1 紧密对应) -->
               <td style="padding:12px 14px; vertical-align:middle;">
                 ${reportsHTML}
               </td>
@@ -10976,8 +11023,8 @@ function renderLegacyTableView(tasks, allMeetings) {
 
               <!-- 5. 操作 -->
               <td style="padding:12px 8px; text-align:center; white-space:nowrap; position:sticky; right:0; background:#fff; z-index:1; vertical-align:middle;">
-                <button class="btn btn-sm btn-ghost" onclick="openAddReportSessionModal(${task.id})" title="登记向曦总汇报" style="color:#2563eb; padding:2px 6px;">🎙️＋</button>
-                <button class="btn btn-sm btn-ghost" onclick="scheduleReportMeetingForLegacyTask(${task.id})" title="预约向曦总汇报" style="color:#d97706; padding:2px 6px;">📅</button>
+                <button class="btn btn-sm btn-ghost" onclick="openAddReportSessionModal(${task.id})" title="登记汇报" style="color:#2563eb; padding:2px 6px;">🎙️＋</button>
+                <button class="btn btn-sm btn-ghost" onclick="scheduleReportMeetingForLegacyTask(${task.id})" title="预约会议" style="color:#d97706; padding:2px 6px;">📅</button>
                 <button class="btn btn-sm btn-ghost" onclick="openEditLegacyTaskModal(${task.id})" title="编辑" style="padding:2px 6px;">✏️</button>
                 <button class="btn btn-sm btn-ghost" onclick="deleteLegacyTask(${task.id})" title="删除" style="color:#ef4444; padding:2px 6px;">🗑️</button>
               </td>
@@ -11115,12 +11162,14 @@ function saveEditReportSession() {
 
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
   let reports = getNormalizedTaskReports(tasks[tIdx], allMeetings);
+  let meetingIdToUpdate = null;
   if (rIdx >= 0 && rIdx < reports.length) {
     reports[rIdx].reportTime = time;
     reports[rIdx].reporter = reporter;
     reports[rIdx].hasMinutes = hasMinutes;
     reports[rIdx].reviewOpinion = reviewOpinion;
     reports[rIdx].minutes = minutes;
+    meetingIdToUpdate = reports[rIdx].meetingId;
   }
 
   tasks[tIdx].reports = reports;
@@ -11133,9 +11182,22 @@ function saveEditReportSession() {
   tasks[tIdx].updatedAt = Date.now();
 
   setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
+
+  // 双向联动：如果本次汇报关联了预约会议，同步更新会议纪要状态
+  if (meetingIdToUpdate) {
+    let meetings = getData(STORAGE_KEYS.MEETINGS, []);
+    const mIdx = meetings.findIndex(m => String(m.id) === String(meetingIdToUpdate));
+    if (mIdx !== -1) {
+      meetings[mIdx].hasMinutes = hasMinutes ? 'yes' : 'no';
+      if (reviewOpinion) meetings[mIdx].decision = reviewOpinion;
+      if (minutes) meetings[mIdx].nextPlan = minutes;
+      setData(STORAGE_KEYS.MEETINGS, meetings);
+    }
+  }
+
   closeModal('legacyEditReportModal');
   renderLegacyTasks();
-  showToast('✅ 汇报纪要与批示已更新！');
+  showToast('✅ 汇报记录与纪要已更新！');
 }
 
 function deleteCurrentReportSession() {
@@ -11252,7 +11314,7 @@ function saveLegacyMinutes() {
   saveAddReportSession();
 }
 
-// 核心联动：一键预约向曦总汇报
+// 核心联动：一键预约汇报会议 (确保会议名称带有【xxx】与遗留任务精准互锁)
 function scheduleReportMeetingForLegacyTask(taskId) {
   const tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
   const task = tasks.find(t => t.id == taskId);
@@ -11264,15 +11326,20 @@ function scheduleReportMeetingForLegacyTask(taskId) {
   // 2. 刷新并选定关联遗留任务下拉框
   updateMeetingLegacyTaskOptions(task.id);
 
-  // 3. 计算已向曦总汇报过几次
+  // 3. 计算已汇报过几次
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
-  const pastReports = getTaskReportMeetings(task, allMeetings);
+  const pastReports = getNormalizedTaskReports(task, allMeetings);
   const nextSeq = pastReports.length + 1;
 
-  // 4. 自动填入会议主题与责任人
+  // 4. 自动填入会议主题与责任人（规范【xxx】格式，确保双向智能匹配）
   const subjectInput = document.getElementById('inputMeetingSubject');
   if (subjectInput) {
-    subjectInput.value = `【遗留任务汇报·第${nextSeq}次】${task.title}`;
+    const rawTitle = (task.title || '').trim();
+    if (rawTitle.startsWith('【')) {
+      subjectInput.value = rawTitle;
+    } else {
+      subjectInput.value = `【${rawTitle}】遗留任务进展汇报`;
+    }
   }
   const reporterInput = document.getElementById('inputMeetingReporter');
   if (reporterInput) {
@@ -11280,18 +11347,18 @@ function scheduleReportMeetingForLegacyTask(taskId) {
   }
   const requesterInput = document.getElementById('inputMeetingRequester');
   if (requesterInput) {
-    requesterInput.value = `${task.owner || '责任人'}${task.domain ? ' (' + task.domain + ')' : ''}`;
+    requesterInput.value = task.owner || '责任人';
   }
 
   // 5. 自动带入背景与下一步计划
   const bgInput = document.getElementById('inputMeetingBackground');
   if (bgInput) {
-    bgInput.value = `【问题描述】${task.title || ''}\n【目前进展与卡点】${task.progress || ''}\n【要求完成日期】${task.targetDate || ''}`;
+    bgInput.value = `【遗留任务】${task.title || ''}\n【责任人】${task.owner || ''}`;
   }
 
   const decInput = document.getElementById('inputMeetingDecision');
   if (decInput && task.reviewOpinion) {
-    decInput.value = `【前次曦总审核意见】${task.reviewOpinion}`;
+    decInput.value = `【前次审核意见】${task.reviewOpinion}`;
   }
 
   // 展开详细选项
