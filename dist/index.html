@@ -5573,17 +5573,14 @@
       <div class="legacy-toolbar">
         <div class="legacy-toolbar-left">
           <div class="filter-tabs" id="legacyStatusTabs">
-            <button class="filter-btn active" data-status="active" onclick="filterLegacyTasksStatus('active')" title="默认仅展示 Open 进行中与申请关闭任务">
-              ⚡ 活跃任务 (Open + 申请关闭)
+            <button class="filter-btn active" data-status="all" onclick="filterLegacyTasksStatus('all')">
+              全部任务
             </button>
-            <button class="filter-btn" data-status="open" onclick="filterLegacyTasksStatus('open')" title="仅展示 Open / 推进中任务">
-              🟢 Open任务
+            <button class="filter-btn" data-status="open" onclick="filterLegacyTasksStatus('open')">
+              🟢 Open
             </button>
-            <button class="filter-btn" data-status="applying_closed" onclick="filterLegacyTasksStatus('applying_closed')" title="仅展示已提交申请关闭、待曦总/主管审核闭环的任务">
+            <button class="filter-btn" data-status="applying_closed" onclick="filterLegacyTasksStatus('applying_closed')">
               🟡 申请关闭
-            </button>
-            <button class="filter-btn" data-status="completed" onclick="filterLegacyTasksStatus('completed')" title="查看历史已顺利闭环归档的任务">
-              🏁 查看已闭环归档
             </button>
           </div>
         </div>
@@ -5801,7 +5798,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.3.5</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.3.6</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -11918,20 +11915,15 @@ function renderSupervisorMonthCalendar() {
 // ==========================================
 
 // ==========================================
-// 遗留任务清单 (Legacy Tasks) - 核心视图与多次汇报纪要对应增强版
-// 默认规则：只展示 open 的任务和申请关闭的任务；表头严格为“遗留任务”(*问题描述)与“责任人”(*责任人)
+// 遗留任务清单 (Legacy Tasks)
+// 核心规则：
+// 1. 遗留任务只有 B 列 (*问题描述) 是，绝不把其他数据拼入。责任人是同一行对应的责任人 (C 列)。其他信息全部不呈现。
+// 2. 整个面板只展示 open 的任务和申请关闭的任务，完全排除已闭环/已完成的任务；不设置任务流转操作。
 // ==========================================
 
-let legacyViewMode = 'table'; // 'table' | 'cards' (默认以表格清单为主视图)
-let legacyTableDensity = 'compact'; // 'compact' (精简核心视图) | 'full' (14列全量明细)
-
-function toggleLegacyTableDensity(density) {
-  legacyTableDensity = density;
-  renderLegacyTasks();
-}
-let legacyFilterStatus = 'active'; // 默认：'active' (仅展示 open 与 申请关闭) | 'open' | 'applying_closed' | 'completed'
+let legacyViewMode = 'table'; // 'table' | 'cards' (以表格清单为主视图)
+let legacyFilterStatus = 'all'; // 'all' (Open + 申请关闭) | 'open' | 'applying_closed'
 let legacyFilterOwner = 'all'; // 'all' | 责任人
-let legacyFilterDomain = 'all'; // 'all' | 领域
 let legacySearchKeyword = '';
 let parsedLegacyImportTasks = [];
 
@@ -11950,10 +11942,6 @@ function setLegacyViewMode(mode) {
 
 function filterLegacyTasksStatus(status) {
   legacyFilterStatus = status;
-  const tabs = document.querySelectorAll('#legacyStatusTabs .filter-btn');
-  tabs.forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-status') === status);
-  });
   renderLegacyTasks();
 }
 
@@ -11962,40 +11950,63 @@ function filterLegacyTasksOwner(owner) {
   renderLegacyTasks();
 }
 
-function filterLegacyTasksDomain(domain) {
-  legacyFilterDomain = domain;
-  renderLegacyTasks();
-}
-
 function handleLegacySearch(val) {
   legacySearchKeyword = (val || '').trim().toLowerCase();
   renderLegacyTasks();
 }
 
-// 智能状态研判函数
-function isTaskClosed(t) {
+// 整个面板准入规则：只允许 open 任务与 申请关闭 任务，彻底排除已闭环/已完成
+function isAllowedPanelTask(t) {
   if (!t) return false;
   const s = String(t.status || '').trim().toLowerCase();
-  return s === 'completed' || s === 'closed' || s === '已闭环' || s === '已完成' || s === '已关闭' || s === '已销项' || t.isCurrentClosed === true || t.isCurrentClosed === '是';
+  if (
+    s === 'completed' ||
+    s === 'closed' ||
+    s === '已闭环' ||
+    s === '已完成' ||
+    s === '已关闭' ||
+    s === '已销项' ||
+    s === '关闭' ||
+    s === '闭环' ||
+    s === '完成' ||
+    t.isCurrentClosed === true ||
+    t.isCurrentClosed === '是' ||
+    t.isCurrentClosed === 'yes'
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function isTaskApplyingClosed(t) {
   if (!t) return false;
   const s = String(t.status || '').trim().toLowerCase();
-  return s === 'applying_closed' || s === '申请关闭' || s === '申请闭环' || s === '待确认关闭' || s === '待确认闭环';
+  return s === 'applying_closed' || s === '申请关闭' || s === '申请闭环' || s === '待确认关闭' || s === '待确认闭环' || s.indexOf('申请') !== -1;
 }
 
 function isTaskOpen(t) {
   if (!t) return false;
-  if (isTaskClosed(t) || isTaskApplyingClosed(t)) return false;
+  if (!isAllowedPanelTask(t)) return false;
+  if (isTaskApplyingClosed(t)) return false;
   return true;
 }
 
-// 获取某个遗留任务关联的所有会议记录 (向曦总汇报记录)
+// 拆分多次汇报时间
+function splitLegacyReportTimes(str) {
+  if (!str) return [];
+  var s = String(str);
+  var chars = [',', '，', ';', '；', '/', '、', String.fromCharCode(10), String.fromCharCode(13)];
+  for (var i = 0; i < chars.length; i++) {
+    s = s.split(chars[i]).join(',');
+  }
+  return s.split(',').map(function(x) { return x.trim(); }).filter(Boolean);
+}
+
+// 获取某个遗留任务关联的向曦总汇报记录
 function getTaskReportMeetings(task, allMeetings) {
   if (!task || !allMeetings) return [];
   const taskIdStr = String(task.id);
-  const taskTitle = (task.title || task.description || '').trim().toLowerCase();
+  const taskTitle = (task.title || '').trim().toLowerCase();
   return allMeetings.filter(m => {
     if (m.legacyTaskId && String(m.legacyTaskId) === taskIdStr) return true;
     if (taskTitle && m.subject && m.subject.toLowerCase().includes(taskTitle)) return true;
@@ -12007,17 +12018,7 @@ function getTaskReportMeetings(task, allMeetings) {
   });
 }
 
-// 归一化提取任务的历次汇报与对应纪要列表 (支持多次汇报时间与纪要 1对1 对应)
-function splitLegacyReportTimes(str) {
-  if (!str) return [];
-  var s = String(str);
-  var chars = [',', '，', ';', '；', '/', '、', String.fromCharCode(10), String.fromCharCode(13)];
-  for (var i = 0; i < chars.length; i++) {
-    s = s.split(chars[i]).join(',');
-  }
-  return s.split(',').map(function(x) { return x.trim(); }).filter(Boolean);
-}
-
+// 归一化提取任务的历次汇报与对应纪要 (多次汇报 1对1 紧密对应)
 function getNormalizedTaskReports(task, allMeetings) {
   if (!task) return [];
   let reports = Array.isArray(task.reports) ? [...task.reports] : [];
@@ -12053,7 +12054,7 @@ function getNormalizedTaskReports(task, allMeetings) {
           seq: 1,
           reportTime: task.createdDate || (typeof getTodayDateStr === 'function' ? getTodayDateStr() : ''),
           hasMinutes: true,
-          minutes: task.progress || '',
+          minutes: task.reviewOpinion || '',
           reviewOpinion: task.reviewOpinion || '',
           reporter: task.owner || ''
         });
@@ -12068,7 +12069,7 @@ function getNormalizedTaskReports(task, allMeetings) {
             seq: idx + 1,
             reportTime: item,
             hasMinutes: isLast ? hasMin : true,
-            minutes: isLast ? (task.progress || '') : '',
+            minutes: isLast ? (task.reviewOpinion || '') : '',
             reviewOpinion: isLast ? (task.reviewOpinion || '') : '',
             reporter: task.owner || ''
           });
@@ -12110,65 +12111,73 @@ function getNormalizedTaskReports(task, allMeetings) {
   return reports;
 }
 
-// 智能判断是否逾期
-function checkIsOverdue(task) {
-  if (isTaskClosed(task)) return false;
-  if (task.isOverdue === true || task.isOverdue === '是' || task.isOverdue === 'yes') return true;
-  const targetDateStr = task.targetDate;
-  if (!targetDateStr) return false;
-  const today = typeof getTodayDateStr === 'function' ? getTodayDateStr() : '';
-  return targetDateStr < today;
-}
-
 function renderLegacyTasks() {
-  const tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  const allTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
 
-  // 1. 刷新责任人下拉筛选选项
+  // 严格规则：在整个面板，只展示 open 的任务和申请关闭的任务，完全排除已闭环/已完成的任务
+  const panelTasks = allTasks.filter(isAllowedPanelTask);
+
+  const totalCount = panelTasks.length;
+  const openCount = panelTasks.filter(isTaskOpen).length;
+  const applyingClosedCount = panelTasks.filter(isTaskApplyingClosed).length;
+
+  let totalReportsCount = 0;
+  let hasMinutesCount = 0;
+  panelTasks.forEach(task => {
+    const reps = getNormalizedTaskReports(task, allMeetings);
+    totalReportsCount += reps.length;
+    hasMinutesCount += reps.filter(r => r.hasMinutes).length;
+  });
+
+  // 1. 刷新责任人下拉筛选选项 (仅来自当前面板活跃任务)
   const ownerSelect = document.getElementById('legacyOwnerFilter');
   if (ownerSelect) {
     const curVal = legacyFilterOwner;
-    const owners = Array.from(new Set(tasks.map(t => (t.owner || '').trim()).filter(Boolean)));
+    const owners = Array.from(new Set(panelTasks.map(t => (t.owner || '').trim()).filter(Boolean)));
     ownerSelect.innerHTML = '<option value="all">全部责任人</option>' + 
       owners.map(o => `<option value="${escapeHtml(o)}" ${curVal === o ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('');
   }
 
-  // 2. 统计数据指标
-  const totalTasks = tasks.length;
-  const openCount = tasks.filter(t => isTaskOpen(t)).length;
-  const applyingClosedCount = tasks.filter(t => isTaskApplyingClosed(t)).length;
-  const activeCount = openCount + applyingClosedCount;
-  const closedCount = tasks.filter(t => isTaskClosed(t)).length;
-  const overdueCount = tasks.filter(t => isTaskOpen(t) && checkIsOverdue(t)).length;
+  // 2. 刷新顶部状态切换 Tab
+  const statusTabs = document.getElementById('legacyStatusTabs');
+  if (statusTabs) {
+    statusTabs.innerHTML = `
+      <button class="filter-btn ${legacyFilterStatus === 'all' ? 'active' : ''}" data-status="all" onclick="filterLegacyTasksStatus('all')">
+        全部任务 (${totalCount})
+      </button>
+      <button class="filter-btn ${legacyFilterStatus === 'open' ? 'active' : ''}" data-status="open" onclick="filterLegacyTasksStatus('open')">
+        🟢 Open (${openCount})
+      </button>
+      <button class="filter-btn ${legacyFilterStatus === 'applying_closed' ? 'active' : ''}" data-status="applying_closed" onclick="filterLegacyTasksStatus('applying_closed')">
+        🟡 申请关闭 (${applyingClosedCount})
+      </button>
+    `;
+  }
 
-  let totalReportsCount = 0;
-  tasks.forEach(task => {
-    const reps = getNormalizedTaskReports(task, allMeetings);
-    totalReportsCount += reps.length;
-  });
-
+  // 3. 统计概览指示牌 (KPIs) - 仅围绕 Open 与 申请关闭 展开，绝不出现已闭环卡片
   const kpiContainer = document.getElementById('legacyKpiGrid');
   if (kpiContainer) {
     kpiContainer.innerHTML = `
       <div class="legacy-kpi-card">
-        <div class="legacy-kpi-icon" style="background:#fef3c7; color:#d97706;">⚡</div>
+        <div class="legacy-kpi-icon" style="background:#fef3c7; color:#d97706;">📋</div>
         <div>
-          <div class="legacy-kpi-val">${activeCount}</div>
-          <div class="legacy-kpi-lbl">当前活跃遗留任务</div>
+          <div class="legacy-kpi-val">${totalCount}</div>
+          <div class="legacy-kpi-lbl">遗留任务数 (Open + 申请关闭)</div>
         </div>
       </div>
       <div class="legacy-kpi-card">
         <div class="legacy-kpi-icon" style="background:#e0f2fe; color:#0284c7;">🟢</div>
         <div>
           <div class="legacy-kpi-val">${openCount}</div>
-          <div class="legacy-kpi-lbl">Open 推进中</div>
+          <div class="legacy-kpi-lbl">Open 任务</div>
         </div>
       </div>
       <div class="legacy-kpi-card">
         <div class="legacy-kpi-icon" style="background:#fef9c3; color:#ca8a04;">🟡</div>
         <div>
           <div class="legacy-kpi-val" style="color:#b45309;">${applyingClosedCount}</div>
-          <div class="legacy-kpi-lbl">申请关闭 (待审核)</div>
+          <div class="legacy-kpi-lbl">申请关闭 任务</div>
         </div>
       </div>
       <div class="legacy-kpi-card">
@@ -12179,60 +12188,49 @@ function renderLegacyTasks() {
         </div>
       </div>
       <div class="legacy-kpi-card">
-        <div class="legacy-kpi-icon" style="background:#dcfce7; color:#16a34a;">🏁</div>
+        <div class="legacy-kpi-icon" style="background:#dcfce7; color:#16a34a;">📝</div>
         <div>
-          <div class="legacy-kpi-val">${closedCount}</div>
-          <div class="legacy-kpi-lbl">已闭环归档</div>
+          <div class="legacy-kpi-val">${hasMinutesCount}</div>
+          <div class="legacy-kpi-lbl">已输出会议纪要(场次)</div>
         </div>
       </div>
     `;
   }
 
-  // 3. 过滤任务列表 (默认：仅展示 open 的任务和申请关闭的任务，完全过滤已闭环)
-  let filtered = tasks.filter(t => {
-    const isClosed = isTaskClosed(t);
+  // 4. 过滤任务列表 (仅在当前面板的 panelTasks 范围内过滤)
+  let filtered = panelTasks.filter(t => {
     const isApplying = isTaskApplyingClosed(t);
     const isOpen = isTaskOpen(t);
 
-    if (legacyFilterStatus === 'active') {
-      // 核心指令：只展示 open 的任务和申请关闭的任务
-      if (isClosed) return false;
-      if (!isOpen && !isApplying) return false;
-    } else if (legacyFilterStatus === 'open') {
+    if (legacyFilterStatus === 'open') {
       if (!isOpen) return false;
     } else if (legacyFilterStatus === 'applying_closed') {
       if (!isApplying) return false;
-    } else if (legacyFilterStatus === 'completed') {
-      if (!isClosed) return false;
     }
 
     if (legacyFilterOwner !== 'all' && (t.owner || '').trim() !== legacyFilterOwner) return false;
-    if (legacyFilterDomain !== 'all' && (t.domain || t.department || '').trim() !== legacyFilterDomain) return false;
 
     if (legacySearchKeyword) {
       const matchTitle = (t.title || '').toLowerCase().includes(legacySearchKeyword);
       const matchOwner = (t.owner || '').toLowerCase().includes(legacySearchKeyword);
-      const matchProg = (t.progress || t.nextPlan || '').toLowerCase().includes(legacySearchKeyword);
-      const matchReview = (t.reviewOpinion || '').toLowerCase().includes(legacySearchKeyword);
       const reps = getNormalizedTaskReports(t, allMeetings);
       const matchReports = reps.some(r => (r.reportTime || '').toLowerCase().includes(legacySearchKeyword) || (r.minutes || '').toLowerCase().includes(legacySearchKeyword) || (r.reviewOpinion || '').toLowerCase().includes(legacySearchKeyword));
-      if (!matchTitle && !matchOwner && !matchProg && !matchReview && !matchReports) return false;
+      if (!matchTitle && !matchOwner && !matchReports) return false;
     }
     return true;
   });
 
-  // 4. 渲染对应的视图
+  // 5. 渲染对应的视图
   if (legacyViewMode === 'cards') {
     renderLegacyCardsView(filtered, allMeetings);
   } else {
     renderLegacyTableView(filtered, allMeetings);
   }
 
-  // 5. 更新会议预约关联任务选项
   updateMeetingLegacyTaskOptions();
 }
 
-// 视图 1：看板卡片视图
+// 视图 1：看板卡片视图 (严格精简，无多余字段，无任务流转按钮)
 function renderLegacyCardsView(tasks, allMeetings) {
   const container = document.getElementById('legacyCardsContainer');
   if (!container) return;
@@ -12242,7 +12240,7 @@ function renderLegacyCardsView(tasks, allMeetings) {
       <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: #ffffff; border-radius: 12px; border: 1px dashed #cbd5e1;">
         <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
         <div style="font-weight: 700; color: #475569; margin-bottom: 4px;">暂无符合条件的遗留任务</div>
-        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 14px;">您可以点击上方「📥 导入清单」批量导入，或点击「＋ 新增任务」登记重点事项</div>
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 14px;">当前面板仅展示 Open 任务与 申请关闭 任务</div>
         <button class="btn btn-sm btn-primary" onclick="openAddLegacyTaskModal()">＋ 立即登记遗留任务</button>
       </div>
     `;
@@ -12252,31 +12250,26 @@ function renderLegacyCardsView(tasks, allMeetings) {
   container.innerHTML = tasks.map(task => {
     const reports = getNormalizedTaskReports(task, allMeetings);
     const reportCount = reports.length;
-    const isCompleted = isTaskClosed(task);
     const isApplying = isTaskApplyingClosed(task);
-    const isOpen = isTaskOpen(task);
-    const isOverdue = checkIsOverdue(task);
 
     return `
-      <div class="legacy-card" style="border-left: 4px solid ${isCompleted ? '#10b981' : (isApplying ? '#f59e0b' : '#3b82f6')};">
+      <div class="legacy-card" style="border-left: 4px solid ${isApplying ? '#f59e0b' : '#3b82f6'};">
         <div class="legacy-card-header">
           <div>
-            ${isApplying ? '<span style="background:#fef3c7; color:#92400e; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; border:1px solid #fde68a;">🟡 申请关闭 (待审核)</span>' : ''}
-            ${isOpen ? '<span style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; border:1px solid #bae6fd;">🟢 Open 推进中</span>' : ''}
-            ${isCompleted ? '<span style="background:#dcfce7; color:#15803d; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; border:1px solid #bbf7d0;">🏁 已闭环归档</span>' : ''}
-            ${isOverdue ? '<span style="background:#fee2e2; color:#b91c1c; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:4px;">⚠️ 已逾期</span>' : ''}
+            ${isApplying ? '<span style="background:#fef3c7; color:#92400e; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; border:1px solid #fde68a;">🟡 申请关闭</span>' : '<span style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; border:1px solid #bae6fd;">🟢 Open</span>'}
           </div>
           <div style="font-size:12px; font-weight:700; color:#0284c7;">👤 ${escapeHtml(task.owner || '待定')}</div>
         </div>
 
-        <div style="font-weight:700; font-size:14px; color:#0f172a; margin:10px 0 6px 0; line-height:1.4;">
+        <!-- 遗留任务：纯粹来自 B 列 (*问题描述) -->
+        <div style="font-weight:700; font-size:14px; color:#0f172a; margin:10px 0 6px 0; line-height:1.45;">
           ${escapeHtml(task.title || '')}
         </div>
 
         <!-- 汇报与纪要流式卡片 -->
         <div style="margin: 8px 0;">
           <div style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:4px; display:flex; justify-content:space-between;">
-            <span>向曦总历次汇报与对应纪要 (${reportCount}次)</span>
+            <span>向曦总汇报记录与纪要 (${reportCount}次)</span>
             <a href="javascript:void(0)" onclick="openAddReportSessionModal(${task.id})" style="color:#2563eb; text-decoration:none;">＋ 登记汇报</a>
           </div>
           <div class="legacy-reports-flow" style="min-width:auto; max-width:100%;">
@@ -12299,16 +12292,11 @@ function renderLegacyCardsView(tasks, allMeetings) {
           </div>
         </div>
 
-        <!-- 底部操作按钮 -->
+        <!-- 底部操作按钮 (纯粹操作，绝无任务流转按钮) -->
         <div class="legacy-card-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
-          ${isOpen ? `<button class="btn btn-xs" onclick="applyCloseLegacyTask(${task.id})" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:700;">🟡 申请关闭</button>` : ''}
-          ${isApplying ? `
-            <button class="btn btn-xs" onclick="confirmCloseLegacyTask(${task.id})" style="background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; font-weight:700;">✅ 确认闭环</button>
-            <button class="btn btn-xs btn-ghost" onclick="reopenLegacyTask(${task.id})" style="font-size:11px;">↩️ 恢复Open</button>
-          ` : ''}
-          ${isCompleted ? `<button class="btn btn-xs btn-ghost" onclick="reopenLegacyTask(${task.id})">↩️ 重新打开</button>` : ''}
-          <button class="btn btn-xs btn-ghost" onclick="scheduleReportMeetingForLegacyTask(${task.id})" title="预约排期">🎙️</button>
-          <button class="btn btn-xs btn-ghost" onclick="openEditLegacyTaskModal(${task.id})" title="编辑">✏️</button>
+          <button class="btn btn-xs btn-ghost" onclick="openAddReportSessionModal(${task.id})" title="登记汇报">🎙️ 登记汇报</button>
+          <button class="btn btn-xs btn-ghost" onclick="scheduleReportMeetingForLegacyTask(${task.id})" title="预约排期">📅 会议预约</button>
+          <button class="btn btn-xs btn-ghost" onclick="openEditLegacyTaskModal(${task.id})" title="编辑">✏️ 编辑</button>
           <button class="btn btn-xs btn-ghost" onclick="deleteLegacyTask(${task.id})" style="color:#ef4444;" title="删除">🗑️</button>
         </div>
       </div>
@@ -12316,7 +12304,12 @@ function renderLegacyCardsView(tasks, allMeetings) {
   }).join('');
 }
 
-// 视图 2：以表格清单为主视图 (严格遵循指令：列名为“遗留任务”与“责任人”，其他冗余不展示，汇报与纪要 1对1 紧密对应)
+// 视图 2：以表格清单为主视图
+// 严格指令执行：
+// 1. 遗留任务只有 B 列是，绝不把其他数据拼入展示。
+// 2. 责任人就是同一行对应的责任人 (C 列)。
+// 3. 其他信息全部不再出现和呈现。
+// 4. 只展示 open 的任务和申请关闭的任务，不写任务流转。
 function renderLegacyTableView(tasks, allMeetings) {
   const container = document.getElementById('legacyTableContainer');
   if (!container) return;
@@ -12325,281 +12318,150 @@ function renderLegacyTableView(tasks, allMeetings) {
     container.innerHTML = `
       <div style="text-align: center; padding: 48px 20px; background:#fff; border-radius:12px; border:1px dashed #cbd5e1;">
         <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
-        <div style="font-weight: 700; color: #475569; font-size:14px; margin-bottom:4px;">暂无活跃的遗留任务记录</div>
-        <div style="font-size: 12px; color: #94a3b8; margin-bottom:14px;">当前视图已自动过滤已闭环任务。您可以点击上方「📥 导入清单」批量导入 Excel，或点击「＋ 新增任务」手动录入</div>
+        <div style="font-weight: 700; color: #475569; font-size:14px; margin-bottom:4px;">暂无遗留任务记录</div>
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom:14px;">当前面板仅展示 Open 任务与 申请关闭 任务</div>
         <button class="btn btn-sm btn-primary" onclick="openAddLegacyTaskModal()">＋ 立即登记遗留任务</button>
       </div>
     `;
     return;
   }
 
-  // 顶部视图工具栏
   let topToolbarHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:2px 4px; flex-wrap:wrap; gap:8px;">
-      <div style="font-size:12.5px; color:#475569; font-weight:600; display:flex; align-items:center; gap:6px;">
-        <span>📋 清单当前共 <strong style="color:#0f172a; font-size:14px;">${tasks.length}</strong> 项任务</span>
-        <span style="color:#64748b; font-size:11.5px; background:#f1f5f9; padding:2px 8px; border-radius:4px;">
-          ${legacyFilterStatus === 'active' ? '⚡ 仅展示 Open 进行中与申请关闭活跃任务' : (legacyFilterStatus === 'open' ? '🟢 仅展示 Open 任务' : (legacyFilterStatus === 'applying_closed' ? '🟡 仅展示 申请关闭 任务' : '🏁 历史已闭环归档'))}
-        </span>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button class="btn btn-sm ${legacyTableDensity === 'compact' ? 'btn-primary' : 'btn-ghost'}" onclick="toggleLegacyTableDensity('compact')" style="font-size:11.5px; font-weight:700; padding:4px 10px;" title="仅展示：遗留任务、责任人、向曦总历次汇报与对应纪要、状态">
-          📌 精简主清单 (核心列)
-        </button>
-        <button class="btn btn-sm ${legacyTableDensity === 'full' ? 'btn-primary' : 'btn-ghost'}" onclick="toggleLegacyTableDensity('full')" style="font-size:11.5px; font-weight:700; padding:4px 10px;" title="展开包含提出时间、更新完成时间、逾期、领域等14列明细">
-          📊 14列全量明细
-        </button>
+      <div style="font-size:12.5px; color:#475569; font-weight:600;">
+        <span>📋 清单当前共 <strong style="color:#0f172a; font-size:14px;">${tasks.length}</strong> 项重点遗留任务</span>
+        <span style="color:#64748b; font-size:11.5px; margin-left:8px; background:#f1f5f9; padding:2px 8px; border-radius:4px;">(当前面板仅展示 Open 与 申请关闭 状态)</span>
       </div>
     </div>
   `;
 
-  if (legacyTableDensity === 'compact') {
-    // ==========================================
-    // 精简主视图：表头严格按照指示：【遗留任务】、【责任人】、【向曦总历次汇报与对应纪要】、【状态】、【操作】
-    // ==========================================
-    container.innerHTML = topToolbarHTML + `
-      <table class="legacy-table">
-        <thead>
-          <tr style="background:#f8fafc;">
-            <th style="min-width:320px; font-weight:700;">遗留任务</th>
-            <th style="min-width:110px; font-weight:700;">责任人</th>
-            <th style="min-width:360px; font-weight:700;">向曦总历次汇报与对应纪要</th>
-            <th style="min-width:140px; text-align:center; font-weight:700;">状态流转</th>
-            <th style="min-width:130px; text-align:center; position:sticky; right:0; background:#f8fafc; z-index:2; font-weight:700;">操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tasks.map(task => {
-            const reports = getNormalizedTaskReports(task, allMeetings);
-            const isCompleted = isTaskClosed(task);
-            const isApplying = isTaskApplyingClosed(task);
-            const isOpen = isTaskOpen(task);
-            const isOverdue = checkIsOverdue(task);
+  container.innerHTML = topToolbarHTML + `
+    <table class="legacy-table">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="min-width:340px; font-weight:700;">遗留任务</th>
+          <th style="min-width:110px; font-weight:700;">责任人</th>
+          <th style="min-width:380px; font-weight:700;">向曦总汇报记录与纪要</th>
+          <th style="min-width:100px; text-align:center; font-weight:700;">状态</th>
+          <th style="min-width:120px; text-align:center; position:sticky; right:0; background:#f8fafc; z-index:2; font-weight:700;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tasks.map(task => {
+          const reports = getNormalizedTaskReports(task, allMeetings);
+          const isApplying = isTaskApplyingClosed(task);
 
-            // 渲染汇报与纪要对应流式卡片
-            let reportsHTML = '';
-            if (reports.length === 0) {
-              reportsHTML = `
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span style="background:#f1f5f9; color:#64748b; font-size:11.5px; padding:3px 8px; border-radius:12px; border:1px solid #e2e8f0; font-weight:600;">
-                    ⚪ 尚未向曦总汇报
-                  </span>
-                  <button class="btn btn-xs" onclick="openAddReportSessionModal(${task.id})" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; font-size:11px; font-weight:700; border-radius:4px; padding:2px 8px;" title="首次登记向曦总汇报时间与纪要">
-                    ＋ 登记汇报
-                  </button>
-                  <button class="btn btn-xs" onclick="scheduleReportMeetingForLegacyTask(${task.id})" style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; font-size:11px; font-weight:700; border-radius:4px; padding:2px 6px;" title="通过秘书处排期向曦总汇报">
-                    🎙️ 预约
-                  </button>
-                </div>
-              `;
-            } else {
-              reportsHTML = `
-                <div class="legacy-reports-flow">
-                  ${reports.map((rep, rIdx) => {
-                    const hasMin = Boolean(rep.hasMinutes);
-                    const seqText = `第${rep.seq || (rIdx + 1)}次`;
-                    const timeText = rep.reportTime || '时间待确认';
-                    const opinion = rep.reviewOpinion || rep.minutes || '';
+          // 汇报与纪要流式卡片
+          let reportsHTML = '';
+          if (reports.length === 0) {
+            reportsHTML = `
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="background:#f1f5f9; color:#64748b; font-size:11.5px; padding:3px 8px; border-radius:12px; border:1px solid #e2e8f0; font-weight:600;">
+                  ⚪ 尚未向曦总汇报
+                </span>
+                <button class="btn btn-xs" onclick="openAddReportSessionModal(${task.id})" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; font-size:11px; font-weight:700; border-radius:4px; padding:2px 8px;" title="登记向曦总汇报时间与纪要">
+                  ＋ 登记汇报
+                </button>
+                <button class="btn btn-xs" onclick="scheduleReportMeetingForLegacyTask(${task.id})" style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; font-size:11px; font-weight:700; border-radius:4px; padding:2px 6px;" title="通过秘书处排期向曦总汇报">
+                  🎙️ 预约
+                </button>
+              </div>
+            `;
+          } else {
+            reportsHTML = `
+              <div class="legacy-reports-flow">
+                ${reports.map((rep, rIdx) => {
+                  const hasMin = Boolean(rep.hasMinutes);
+                  const seqText = `第${rep.seq || (rIdx + 1)}次`;
+                  const timeText = rep.reportTime || '时间待确认';
+                  const opinion = rep.reviewOpinion || rep.minutes || '';
 
-                    return `
-                      <div class="legacy-report-card">
-                        <div class="legacy-report-card-header">
-                          <div style="display:flex; align-items:center; gap:6px;">
-                            <span class="legacy-report-seq-badge">${seqText}</span>
-                            <span class="legacy-report-time-text">🕒 ${escapeHtml(timeText)}</span>
-                          </div>
-                          <div>
-                            ${hasMin ? `
-                              <span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与曦总批示">
-                                ✅ 已出纪要 📝
-                              </span>
-                            ` : `
-                              <span class="legacy-minutes-badge no-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击快速补录本次汇报纪要">
-                                ⚠️ 待输出纪要 ✏️
-                              </span>
-                            `}
-                          </div>
+                  return `
+                    <div class="legacy-report-card">
+                      <div class="legacy-report-card-header">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                          <span class="legacy-report-seq-badge">${seqText}</span>
+                          <span class="legacy-report-time-text">🕒 ${escapeHtml(timeText)}</span>
                         </div>
-                        ${opinion ? `
-                          <div class="legacy-report-opinion-quote" title="${escapeHtml(opinion)}">
-                            <span style="color:#0284c7; font-weight:700;">曦总批示:</span> ${escapeHtml(opinion.length > 55 ? opinion.slice(0, 55) + '...' : opinion)}
-                          </div>
-                        ` : ''}
+                        <div>
+                          ${hasMin ? `
+                            <span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与曦总批示">
+                              ✅ 已出纪要 📝
+                            </span>
+                          ` : `
+                            <span class="legacy-minutes-badge no-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击快速补录本次汇报纪要">
+                              ⚠️ 待输出纪要 ✏️
+                            </span>
+                          `}
+                        </div>
                       </div>
-                    `;
-                  }).join('')}
-                  <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px; margin-top:2px;">
-                    <a href="javascript:void(0)" onclick="openAddReportSessionModal(${task.id})" style="font-size:11.5px; color:#2563eb; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:3px;">
-                      ＋ 登记第${reports.length + 1}次汇报
-                    </a>
-                    <a href="javascript:void(0)" onclick="scheduleReportMeetingForLegacyTask(${task.id})" style="font-size:11px; color:#d97706; text-decoration:underline;" title="通过秘书处会议预约排期向曦总汇报">
-                      🎙️ 会议预约排期
-                    </a>
-                  </div>
+                      ${opinion ? `
+                        <div class="legacy-report-opinion-quote" title="${escapeHtml(opinion)}">
+                          <span style="color:#0284c7; font-weight:700;">曦总批示:</span> ${escapeHtml(opinion.length > 55 ? opinion.slice(0, 55) + '...' : opinion)}
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('')}
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px; margin-top:2px;">
+                  <a href="javascript:void(0)" onclick="openAddReportSessionModal(${task.id})" style="font-size:11.5px; color:#2563eb; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:3px;">
+                    ＋ 登记第${reports.length + 1}次汇报
+                  </a>
+                  <a href="javascript:void(0)" onclick="scheduleReportMeetingForLegacyTask(${task.id})" style="font-size:11px; color:#d97706; text-decoration:underline;" title="通过秘书处会议预约排期向曦总汇报">
+                    🎙️ 会议预约排期
+                  </a>
                 </div>
-              `;
-            }
-
-            return `
-              <tr style="${isCompleted ? 'opacity:0.8; background:#f8fafc;' : ''}">
-                <!-- 1. 遗留任务 (*问题描述) -->
-                <td style="padding:10px 12px; vertical-align:top;">
-                  <div style="display:flex; flex-direction:column; gap:4px;">
-                    <div style="font-weight:700; color:#0f172a; font-size:13px; line-height:1.45; cursor:pointer;" onclick="openEditLegacyTaskModal(${task.id})" title="点击查看/编辑任务详情">
-                      ${escapeHtml(task.title || '')}
-                    </div>
-                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:2px;">
-                      ${task.targetDate ? `<span style="font-size:11px; color:${isOverdue ? '#dc2626' : '#64748b'}; font-weight:${isOverdue ? '700' : '500'}; background:${isOverdue ? '#fee2e2' : '#f1f5f9'}; padding:1px 6px; border-radius:4px;">🎯 目标完成: ${escapeHtml(task.targetDate)}${isOverdue ? ' (⚠️已逾期)' : ''}</span>` : ''}
-                      ${task.progress ? `<span style="font-size:11px; color:#475569; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(task.progress)}">📌 进展: ${escapeHtml(task.progress)}</span>` : ''}
-                    </div>
-                  </div>
-                </td>
-
-                <!-- 2. 责任人 (*责任人) -->
-                <td style="padding:10px 12px; white-space:nowrap; vertical-align:top;">
-                  <span style="display:inline-flex; align-items:center; gap:5px; background:#f0f9ff; color:#0284c7; padding:4px 10px; border-radius:6px; font-weight:700; font-size:12px; border:1px solid #bae6fd;">
-                    👤 ${escapeHtml(task.owner || '待分配责任人')}
-                  </span>
-                </td>
-
-                <!-- 3. 向曦总历次汇报与对应纪要 (支持多次汇报 1对1 紧密对应) -->
-                <td style="padding:10px 12px; vertical-align:top;">
-                  ${reportsHTML}
-                </td>
-
-                <!-- 4. 状态与流转 -->
-                <td style="padding:10px 12px; text-align:center; vertical-align:top; white-space:nowrap;">
-                  <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-                    ${isOpen ? `
-                      <span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:12px; font-size:11.5px; font-weight:700; border:1px solid #bae6fd;">
-                        🟢 Open (推进中)
-                      </span>
-                      <button class="btn btn-xs" onclick="applyCloseLegacyTask(${task.id})" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; padding:2px 8px; border-radius:4px;" title="向曦总或主管提交任务闭环申请">
-                        🟡 申请关闭
-                      </button>
-                    ` : ''}
-                    ${isApplying ? `
-                      <span style="background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:12px; font-size:11.5px; font-weight:700; border:1px solid #fde68a;">
-                        🟡 申请关闭 (待审核)
-                      </span>
-                      <div style="display:flex; gap:4px;">
-                        <button class="btn btn-xs" onclick="confirmCloseLegacyTask(${task.id})" style="background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; font-weight:700; padding:2px 6px; border-radius:4px;" title="曦总/主管确认闭环">
-                          ✅ 确认闭环
-                        </button>
-                        <button class="btn btn-xs btn-ghost" onclick="reopenLegacyTask(${task.id})" style="font-size:11px; padding:2px 4px;" title="退回Open继续推进">
-                          ↩️ 恢复Open
-                        </button>
-                      </div>
-                    ` : ''}
-                    ${isCompleted ? `
-                      <span style="background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:12px; font-size:11.5px; font-weight:700; border:1px solid #bbf7d0;">
-                        🏁 已闭环归档
-                      </span>
-                      <button class="btn btn-xs btn-ghost" onclick="reopenLegacyTask(${task.id})" style="font-size:11px; color:#2563eb;" title="重新恢复为Open推进中">
-                        ↩️ 重新打开
-                      </button>
-                    ` : ''}
-                  </div>
-                </td>
-
-                <!-- 5. 操作 -->
-                <td style="padding:10px 8px; text-align:center; white-space:nowrap; position:sticky; right:0; background:#fff; z-index:1; box-shadow:-2px 0 4px rgba(0,0,0,0.02); vertical-align:top;">
-                  <button class="btn btn-sm btn-ghost" onclick="openAddReportSessionModal(${task.id})" title="登记新一次向曦总汇报" style="color:#2563eb; padding:2px 6px;">🎙️＋</button>
-                  <button class="btn btn-sm btn-ghost" onclick="scheduleReportMeetingForLegacyTask(${task.id})" title="通过会议预约排期向曦总汇报" style="color:#d97706; padding:2px 6px;">📅</button>
-                  <button class="btn btn-sm btn-ghost" onclick="openEditLegacyTaskModal(${task.id})" title="编辑任务" style="padding:2px 6px;">✏️</button>
-                  <button class="btn btn-sm btn-ghost" onclick="deleteLegacyTask(${task.id})" title="删除" style="color:#ef4444; padding:2px 6px;">🗑️</button>
-                </td>
-              </tr>
+              </div>
             `;
-          }).join('')}
-        </tbody>
-      </table>
-    `;
-  } else {
-    // ==========================================
-    // 14 列全量明细视图
-    // ==========================================
-    container.innerHTML = topToolbarHTML + `
-      <table class="legacy-table">
-        <thead>
-          <tr>
-            <th style="min-width:90px;">问题状态</th>
-            <th style="min-width:220px;">*问题描述 (遗留任务)</th>
-            <th style="min-width:95px;">*责任人</th>
-            <th style="min-width:85px;">领域</th>
-            <th style="min-width:95px;">提出时间</th>
-            <th style="min-width:105px;">*要求完成日期</th>
-            <th style="min-width:105px;">更新完成时间</th>
-            <th style="min-width:170px;">问题进展</th>
-            <th style="min-width:170px;">审核意见</th>
-            <th style="min-width:240px;">历次向曦总汇报与纪要</th>
-            <th style="min-width:80px; text-align:center;">逾期任务</th>
-            <th style="min-width:80px; text-align:center;">本期新增</th>
-            <th style="min-width:80px; text-align:center;">本期关闭</th>
-            <th style="min-width:120px;">备注</th>
-            <th style="min-width:120px; text-align:center; position:sticky; right:0; background:#f8fafc; z-index:2;">操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tasks.map(task => {
-            const reports = getNormalizedTaskReports(task, allMeetings);
-            const isCompleted = isTaskClosed(task);
-            const isApplying = isTaskApplyingClosed(task);
-            const isOpen = isTaskOpen(task);
-            const isOverdue = checkIsOverdue(task);
+          }
 
-            let statusText = task.status || '推进中';
-            if (isApplying) statusText = '申请关闭';
-            else if (isCompleted) statusText = '已闭环';
-            else if (statusText === 'in_progress') statusText = '推进中';
-            else if (statusText === 'pending') statusText = '待汇报';
+          return `
+            <tr>
+              <!-- 1. 遗留任务：纯粹来自 B 列 (*问题描述)，绝不把其他数据拼入呈现 -->
+              <td style="padding:12px 14px; vertical-align:middle;">
+                <div style="font-weight:700; color:#0f172a; font-size:13px; line-height:1.5;">
+                  ${escapeHtml(task.title || '')}
+                </div>
+              </td>
 
-            return `
-              <tr style="${isCompleted ? 'opacity:0.8; background:#f8fafc;' : ''}">
-                <td>
-                  <span class="legacy-status-tag ${isCompleted ? 'status-completed' : (isApplying ? 'status-pending' : 'status-in_progress')}">
-                    ${escapeHtml(statusText)}
+              <!-- 2. 责任人：同一行对应的责任人 (C 列) -->
+              <td style="padding:12px 14px; white-space:nowrap; vertical-align:middle;">
+                <span style="display:inline-flex; align-items:center; gap:5px; background:#f0f9ff; color:#0284c7; padding:4px 10px; border-radius:6px; font-weight:700; font-size:12px; border:1px solid #bae6fd;">
+                  👤 ${escapeHtml(task.owner || '待分配')}
+                </span>
+              </td>
+
+              <!-- 3. 向曦总汇报记录与纪要 (汇报时间与纪要 1对1 紧密对应) -->
+              <td style="padding:12px 14px; vertical-align:middle;">
+                ${reportsHTML}
+              </td>
+
+              <!-- 4. 状态：仅展示 Open 或 申请关闭，不放任何流转按钮 -->
+              <td style="padding:12px 14px; text-align:center; vertical-align:middle; white-space:nowrap;">
+                ${isApplying ? `
+                  <span style="background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-size:11.5px; font-weight:700; border:1px solid #fde68a;">
+                    🟡 申请关闭
                   </span>
-                </td>
-                <td>
-                  <div style="font-weight:700; color:#0f172a; line-height:1.35;">${escapeHtml(task.title || '')}</div>
-                </td>
-                <td>
-                  <strong style="color:#0369a1;">👤 ${escapeHtml(task.owner || '')}</strong>
-                </td>
-                <td>
-                  <span class="legacy-dept-tag">${escapeHtml(task.domain || task.department || '-')}</span>
-                </td>
-                <td style="font-size:11.5px; color:#64748b;">${escapeHtml(task.createdDate || '-')}</td>
-                <td style="font-size:11.5px; color:${isOverdue ? '#dc2626' : '#1e293b'}; font-weight:${isOverdue ? '700' : '400'};">
-                  ${escapeHtml(task.targetDate || '-')}
-                  ${isOverdue ? ' <span style="color:#dc2626; font-size:10.5px;">(逾期)</span>' : ''}
-                </td>
-                <td style="font-size:11.5px; color:#64748b;">${escapeHtml(task.updatedFinishDate || '-')}</td>
-                <td style="font-size:11.5px; max-width:200px;">${escapeHtml(task.progress || task.nextPlan || '-')}</td>
-                <td style="font-size:11.5px; color:#1e40af; max-width:200px;">${escapeHtml(task.reviewOpinion || '-')}</td>
-                <td>
-                  <div style="font-size:11px; display:flex; flex-direction:column; gap:2px;">
-                    ${reports.map(r => `<div>第${r.seq}次 ${escapeHtml(r.reportTime || '')} ${r.hasMinutes ? '✅' : '⚠️'}</div>`).join('')}
-                    <a href="javascript:void(0)" onclick="openAddReportSessionModal(${task.id})" style="color:#2563eb; font-size:11px;">＋ 登记汇报</a>
-                  </div>
-                </td>
-                <td style="text-align:center;">${isOverdue ? '⚠️ 是' : '否'}</td>
-                <td style="text-align:center;">${task.isCurrentNew ? '✨ 是' : '否'}</td>
-                <td style="text-align:center;">${task.isCurrentClosed ? '🏁 是' : '否'}</td>
-                <td style="font-size:11.5px; color:#64748b;">${escapeHtml(task.remark || '-')}</td>
-                <td style="padding:10px 8px; text-align:center; white-space:nowrap; position:sticky; right:0; background:#fff; z-index:1;">
-                  <button class="btn btn-sm btn-ghost" onclick="openAddReportSessionModal(${task.id})" title="登记向曦总汇报" style="color:#2563eb; padding:2px 6px;">🎙️＋</button>
-                  <button class="btn btn-sm btn-ghost" onclick="openEditLegacyTaskModal(${task.id})" title="编辑任务" style="padding:2px 6px;">✏️</button>
-                  <button class="btn btn-sm btn-ghost" onclick="deleteLegacyTask(${task.id})" title="删除" style="color:#ef4444; padding:2px 6px;">🗑️</button>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    `;
-  }
+                ` : `
+                  <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:12px; font-size:11.5px; font-weight:700; border:1px solid #bae6fd;">
+                    🟢 Open
+                  </span>
+                `}
+              </td>
+
+              <!-- 5. 操作 -->
+              <td style="padding:12px 8px; text-align:center; white-space:nowrap; position:sticky; right:0; background:#fff; z-index:1; vertical-align:middle;">
+                <button class="btn btn-sm btn-ghost" onclick="openAddReportSessionModal(${task.id})" title="登记向曦总汇报" style="color:#2563eb; padding:2px 6px;">🎙️＋</button>
+                <button class="btn btn-sm btn-ghost" onclick="scheduleReportMeetingForLegacyTask(${task.id})" title="预约向曦总汇报" style="color:#d97706; padding:2px 6px;">📅</button>
+                <button class="btn btn-sm btn-ghost" onclick="openEditLegacyTaskModal(${task.id})" title="编辑" style="padding:2px 6px;">✏️</button>
+                <button class="btn btn-sm btn-ghost" onclick="deleteLegacyTask(${task.id})" title="删除" style="color:#ef4444; padding:2px 6px;">🗑️</button>
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
 }
 
 // 模态框：登记新一次向曦总汇报
@@ -12615,7 +12477,6 @@ function openAddReportSessionModal(taskId) {
   document.getElementById('textAddReportModalTitle').textContent = `🎙️ 登记第${nextSeq}次向曦总汇报与会议纪要`;
   document.getElementById('textAddReportTaskDesc').textContent = `【遗留任务】${task.title || ''} (责任人: ${task.owner || '待分配'})`;
 
-  // 默认当前日期与当前整点/半点时间
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -12678,7 +12539,6 @@ function saveAddReportSession() {
   tasks[idx].reportTime = time;
   tasks[idx].hasMinutes = hasMinutes;
   if (reviewOpinion) tasks[idx].reviewOpinion = reviewOpinion;
-  if (minutes) tasks[idx].progress = minutes;
   tasks[idx].updatedAt = Date.now();
 
   setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
@@ -12780,50 +12640,85 @@ function deleteCurrentReportSession() {
   showToast('🗑️ 该场汇报记录已删除');
 }
 
-// 状态流转操作：申请关闭
-function applyCloseLegacyTask(taskId) {
-  let tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
-  const idx = tasks.findIndex(t => t.id == taskId);
-  if (idx === -1) return;
-  if (!confirm(`确定将遗留任务「${tasks[idx].title}」状态变更为【申请关闭】，并提交曦总/主管审核闭环吗？`)) {
+function openAddLegacyTaskModal() {
+  document.getElementById('legacyTaskModalTitle').textContent = '新增部门遗留任务';
+  document.getElementById('inputLegacyTaskId').value = '';
+  document.getElementById('inputLegacyTaskTitle').value = '';
+  document.getElementById('inputLegacyTaskOwner').value = '';
+  document.getElementById('selectLegacyTaskStatus').value = 'in_progress';
+  openModal('legacyTaskModal');
+}
+
+function openEditLegacyTaskModal(id) {
+  const tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  const task = tasks.find(t => t.id == id);
+  if (!task) return;
+
+  document.getElementById('legacyTaskModalTitle').textContent = '编辑部门遗留任务';
+  document.getElementById('inputLegacyTaskId').value = task.id;
+  document.getElementById('inputLegacyTaskTitle').value = task.title || '';
+  document.getElementById('inputLegacyTaskOwner').value = task.owner || '';
+  document.getElementById('selectLegacyTaskStatus').value = isTaskApplyingClosed(task) ? 'applying_closed' : 'in_progress';
+  openModal('legacyTaskModal');
+}
+
+function saveLegacyTask() {
+  const id = document.getElementById('inputLegacyTaskId').value;
+  const title = document.getElementById('inputLegacyTaskTitle').value.trim();
+  const owner = document.getElementById('inputLegacyTaskOwner').value.trim();
+  const statusVal = document.getElementById('selectLegacyTaskStatus').value;
+  const status = statusVal === 'applying_closed' ? '申请关闭' : 'Open';
+
+  if (!title) {
+    showToast('请填写遗留任务描述！');
     return;
   }
-  tasks[idx].status = '申请关闭';
-  tasks[idx].updatedAt = Date.now();
+
+  let tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+
+  if (id) {
+    const idx = tasks.findIndex(t => t.id == id);
+    if (idx !== -1) {
+      tasks[idx].title = title;
+      tasks[idx].owner = owner || '待分配';
+      tasks[idx].status = status;
+      tasks[idx].updatedAt = Date.now();
+    }
+  } else {
+    tasks.unshift({
+      id: Date.now(),
+      title: title,
+      owner: owner || '待分配',
+      status: status,
+      reports: [],
+      reportTime: '',
+      hasMinutes: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+  }
+
   setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
+  closeModal('legacyTaskModal');
   renderLegacyTasks();
-  showToast('🟡 任务已变更为「申请关闭」，待曦总审核闭环！');
+  showToast('💾 遗留任务已保存！');
 }
 
-// 状态流转操作：确认闭环
-function confirmCloseLegacyTask(taskId) {
+function deleteLegacyTask(id) {
   let tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
-  const idx = tasks.findIndex(t => t.id == taskId);
-  if (idx === -1) return;
-  if (!confirm(`曦总/主管审核确认：确定将任务「${tasks[idx].title}」正式闭环并归档吗？`)) {
+  const task = tasks.find(t => t.id == id);
+  if (!task) return;
+
+  if (!confirm(`确定要删除遗留任务「${task.title}」吗？`)) {
     return;
   }
-  tasks[idx].status = '已闭环';
-  tasks[idx].updatedFinishDate = typeof getTodayDateStr === 'function' ? getTodayDateStr() : '';
-  tasks[idx].updatedAt = Date.now();
+
+  tasks = tasks.filter(t => t.id != id);
   setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
   renderLegacyTasks();
-  showToast('🎉 任务已顺利闭环，移入已闭环归档清单！');
+  showToast('🗑️ 任务已删除');
 }
 
-// 状态流转操作：恢复Open
-function reopenLegacyTask(taskId) {
-  let tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
-  const idx = tasks.findIndex(t => t.id == taskId);
-  if (idx === -1) return;
-  tasks[idx].status = '推进中';
-  tasks[idx].updatedAt = Date.now();
-  setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
-  renderLegacyTasks();
-  showToast('↩️ 任务已恢复为 Open 状态继续推进');
-}
-
-// 模态框：查看/更新会议纪要与汇报信息 (向后兼容)
 function openLegacyMinutesModal(id) {
   openAddReportSessionModal(id);
 }
@@ -12831,6 +12726,7 @@ function openLegacyMinutesModal(id) {
 function saveLegacyMinutes() {
   saveAddReportSession();
 }
+
 // 核心联动：一键预约向曦总汇报
 function scheduleReportMeetingForLegacyTask(taskId) {
   const tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
@@ -13109,28 +13005,16 @@ function matchLegacyHeaderColumns(row) {
     status: -1,
     title: -1,
     owner: -1,
-    createdDate: -1,
-    targetDate: -1,
-    updatedFinishDate: -1,
-    progress: -1,
-    reviewOpinion: -1,
-    remark: -1,
     reportTime: -1,
     hasMinutes: -1,
-    isOverdue: -1,
-    isCurrentNew: -1,
-    isCurrentClosed: -1,
-    domain: -1,
-    seq: -1
+    reviewOpinion: -1
   };
 
   row.forEach(function(cell, idx) {
     var t = normalizeHeaderCell(cell);
     if (!t) return;
 
-    if (t === '序号' || t === '编号' || t === 'id' || t === 'no') {
-      colMap.seq = idx;
-    } else if (t === '问题状态' || t === '任务状态' || t === '状态' || t === 'status') {
+    if (t === '问题状态' || t === '状态' || t === 'status') {
       colMap.status = idx;
     } else if (
       t.indexOf('责任人') !== -1 ||
@@ -13138,10 +13022,6 @@ function matchLegacyHeaderColumns(row) {
       t.indexOf('负责人') !== -1 ||
       t.indexOf('牵头人') !== -1 ||
       t.indexOf('承办人') !== -1 ||
-      t.indexOf('经办人') !== -1 ||
-      t.indexOf('处理人') !== -1 ||
-      t.indexOf('对接人') !== -1 ||
-      t.indexOf('落实人') !== -1 ||
       t === 'owner' ||
       t === 'assignee' ||
       t === '责任' ||
@@ -13149,44 +13029,26 @@ function matchLegacyHeaderColumns(row) {
     ) {
       if (colMap.owner === -1) colMap.owner = idx;
     } else if (
-      (t.indexOf('问题描述') !== -1 ||
-       t.indexOf('任务描述') !== -1 ||
-       t.indexOf('任务名称') !== -1 ||
-       t.indexOf('事项描述') !== -1 ||
-       t.indexOf('遗留任务名称') !== -1 ||
-       t.indexOf('工作内容') !== -1 ||
-       (t.indexOf('遗留任务') !== -1 && t.indexOf('逾期') === -1) ||
-       (t.indexOf('问题') !== -1 && t.indexOf('状态') === -1 && t.indexOf('进展') === -1) ||
-       t === '描述' || t === '任务' || t === '事项' || t === '内容' || t === 'title' || t === 'task'
-      ) && t.indexOf('逾期') === -1
+      t.indexOf('问题描述') !== -1 ||
+      t.indexOf('任务描述') !== -1 ||
+      t.indexOf('遗留任务') !== -1 ||
+      t.indexOf('事项描述') !== -1 ||
+      t === '描述' || t === '任务' || t === '事项' || t === 'title' || t === 'task'
     ) {
       if (colMap.title === -1) colMap.title = idx;
-    } else if (t.indexOf('输出纪要') !== -1 || t.indexOf('会议纪要') !== -1 || t === '纪要' || t.indexOf('纪要输出') !== -1 || t.indexOf('纪要') !== -1) {
-      colMap.hasMinutes = idx;
-    } else if (t.indexOf('汇报时间') !== -1 || t.indexOf('汇报日期') !== -1 || t.indexOf('开会时间') !== -1 || t.indexOf('是否汇报') !== -1 || t.indexOf('汇报') !== -1) {
+    } else if (t.indexOf('汇报时间') !== -1 || t.indexOf('汇报日期') !== -1 || t.indexOf('开会时间') !== -1 || t.indexOf('是否汇报') !== -1) {
       colMap.reportTime = idx;
-    } else if (t.indexOf('提出时间') !== -1 || t.indexOf('提出日期') !== -1 || t.indexOf('创建时间') !== -1 || t.indexOf('创建日期') !== -1) {
-      colMap.createdDate = idx;
-    } else if (t.indexOf('更新完成') !== -1 || t.indexOf('实际完成') !== -1 || t.indexOf('闭环时间') !== -1 || t.indexOf('销项时间') !== -1) {
-      colMap.updatedFinishDate = idx;
-    } else if (t.indexOf('要求完成') !== -1 || t.indexOf('截止') !== -1 || t.indexOf('目标完成') !== -1 || t.indexOf('完成时间') !== -1 || t.indexOf('完成日期') !== -1 || t === 'deadline') {
-      colMap.targetDate = idx;
-    } else if (t.indexOf('问题进展') !== -1 || t.indexOf('任务进展') !== -1 || t.indexOf('当前进展') !== -1 || t.indexOf('进展') !== -1 || t.indexOf('下一步计划') !== -1 || t.indexOf('下一步') !== -1 || t === 'progress') {
-      colMap.progress = idx;
-    } else if (t.indexOf('审核意见') !== -1 || t.indexOf('领导批示') !== -1 || t.indexOf('曦总意见') !== -1 || t.indexOf('曦总批示') !== -1 || t.indexOf('审批意见') !== -1 || t.indexOf('意见') !== -1) {
+    } else if (t.indexOf('审核意见') !== -1 || t.indexOf('领导批示') !== -1 || t.indexOf('曦总批示') !== -1 || t.indexOf('意见') !== -1) {
       colMap.reviewOpinion = idx;
-    } else if (t.indexOf('逾期任务') !== -1 || t.indexOf('是否逾期') !== -1 || t === '逾期') {
-      colMap.isOverdue = idx;
-    } else if (t.indexOf('本期新增') !== -1 || t.indexOf('是否新增') !== -1 || t === '新增') {
-      colMap.isCurrentNew = idx;
-    } else if (t.indexOf('本期关闭') !== -1 || t.indexOf('是否关闭') !== -1 || t === '关闭' || t.indexOf('销项') !== -1) {
-      colMap.isCurrentClosed = idx;
-    } else if (t.indexOf('领域') !== -1 || t.indexOf('部门') !== -1 || t === 'domain' || t === 'dept') {
-      colMap.domain = idx;
-    } else if (t.indexOf('备注') !== -1 || t.indexOf('说明') !== -1 || t === 'remark') {
-      colMap.remark = idx;
+    } else if (t.indexOf('输出纪要') !== -1 || t.indexOf('会议纪要') !== -1 || t === '纪要') {
+      colMap.hasMinutes = idx;
     }
   });
+
+  // 严格兜底：B 列 (index 1) 是且仅是 遗留任务 (*问题描述)，C 列 (index 2) 是 责任人 (*责任人)
+  if (colMap.title === -1 && row.length > 1) colMap.title = 1;
+  if (colMap.owner === -1 && row.length > 2) colMap.owner = 2;
+  if (colMap.status === -1 && row.length > 0) colMap.status = 0;
 
   return colMap;
 }
@@ -13197,7 +13059,6 @@ function parseLegacyTaskRows(rawText) {
   var CH_LF = String.fromCharCode(10);
   var CH_CR = String.fromCharCode(13);
 
-  // 1. 处理双引号内的跨行换行 (Excel 单元格内换行容错)
   var lines = [];
   var curLine = '';
   var inQuotes = false;
@@ -13208,7 +13069,7 @@ function parseLegacyTaskRows(rawText) {
       curLine += ch;
     } else if ((ch === CH_LF || ch === CH_CR) && !inQuotes) {
       if (ch === CH_CR && rawText[i + 1] === CH_LF) {
-        i++; // 跳过 LF
+        i++;
       }
       if (curLine.trim()) lines.push(curLine.trim());
       curLine = '';
@@ -13217,13 +13078,11 @@ function parseLegacyTaskRows(rawText) {
     }
   }
   if (curLine.trim()) lines.push(curLine.trim());
-
   if (lines.length === 0) return [];
 
   var rows = lines.map(splitLegacyCells);
   if (rows.length === 0) return [];
 
-  // 2. 智能扫描前 15 行，精准定位真正的表头行 (跳过顶部的空行、标题大字或统计栏)
   var headerRowIdx = -1;
   var colMap = null;
   var maxMatchCount = 0;
@@ -13235,12 +13094,8 @@ function parseLegacyTaskRows(rawText) {
     if (candidateMap.title !== -1) matchCount += 3;
     if (candidateMap.status !== -1) matchCount += 1;
     if (candidateMap.reportTime !== -1) matchCount += 1;
-    if (candidateMap.hasMinutes !== -1) matchCount += 1;
-    if (candidateMap.targetDate !== -1) matchCount += 1;
-    if (candidateMap.reviewOpinion !== -1) matchCount += 1;
-    if (candidateMap.domain !== -1) matchCount += 1;
 
-    if ((candidateMap.owner !== -1 || candidateMap.title !== -1) && matchCount >= 4 && matchCount > maxMatchCount) {
+    if ((candidateMap.owner !== -1 || candidateMap.title !== -1) && matchCount >= 3 && matchCount > maxMatchCount) {
       maxMatchCount = matchCount;
       headerRowIdx = r;
       colMap = candidateMap;
@@ -13254,70 +13109,42 @@ function parseLegacyTaskRows(rawText) {
   dataRows.forEach(function(cols, rIdx) {
     if (cols.length === 0 || cols.every(function(c) { return !c; })) return;
 
-    var status = '推进中', title = '', owner = '', createdDate = '', targetDate = '', updatedFinishDate = '';
-    var progress = '', reviewOpinion = '', remark = '', reportTime = '', isOverdue = false, isCurrentNew = false, isCurrentClosed = false, domain = '';
-    var hasMinutes = false;
+    var titleCol = (hasHeader && colMap.title !== -1) ? colMap.title : 1;
+    var ownerCol = (hasHeader && colMap.owner !== -1) ? colMap.owner : 2;
+    var statusCol = (hasHeader && colMap.status !== -1) ? colMap.status : 0;
+    var reportCol = (hasHeader && colMap.reportTime !== -1) ? colMap.reportTime : 9;
+    var reviewCol = (hasHeader && colMap.reviewOpinion !== -1) ? colMap.reviewOpinion : 7;
+    var minutesCol = (hasHeader && colMap.hasMinutes !== -1) ? colMap.hasMinutes : -1;
 
-    if (hasHeader) {
-      if (colMap.status !== -1 && cols[colMap.status]) status = cols[colMap.status].trim();
-      if (colMap.title !== -1 && cols[colMap.title]) title = cols[colMap.title].trim();
-      if (colMap.owner !== -1 && cols[colMap.owner]) owner = cols[colMap.owner].trim();
-      if (colMap.createdDate !== -1 && cols[colMap.createdDate]) createdDate = cols[colMap.createdDate].trim();
-      if (colMap.targetDate !== -1 && cols[colMap.targetDate]) targetDate = cols[colMap.targetDate].trim();
-      if (colMap.updatedFinishDate !== -1 && cols[colMap.updatedFinishDate]) updatedFinishDate = cols[colMap.updatedFinishDate].trim();
-      if (colMap.progress !== -1 && cols[colMap.progress]) progress = cols[colMap.progress].trim();
-      if (colMap.reviewOpinion !== -1 && cols[colMap.reviewOpinion]) reviewOpinion = cols[colMap.reviewOpinion].trim();
-      if (colMap.remark !== -1 && cols[colMap.remark]) remark = cols[colMap.remark].trim();
-      if (colMap.reportTime !== -1 && cols[colMap.reportTime]) reportTime = cols[colMap.reportTime].trim();
-      if (colMap.hasMinutes !== -1 && cols[colMap.hasMinutes]) {
-        var hm = cols[colMap.hasMinutes].trim();
-        hasMinutes = (hm.indexOf('是') !== -1 || hm.toLowerCase().indexOf('yes') !== -1 || hm.indexOf('已') !== -1);
-      }
-      if (colMap.isOverdue !== -1 && cols[colMap.isOverdue]) {
-        var ov = cols[colMap.isOverdue];
-        isOverdue = (ov.indexOf('是') !== -1 || ov.toLowerCase().indexOf('yes') !== -1 || ov.indexOf('逾') !== -1);
-      }
-      if (colMap.isCurrentNew !== -1 && cols[colMap.isCurrentNew]) {
-        var cn = cols[colMap.isCurrentNew];
-        isCurrentNew = (cn.indexOf('是') !== -1 || cn.toLowerCase().indexOf('yes') !== -1 || cn.indexOf('新') !== -1);
-      }
-      if (colMap.isCurrentClosed !== -1 && cols[colMap.isCurrentClosed]) {
-        var cc = cols[colMap.isCurrentClosed];
-        isCurrentClosed = (cc.indexOf('是') !== -1 || cc.toLowerCase().indexOf('yes') !== -1 || cc.indexOf('关') !== -1 || cc.indexOf('闭') !== -1);
-      }
-      if (colMap.domain !== -1 && cols[colMap.domain]) domain = cols[colMap.domain].trim();
-    } else {
-      // 无表头智能推断: 检查第0列是否是序号
-      var offset = 0;
-      if (/^\d+$/.test(String(cols[0] || '').trim())) {
-        offset = 1;
-      }
-      status = cols[offset] || '推进中';
-      title = cols[offset + 1] || '';
-      owner = cols[offset + 2] || '';
-      createdDate = cols[offset + 3] || '';
-      targetDate = cols[offset + 4] || '';
-      updatedFinishDate = cols[offset + 5] || '';
-      progress = cols[offset + 6] || '';
-      reviewOpinion = cols[offset + 7] || '';
-      remark = cols[offset + 8] || '';
-      reportTime = cols[offset + 9] || '';
-      if (cols[offset + 10]) isOverdue = (cols[offset + 10].indexOf('是') !== -1 || cols[offset + 10].indexOf('yes') !== -1);
-      if (cols[offset + 11]) isCurrentNew = (cols[offset + 11].indexOf('是') !== -1 || cols[offset + 11].indexOf('yes') !== -1);
-      if (cols[offset + 12]) isCurrentClosed = (cols[offset + 12].indexOf('是') !== -1 || cols[offset + 12].indexOf('yes') !== -1);
-      domain = cols[offset + 13] || '';
+    // 核心提取：B 列（titleCol）是遗留任务，C 列（ownerCol）是同一行对应的责任人
+    var title = (cols[titleCol] || '').trim();
+    var owner = (cols[ownerCol] || '').trim();
+    var rawStatus = (cols[statusCol] || '').trim();
+    var reportTime = (cols[reportCol] || '').trim();
+    var reviewOpinion = (reviewCol !== -1 && cols[reviewCol]) ? cols[reviewCol].trim() : '';
+
+    var hasMinutes = false;
+    if (minutesCol !== -1 && cols[minutesCol]) {
+      var hm = cols[minutesCol].trim();
+      hasMinutes = (hm.indexOf('是') !== -1 || hm.toLowerCase().indexOf('yes') !== -1 || hm.indexOf('已') !== -1);
+    }
+    if (!hasMinutes && reviewOpinion) {
+      hasMinutes = true;
     }
 
     if (!title && !owner) return;
 
-    // 如果包含审核意见或纪要文字，标记为已输出纪要
-    if (!hasMinutes && reviewOpinion && reviewOpinion.trim().length > 0) {
-      hasMinutes = true;
+    var normalizedStatus = 'Open';
+    if (rawStatus.indexOf('关') !== -1 || rawStatus.indexOf('闭') !== -1 || rawStatus.indexOf('完成') !== -1 || rawStatus.toLowerCase() === 'completed' || rawStatus.toLowerCase() === 'closed') {
+      normalizedStatus = '已闭环';
+    } else if (rawStatus.indexOf('申请') !== -1) {
+      normalizedStatus = '申请关闭';
+    } else {
+      normalizedStatus = 'Open';
     }
 
-    // 解析多次汇报时间并生成 initial reports (1对1 对应纪要)
     var initialReports = [];
-    if (reportTime && reportTime.trim()) {
+    if (reportTime) {
       var timeParts = splitLegacyReportTimes(reportTime);
       timeParts.forEach(function(tp, pIdx) {
         var isLast = (pIdx === timeParts.length - 1);
@@ -13326,7 +13153,7 @@ function parseLegacyTaskRows(rawText) {
           seq: pIdx + 1,
           reportTime: tp,
           hasMinutes: isLast ? hasMinutes : true,
-          minutes: isLast ? progress : '',
+          minutes: isLast ? reviewOpinion : '',
           reviewOpinion: isLast ? reviewOpinion : '',
           reporter: owner || ''
         });
@@ -13335,42 +13162,23 @@ function parseLegacyTaskRows(rawText) {
       initialReports.push({
         id: 'rep_' + Date.now() + '_' + rIdx + '_1',
         seq: 1,
-        reportTime: createdDate || (typeof getTodayDateStr === 'function' ? getTodayDateStr() : ''),
+        reportTime: typeof getTodayDateStr === 'function' ? getTodayDateStr() : '',
         hasMinutes: true,
-        minutes: progress || '',
+        minutes: reviewOpinion || '',
         reviewOpinion: reviewOpinion || '',
         reporter: owner || ''
       });
     }
 
-    // 状态智能规整：如果是“关”或“闭”则设为已闭环，若有“申请”则设为申请关闭
-    var normalizedStatus = status || '推进中';
-    if (status.indexOf('关') !== -1 || status.indexOf('闭') !== -1) {
-      normalizedStatus = '已闭环';
-    } else if (status.indexOf('申请') !== -1) {
-      normalizedStatus = '申请关闭';
-    }
-
     parsed.push({
       id: Date.now() + rIdx * 10,
       status: normalizedStatus,
-      title: title || ('遗留事项 #' + (rIdx + 1)),
-      owner: owner || '待分配责任人',
-      domain: domain,
-      department: domain,
-      createdDate: createdDate || (typeof getTodayDateStr === 'function' ? getTodayDateStr() : ''),
-      targetDate: targetDate,
-      updatedFinishDate: updatedFinishDate,
-      progress: progress,
-      nextPlan: progress,
-      reviewOpinion: reviewOpinion,
-      remark: remark,
+      title: title, // 只有 B 列是，绝不塞入其他数据
+      owner: owner, // 同一行对应的责任人 (C 列)
       reportTime: reportTime,
       reports: initialReports,
       hasMinutes: hasMinutes,
-      isOverdue: isOverdue,
-      isCurrentNew: isCurrentNew,
-      isCurrentClosed: isCurrentClosed,
+      reviewOpinion: reviewOpinion,
       createdAt: Date.now(),
       updatedAt: Date.now()
     });
@@ -19096,7 +18904,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.3.5';
+window.APP_VERSION = 'v1.3.6';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
