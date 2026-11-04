@@ -43,6 +43,7 @@ SESSION_TTL_SECONDS = 12 * 60 * 60
 PASSWORD_ITERATIONS = 310_000
 MAX_LOGIN_FAILURES = 5
 LOGIN_BLOCK_SECONDS = 15 * 60
+AUTH_ENABLED = False  # 用户指令：删除登入密码，不需要输密码，开启免密直达模式
 ALLOWED_KEY_PREFIX = "snoopy_"
 
 _sessions = {}
@@ -61,6 +62,20 @@ def _hash_password(password, salt):
 def init_auth():
     global _password_salt, _password_hash
     os.makedirs(DATA_DIR, exist_ok=True)
+    if not AUTH_ENABLED:
+        if os.path.exists(AUTH_PATH):
+            try:
+                os.remove(AUTH_PATH)
+            except Exception:
+                pass
+        if os.path.exists(INITIAL_PASSWORD_PATH):
+            try:
+                os.remove(INITIAL_PASSWORD_PATH)
+            except Exception:
+                pass
+        print("Snoopy's Little Lab: Password authentication has been removed. Direct passwordless access enabled.")
+        return
+
     configured_password = os.environ.get("PLATFORM_PASSWORD", "").strip()
     if configured_password:
         _password_salt = hashlib.sha256((BASE_DIR + "|env").encode("utf-8")).digest()[:16]
@@ -461,6 +476,8 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
         return morsel.value if morsel else ""
 
     def _is_authenticated(self):
+        if not AUTH_ENABLED:
+            return True
         token = self._session_token()
         if not token:
             return False
@@ -474,7 +491,7 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
         return True
 
     def _require_api_auth(self):
-        if self._is_authenticated():
+        if not AUTH_ENABLED or self._is_authenticated():
             return True
         self._json_response(401, {"success": False, "error": "AUTH_REQUIRED"})
         return False
@@ -504,19 +521,19 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
         path = parsed.path
 
         if path == "/api/session":
-            self._json_response(200, {"success": True, "authenticated": self._is_authenticated()})
+            self._json_response(200, {
+                "success": True,
+                "authenticated": True,
+                "noPasswordRequired": not AUTH_ENABLED
+            })
             return
 
-        if path == "/login":
-            if self._is_authenticated():
+        if path in ("/login", "/login.html"):
+            if not AUTH_ENABLED or self._is_authenticated():
                 self._redirect("/")
                 return
             self.path = "/login.html"
             super().do_GET()
-            return
-
-        if path == "/login.html":
-            self._redirect("/login")
             return
 
         if path in ("/favicon.ico", "/favicon.png"):
@@ -577,6 +594,14 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
             return
 
         if path == "/api/login":
+            if not AUTH_ENABLED:
+                token = secrets.token_urlsafe(32)
+                now = time.time()
+                with _state_lock:
+                    _sessions[token] = now + SESSION_TTL_SECONDS
+                cookie = f"snoopy_session={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age={SESSION_TTL_SECONDS}"
+                self._json_response(200, {"success": True, "noPasswordRequired": True}, {"Set-Cookie": cookie})
+                return
             self._handle_login(request_data)
             return
 
@@ -584,7 +609,7 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
             token = self._session_token()
             with _state_lock:
                 _sessions.pop(token, None)
-            self._json_response(200, {"success": True}, {
+            self._json_response(200, {"success": True, "noPasswordRequired": not AUTH_ENABLED}, {
                 "Set-Cookie": "snoopy_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0",
             })
             return
@@ -726,7 +751,10 @@ def run_server(port=8787):
     server_address = ("127.0.0.1", port)
     httpd = ThreadingHTTPServer(server_address, PlatformHTTPHandler)
     print(f"Snoopy's Little Lab server running on http://127.0.0.1:{port}")
-    print("The app and all data APIs are protected by password login.")
+    if AUTH_ENABLED:
+        print("The app and all data APIs are protected by password login.")
+    else:
+        print("Password removed: Direct passwordless access enabled (no password required).")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

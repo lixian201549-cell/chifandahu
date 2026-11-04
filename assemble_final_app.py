@@ -5322,9 +5322,9 @@ html_template = """<!DOCTYPE html>
               <img src="__IMG_CANONICAL__" alt="">
               <div><strong>Sanyli</strong><span>Snoopy’s Little Lab 管理员</span></div>
             </div>
-            <button class="profile-action" type="button" role="menuitem" onclick="openPasswordSettings()"><span>🔑</span><span>密码管理</span></button>
+            <button class="profile-action" type="button" role="menuitem" onclick="openPasswordSettings()"><span>🔓</span><span>免密访问模式 (已开启)</span></button>
             <div class="profile-divider"></div>
-            <button class="profile-action is-danger" type="button" role="menuitem" onclick="logoutFromLab()"><span>🔒</span><span>安全退出</span></button>
+            <button class="profile-action is-danger" type="button" role="menuitem" onclick="logoutFromLab()"><span>🏠</span><span>刷新小实验室</span></button>
           </div>
         </div>
       </div>
@@ -5949,13 +5949,16 @@ html_template = """<!DOCTYPE html>
   <div class="modal-overlay" id="passwordSettingsModal">
     <div class="modal-box" style="max-width: 450px;">
       <div class="modal-header">
-        <div class="modal-title">🔑 密码管理</div>
+        <div class="modal-title">🔓 登录安全设置</div>
         <button class="btn btn-sm btn-ghost" type="button" onclick="closePasswordSettings()">✕</button>
       </div>
       <div class="modal-body">
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:16px;border:1px solid var(--border);border-radius:12px;background:var(--woodstock-soft);">
-          <img src="__IMG_CANONICAL__" alt="Snoopy" style="width:52px;height:52px;object-fit:contain;">
-          <div><div style="font-size:13px;font-weight:750;">更新登录口令</div><div style="font-size:11px;color:var(--text-muted);">修改成功后，所有设备都需要重新登录。</div></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:16px;border:1.5px solid #86efac;border-radius:12px;background:#f0fdf4;">
+          <img src="__IMG_CANONICAL__" alt="Snoopy" style="width:48px;height:48px;object-fit:contain;">
+          <div>
+            <div style="font-size:13px;font-weight:750;color:#166534;">🔓 当前已开启免密直达模式</div>
+            <div style="font-size:11.5px;color:#15803d;margin-top:2px;">登入密码已删除，无需输入密码，任何设备打开链接即可直接进入。</div>
+          </div>
         </div>
         <form id="passwordSettingsForm" onsubmit="submitPasswordChange(event)">
           <div class="form-group">
@@ -8398,8 +8401,8 @@ function syncKeyToHostDatabase(key, val) {
     })
   }).then(res => {
     if (res.status === 401) {
-      window.location.href = '/login';
-      throw new Error('Login required');
+      console.warn('Host DB sync returned 401 (ignored in passwordless mode)');
+      return { status: 401, data: null };
     }
     return res.json().then(data => ({ status: res.status, data }));
   }).then(result => {
@@ -8627,14 +8630,10 @@ function submitPasswordChange(event) {
 }
 
 function logoutFromLab() {
-  if (!confirm('要暂时离开 Snoopy’s Little Lab 吗？本机数据已经保存。')) return;
-  fetch('/api/logout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: '{}'
-  }).finally(() => {
-    window.location.href = '/login';
-  });
+  showToast('当前已开启免密直达模式，直接打开链接即可进入小实验室！');
+  setTimeout(() => {
+    window.location.href = '/';
+  }, 400);
 }
 
 // ================= TAB SWITCHING =================
@@ -18178,6 +18177,10 @@ login_template = """<!DOCTYPE html>
     .mini-brand { margin-bottom: 24px; }
   }
 </style>
+<script>
+  // 免密直达模式：不需要输入密码，直接进入小实验室
+  window.location.replace('/');
+</script>
 </head>
 <body>
   <main class="login-shell">
