@@ -4714,10 +4714,17 @@
   gap: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  user-select: none;
 }
 .legacy-kpi-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+.legacy-kpi-card.active-kpi {
+  border: 2px solid #2563eb !important;
+  background: #eff6ff !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18) !important;
 }
 .legacy-kpi-icon {
   width: 38px;
@@ -5090,6 +5097,11 @@
   background: #fee2e2;
   color: #b91c1c;
   border: 1px solid #fecaca;
+}
+.legacy-minutes-badge.pending-report {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 .legacy-report-opinion-quote {
   font-size: 11px;
@@ -5561,13 +5573,13 @@
           </div>
         </div>
         <div class="module-banner-right" style="display:flex; gap:8px; align-items:center;">
-          <button class="btn btn-sm btn-primary" onclick="openLegacyImportModal()" style="font-weight:700; background:#f59e0b; border-color:#d97706;" title="从 Excel/飞书复制粘贴或上传文件批量导入">
+          <button class="btn btn-sm" onclick="openLegacyImportModal()" style="font-weight:700; background:transparent !important; color:#92400e; border:1.5px solid #d97706;" title="从 Excel/飞书复制粘贴或上传文件批量导入">
             📥 导入清单
           </button>
-          <button class="btn btn-sm btn-ghost" onclick="clearAllLegacyTasks()" style="color:#dc2626; border:1px solid #fecaca; background:#fff; font-weight:600;" title="清空全部遗留任务数据">
+          <button class="btn btn-sm" onclick="clearAllLegacyTasks()" style="font-weight:600; background:transparent !important; color:#dc2626; border:1.5px solid #fca5a5;" title="清空全部遗留任务数据">
             🗑️ 清空清单
           </button>
-          <button class="btn btn-sm btn-primary" onclick="openAddLegacyTaskModal()" style="font-weight:700;">
+          <button class="btn btn-sm" onclick="openAddLegacyTaskModal()" style="font-weight:700; background:transparent !important; color:#1d4ed8; border:1.5px solid #3b82f6;" title="新增重点遗留任务">
             ＋ 新增任务
           </button>
         </div>
@@ -5794,7 +5806,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.4.0</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.4.1</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -5912,19 +5924,17 @@
   <div class="modal-overlay" id="meetingModal">
     <div class="modal-box" id="meetingModalBox">
       <!-- Top Drag Grip Bar -->
-      <div class="modal-drag-handle-bar" style="width: 100%; padding: 8px 0 4px 0; background: #f8fafc; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: center; align-items: center; cursor: grab; touch-action: none; user-select: none; border-bottom: 1px solid #f1f5f9;" title="按住可自由拖动卡片">
+      <div class="modal-drag-handle-bar" style="width: 100%; padding: 8px 0 4px 0; background: #f8fafc; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: center; align-items: center; cursor: grab; touch-action: none; user-select: none; border-bottom: 1px solid #f1f5f9;">
         <div style="width: 44px; height: 4px; background: #94a3b8; border-radius: 2px;"></div>
       </div>
       <div class="modal-header" id="meetingModalHeader" style="cursor: grab; user-select: none; touch-action: none; padding-top: 10px; display: flex; align-items: center; justify-content: space-between;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:#e0f2fe; color:#0284c7; font-size:14px; font-weight:bold; cursor:grab;" title="按住可自由拖拽移动卡片">✥</span>
           <div class="modal-title" id="meetingModalTitle">登记主管会议预约</div>
-          <span style="font-size:11.5px; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:12px; font-weight:normal; margin-left:4px;">✋ 按住顶部栏可随意移动</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('left')" title="移动到左侧，查看右侧日程" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">◀ 靠左</button>
-          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('center')" title="复位居中" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">⤢ 居中</button>
-          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('right')" title="移动到右侧，查看左侧日程" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">靠右 ▶</button>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('left')" title="靠左" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">◀ 靠左</button>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('center')" title="居中" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">⤢ 居中</button>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="dockMeetingModal('right')" title="靠右" style="padding:3px 8px; font-size:11px; background:#f1f5f9; border-radius:4px; font-weight:600; color:#475569;">靠右 ▶</button>
           <button type="button" class="btn btn-sm btn-ghost" onclick="closeModal('meetingModal')" style="font-size:15px; margin-left:4px;">✕</button>
         </div>
       </div>
@@ -11921,7 +11931,17 @@ let legacyViewMode = 'table'; // 'table' | 'cards' (以表格清单为主视图)
 let legacyFilterStatus = 'all'; // 'all' (Open + 申请关闭) | 'open' | 'applying_closed'
 let legacyFilterOwner = 'all'; // 'all' | 责任人
 let legacySearchKeyword = '';
+let legacyKpiFilter = 'all'; // 'all' | 'this_week' | 'pending_minutes'
 let parsedLegacyImportTasks = [];
+
+function setLegacyKpiFilter(filter) {
+  if (legacyKpiFilter === filter && filter !== 'all') {
+    legacyKpiFilter = 'all';
+  } else {
+    legacyKpiFilter = filter;
+  }
+  renderLegacyTasks();
+}
 
 function setLegacyViewMode(mode) {
   legacyViewMode = mode;
@@ -12174,15 +12194,43 @@ function getNormalizedTaskReports(task, allMeetings) {
     }
   });
 
-  // 按汇报时间升序排序并重新标号
+  // 按照时间排：待汇报的在前面，已汇报的在后面
   reports.sort(function(a, b) {
-    return (a.reportTime || '').localeCompare(b.reportTime || '');
+    var aPending = isReportPending(a);
+    var bPending = isReportPending(b);
+    if (aPending && !bPending) return -1;
+    if (!aPending && bPending) return 1;
+    if (aPending) {
+      return (a.reportTime || '').localeCompare(b.reportTime || ''); // 待汇报：按时间升序
+    } else {
+      return (b.reportTime || '').localeCompare(a.reportTime || ''); // 已汇报：最新汇报在前面
+    }
   });
   reports.forEach(function(r, idx) {
     r.seq = idx + 1;
   });
 
   return reports;
+}
+
+function parseDateTimeStr(str) {
+  if (!str) return null;
+  const m = String(str).match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:\s+(\d{1,2}):(\d{1,2}))?/);
+  if (!m) return null;
+  const y = parseInt(m[1], 10);
+  const mon = parseInt(m[2], 10) - 1;
+  const d = parseInt(m[3], 10);
+  const h = m[4] ? parseInt(m[4], 10) : 23;
+  const mi = m[5] ? parseInt(m[5], 10) : 59;
+  return new Date(y, mon, d, h, mi, 0);
+}
+
+function isReportPending(reportOrTime) {
+  const timeStr = typeof reportOrTime === 'string' ? reportOrTime : (reportOrTime && reportOrTime.reportTime ? reportOrTime.reportTime : '');
+  if (!timeStr) return false;
+  const dt = parseDateTimeStr(timeStr);
+  if (!dt) return false;
+  return dt.getTime() > Date.now();
 }
 
 function isDateInCurrentWeek(dateStr) {
@@ -12244,25 +12292,29 @@ function renderLegacyTasks() {
       owners.map(o => `<option value="${escapeHtml(o)}" ${curVal === o ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('');
   }
 
-  // 2. 统计概览指示牌 (KPIs) - 严格按照要求呈现 3 项关键数据
+  // 2. 统计概览指示牌 (KPIs) - 支持点击筛选对应的遗留任务
+  const isAll = (legacyKpiFilter === 'all');
+  const isThisWeek = (legacyKpiFilter === 'this_week');
+  const isPendingMin = (legacyKpiFilter === 'pending_minutes');
+
   const kpiContainer = document.getElementById('legacyKpiGrid');
   if (kpiContainer) {
     kpiContainer.innerHTML = `
-      <div class="legacy-kpi-card">
+      <div class="legacy-kpi-card ${isAll ? 'active-kpi' : ''}" onclick="setLegacyKpiFilter('all')" title="点击显示全部 Open 遗留任务 (${openCount}项)">
         <div class="legacy-kpi-icon" style="background:#e0f2fe; color:#0284c7;">🟢</div>
         <div>
           <div class="legacy-kpi-val">${openCount}</div>
           <div class="legacy-kpi-lbl">遗留任务（open）</div>
         </div>
       </div>
-      <div class="legacy-kpi-card">
+      <div class="legacy-kpi-card ${isThisWeek ? 'active-kpi' : ''}" onclick="setLegacyKpiFilter('this_week')" title="点击仅筛选本周汇报的遗留任务 (${thisWeekReportedTasksCount}项)">
         <div class="legacy-kpi-icon" style="background:#fef3c7; color:#d97706;">🎙️</div>
         <div>
           <div class="legacy-kpi-val">${thisWeekReportedTasksCount}</div>
           <div class="legacy-kpi-lbl">本周汇报遗留任务</div>
         </div>
       </div>
-      <div class="legacy-kpi-card">
+      <div class="legacy-kpi-card ${isPendingMin ? 'active-kpi' : ''}" onclick="setLegacyKpiFilter('pending_minutes')" title="点击仅筛选待发送会议纪要的遗留任务 (${pendingMinutesCount}项)">
         <div class="legacy-kpi-icon" style="background:#fef2f2; color:#dc2626;">📝</div>
         <div>
           <div class="legacy-kpi-val" style="color:#dc2626;">${pendingMinutesCount}</div>
@@ -12272,38 +12324,62 @@ function renderLegacyTasks() {
     `;
   }
 
-  // 3. 过滤任务列表 (仅在当前面板的 panelTasks 范围内过滤)
+  // 3. 过滤任务列表 (支持 KPI 卡片联动过滤、责任人筛选与关键词搜索)
   let filtered = panelTasks.filter(t => {
     if (legacyFilterOwner !== 'all' && (t.owner || '').trim() !== legacyFilterOwner) return false;
+
+    const reps = getNormalizedTaskReports(t, allMeetings);
+
+    // KPI 点击联动筛选
+    if (legacyKpiFilter === 'this_week') {
+      const hasThisWeek = reps && reps.some(r => isDateInCurrentWeek(r.reportTime));
+      if (!hasThisWeek) return false;
+    } else if (legacyKpiFilter === 'pending_minutes') {
+      const hasPendingMin = reps && reps.length > 0 && reps.some(r => !r.hasMinutes);
+      if (!hasPendingMin) return false;
+    }
 
     if (legacySearchKeyword) {
       const matchTitle = (t.title || '').toLowerCase().includes(legacySearchKeyword);
       const matchOwner = (t.owner || '').toLowerCase().includes(legacySearchKeyword);
-      const reps = getNormalizedTaskReports(t, allMeetings);
       const matchReports = reps.some(r => (r.reportTime || '').toLowerCase().includes(legacySearchKeyword) || (r.minutes || '').toLowerCase().includes(legacySearchKeyword) || (r.reviewOpinion || '').toLowerCase().includes(legacySearchKeyword));
       if (!matchTitle && !matchOwner && !matchReports) return false;
     }
     return true;
   });
 
-  // 4. 排序规则：已汇报，带[待]输出纪要的遗留任务放在最上面！
-  // Priority 0: 已汇报且待输出纪要
-  // Priority 1: 已汇报且已出纪要
-  // Priority 2: 尚未汇报
-  const getTaskPriority = (t) => {
+  // 4. 排序规则：按照时间排，已汇报的在后面，待汇报的在前面
+  // Category 0: 待汇报 (有未来排期) -> 最前，按时间升序排
+  // Category 1: 已汇报 (汇报时间已过) -> 其次，按时间降序排
+  // Category 2: 尚未汇报 -> 最后
+  const getTaskCategoryAndSortKey = (t) => {
     const reps = getNormalizedTaskReports(t, allMeetings);
-    if (reps && reps.length > 0) {
-      if (reps.some(r => !r.hasMinutes)) return 0;
-      return 1;
+    if (!reps || reps.length === 0) {
+      return { cat: 2, key: '9999' };
     }
-    return 2;
+    const futureReps = reps.filter(isReportPending);
+    const pastReps = reps.filter(r => !isReportPending(r));
+    if (futureReps.length > 0) {
+      const minFuture = futureReps.map(r => r.reportTime || '').filter(Boolean).sort()[0] || '';
+      return { cat: 0, key: minFuture };
+    } else {
+      const maxPast = pastReps.map(r => r.reportTime || '').filter(Boolean).sort().reverse()[0] || '';
+      return { cat: 1, key: maxPast };
+    }
   };
 
   filtered.sort((a, b) => {
-    const prioA = getTaskPriority(a);
-    const prioB = getTaskPriority(b);
-    if (prioA !== prioB) {
-      return prioA - prioB;
+    const infoA = getTaskCategoryAndSortKey(a);
+    const infoB = getTaskCategoryAndSortKey(b);
+    if (infoA.cat !== infoB.cat) {
+      return infoA.cat - infoB.cat;
+    }
+    if (infoA.key !== infoB.key) {
+      if (infoA.cat === 0) {
+        return infoA.key.localeCompare(infoB.key); // 待汇报：越早将要开的排在最前
+      } else if (infoA.cat === 1) {
+        return infoB.key.localeCompare(infoA.key); // 已汇报：最新汇报排在前面
+      }
     }
     return (a.id || 0) - (b.id || 0);
   });
@@ -12363,21 +12439,30 @@ function renderLegacyCardsView(tasks, allMeetings) {
           <div class="legacy-reports-flow" style="min-width:auto; max-width:100%;">
             ${reports.length === 0 ? `
               <div style="font-size:11.5px; color:#94a3b8; font-style:italic; padding:6px 0;">尚未汇报</div>
-            ` : reports.map((r, rIdx) => `
-              <div class="legacy-report-card">
-                <div class="legacy-report-card-header">
-                  <div style="display:flex; align-items:center; gap:5px;">
-                    <span class="legacy-report-seq-badge">第${r.seq || (rIdx + 1)}次</span>
-                    <span class="legacy-report-time-text">🕒 ${escapeHtml(r.reportTime || '')}</span>
+            ` : reports.map((r, rIdx) => {
+              const isFuture = isReportPending(r);
+              let badgeHTML = '';
+              if (isFuture) {
+                badgeHTML = `<span class="legacy-minutes-badge pending-report" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="已排期，待正式汇报">⏳ 待汇报 📅</span>`;
+              } else if (r.hasMinutes) {
+                badgeHTML = `<span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与批示">✅ 已出纪要 📝</span>`;
+              } else {
+                badgeHTML = `<span class="legacy-minutes-badge no-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击快速补录本次汇报纪要">⚠️ 待发送纪要 ✏️</span>`;
+              }
+
+              return `
+                <div class="legacy-report-card">
+                  <div class="legacy-report-card-header">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                      <span class="legacy-report-seq-badge">第${r.seq || (rIdx + 1)}次</span>
+                      <span class="legacy-report-time-text">🕒 ${escapeHtml(r.reportTime || '')}</span>
+                    </div>
+                    ${badgeHTML}
                   </div>
-                  <span class="legacy-minutes-badge ${r.hasMinutes ? 'has-minutes' : 'no-minutes'}" onclick="openEditReportSessionModal(${task.id}, ${rIdx})">
-                    ${r.hasMinutes ? '✅ 已出纪要 📝' : '⚠️ 待输出纪要 ✏️'}
-                  </span>
+                  ${r.reviewOpinion ? `<div class="legacy-report-opinion-quote"><strong>纪要决议:</strong> ${escapeHtml(r.reviewOpinion)}</div>` : ''}
                 </div>
-                ${r.meetingSubject ? `<div style="font-size:11px; color:#64748b; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(r.meetingSubject)}">📅 会议: ${escapeHtml(r.meetingSubject)}</div>` : ''}
-                ${r.reviewOpinion ? `<div class="legacy-report-opinion-quote"><strong>纪要决议:</strong> ${escapeHtml(r.reviewOpinion)}</div>` : ''}
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
         </div>
 
@@ -12415,7 +12500,14 @@ function renderLegacyTableView(tasks, allMeetings) {
     return;
   }
 
-  container.innerHTML = `
+  const filterNoticeHTML = legacyKpiFilter !== 'all' ? `
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:6px 12px; margin-bottom:12px; font-size:12px; color:#1e40af;">
+      <span>🔍 当前筛选：<strong>${legacyKpiFilter === 'this_week' ? '本周汇报遗留任务 (' + tasks.length + '项)' : '待发送会议纪要 (' + tasks.length + '项)'}</strong></span>
+      <button class="btn btn-xs btn-ghost" onclick="setLegacyKpiFilter('all')" style="color:#2563eb; font-weight:700; text-decoration:underline; cursor:pointer;">✕ 显示全部遗留任务</button>
+    </div>
+  ` : '';
+
+  container.innerHTML = filterNoticeHTML + `
     <table class="legacy-table">
       <thead>
         <tr style="background:#f8fafc;">
@@ -12448,10 +12540,32 @@ function renderLegacyTableView(tasks, allMeetings) {
             reportsHTML = `
               <div class="legacy-reports-flow">
                 ${reports.map((rep, rIdx) => {
+                  const isFuture = isReportPending(rep);
                   const hasMin = Boolean(rep.hasMinutes);
                   const seqText = `第${rep.seq || (rIdx + 1)}次`;
                   const timeText = rep.reportTime || '时间待确认';
                   const opinion = rep.reviewOpinion || rep.minutes || '';
+
+                  let badgeHTML = '';
+                  if (isFuture) {
+                    badgeHTML = `
+                      <span class="legacy-minutes-badge pending-report" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="已排期，待正式汇报">
+                        ⏳ 待汇报 📅
+                      </span>
+                    `;
+                  } else if (hasMin) {
+                    badgeHTML = `
+                      <span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与批示">
+                        ✅ 已出纪要 📝
+                      </span>
+                    `;
+                  } else {
+                    badgeHTML = `
+                      <span class="legacy-minutes-badge no-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击快速补录本次汇报纪要">
+                        ⚠️ 待发送纪要 ✏️
+                      </span>
+                    `;
+                  }
 
                   return `
                     <div class="legacy-report-card">
@@ -12461,22 +12575,9 @@ function renderLegacyTableView(tasks, allMeetings) {
                           <span class="legacy-report-time-text">🕒 ${escapeHtml(timeText)}</span>
                         </div>
                         <div>
-                          ${hasMin ? `
-                            <span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与批示">
-                              ✅ 已出纪要 📝
-                            </span>
-                          ` : `
-                            <span class="legacy-minutes-badge no-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击快速补录本次汇报纪要">
-                              ⚠️ 待输出纪要 ✏️
-                            </span>
-                          `}
+                          ${badgeHTML}
                         </div>
                       </div>
-                      ${rep.meetingSubject ? `
-                        <div style="font-size:11px; color:#64748b; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(rep.meetingSubject)}">
-                          📅 会议: ${escapeHtml(rep.meetingSubject)}
-                        </div>
-                      ` : ''}
                       ${opinion ? `
                         <div class="legacy-report-opinion-quote" title="${escapeHtml(opinion)}">
                           <span style="color:#0284c7; font-weight:700;">纪要批示:</span> ${escapeHtml(opinion.length > 55 ? opinion.slice(0, 55) + '...' : opinion)}
@@ -18967,7 +19068,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.4.0';
+window.APP_VERSION = 'v1.4.1';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
