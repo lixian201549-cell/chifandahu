@@ -5897,7 +5897,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.4.4</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.4.5</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -12370,11 +12370,26 @@ function isReportPendingMinutes(report) {
   return true;
 }
 
-// 格式化遗留任务标题：避免重复嵌套括号，输出统一规范的标题格式
+// 格式化遗留任务标题：避免重复嵌套括号，输出统一规范的标题格式（如【HC洞察】HC用户发展成功经验洞察）
 function formatTaskTitleForNotice(title) {
   let t = (title || '未命名遗留任务').trim();
-  // 统一格式化：去除开头的【，去除结尾的】，例如【HC洞察】HC用户发展成功经验洞察 -> HC洞察】HC用户发展成功经验洞察
-  t = t.replace(/^【+/, '').replace(/】+$/, '');
+  while (t.startsWith('【【') && t.endsWith('】】')) {
+    t = t.slice(1, -1).trim();
+  }
+  if (t.startsWith('【【')) {
+    const openCount = (t.match(/【/g) || []).length;
+    const closeCount = (t.match(/】/g) || []).length;
+    if (openCount === closeCount + 1 && t.endsWith('】')) {
+      t = t.slice(1, -1).trim();
+    } else {
+      t = t.replace(/^【+/, '【');
+    }
+  }
+  const openCount = (t.match(/【/g) || []).length;
+  const closeCount = (t.match(/】/g) || []).length;
+  if (closeCount > openCount && t.endsWith('】')) {
+    t = t.slice(0, -1).trim();
+  }
   return t;
 }
 
@@ -12402,8 +12417,7 @@ function copyPendingMinutesGroupNotice() {
     return;
   }
 
-  let text = '【📢 重点遗留任务·待发送会议纪要】\n';
-  text += '各位责任人好：\n\n';
+  let text = '【📢 重点遗留任务·待发送会议纪要】\n\n';
 
   pendingItems.forEach((item, idx) => {
     const t = item.task;
@@ -12415,6 +12429,8 @@ function copyPendingMinutesGroupNotice() {
     });
     text += '\n';
   });
+
+  text = text.trim();
 
   fallbackCopyText(text, '🎉 已一键复制未发纪要通知，可直接在群内粘贴发送！');
 }
@@ -19423,7 +19439,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.4.4';
+window.APP_VERSION = 'v1.4.5';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
