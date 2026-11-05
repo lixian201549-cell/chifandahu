@@ -5502,14 +5502,17 @@ html_template = """<!DOCTYPE html>
 
         <div class="module-banner-right">
           <div class="stat-box">
-            <div class="stat-num" id="statMonthlyProgress" style="color:#0891b2;">0 / 4</div>
+            <div class="stat-num" id="statMonthlyProgress" style="color:#6366f1; font-size:15px; font-weight:800;">0 / 4</div>
             <div class="stat-label">已通关</div>
           </div>
           <div class="stat-box">
             <div class="stat-num" id="statMonthlyNextDate" style="color:#6366f1; font-size:15px; font-weight:800;">11月9日</div>
             <div class="stat-label">下个关卡</div>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="openAddMonthlyRoutineModal()">➕ 添加关卡</button>
+          <div class="stat-box" onclick="openAddMonthlyRoutineModal()" style="cursor:pointer;" title="添加新月度关卡">
+            <div class="stat-num" style="color:#6366f1; font-size:15px; font-weight:800;">➕ 添加</div>
+            <div class="stat-label">添加关卡</div>
+          </div>
         </div>
       </div>
 
@@ -9219,10 +9222,29 @@ function renderBlackboardHistoryList() {
         <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
           <button class="btn btn-sm btn-ghost" onclick="copySingleHistoryBlackboard('${d}')" title="复制当天板书">📋</button>
           <button class="btn btn-sm btn-primary" onclick="loadHistoryDateToBlackboard('${d}')" style="font-size:12px; padding:3px 9px;">载入黑板 →</button>
+          <button class="btn btn-sm btn-ghost" onclick="deleteSingleHistoryBlackboard('${d}')" style="color:#dc2626; font-size:12px; padding:3px 7px;" title="删除此条历史记录">🗑️</button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+function deleteSingleHistoryBlackboard(dateStr) {
+  if (!confirm(`确定要删除 ${dateStr} 的黑板历史记录吗？\\n删除后将无法恢复。`)) return;
+
+  const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
+  if (records[dateStr]) {
+    delete records[dateStr];
+    setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
+  }
+
+  // 如果删除的正是当前展示的日期，重新渲染黑板
+  if (currentBlackboardDate === dateStr) {
+    renderChalkboard();
+  }
+
+  renderBlackboardHistoryList();
+  showToast(`🗑️ 已删除 ${dateStr} 的黑板记录`);
 }
 
 function copySingleHistoryBlackboard(dateStr) {
