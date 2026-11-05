@@ -6305,6 +6305,11 @@ html_template = """<!DOCTYPE html>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('leaderTripModal')">✕</button>
       </div>
       <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+        <!-- 智能联动提醒 -->
+        <div style="font-size:11.5px; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; border-radius:var(--radius-sm); padding:7px 10px; line-height:1.5;">
+          💡 <strong>自动识别提醒：</strong>现在只要在【🛫 登记在途】登记了航空航班，系统就会自动识别领导出差地与当地时区，无需在此重复登记！若未登记返回开罗的航空，系统默认领导始终在最后的目的地。
+        </div>
+
         <!-- 1. 出差目的地 -->
         <div>
           <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px;">1. 选择出差目的地</label>
@@ -6376,6 +6381,11 @@ html_template = """<!DOCTYPE html>
       </div>
       <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
         <input type="hidden" id="inputTransitId" value="" />
+
+        <!-- 智能联动提醒 -->
+        <div style="font-size:11.5px; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; border-radius:var(--radius-sm); padding:7px 10px; line-height:1.5;">
+          ✨ <strong>智能联动：</strong>登记在途航空后，系统将自动识别领导出差地与当地时区（无需另行登记出差）。若未登记返回开罗的航空，系统默认领导始终在最后的目的地。
+        </div>
 
         <!-- 航程 / 行程说明 -->
         <div>
@@ -7633,8 +7643,98 @@ function getLeaderTrips() {
   return getData(STORAGE_KEYS.LEADER_TRIPS, []);
 }
 
+// 自动根据在途航空航班识别领导出差目的地与时区
+// 核心规则：
+// 1. 登记在途航班后，到达地自动成为出差目的地（无需手动再登记出差）；
+// 2. 如果未登记返回开罗的航空（arrTz === 'cairo'），默认领导在此后所有日期均停留在最后的目的地；
+// 3. 一旦登记了返回开罗的航空，在返抵开罗之后恢复开罗常驻总部状态。
+function getTransitAutoTrips() {
+  const transits = typeof getLeaderTransits === 'function' ? getLeaderTransits() : [];
+  if (!transits || transits.length === 0) return [];
+
+  // 1. 严格按起飞/落地时间正序排列
+  const sorted = [...transits].filter(t => t && (t.depDate || t.arrDate)).sort((a, b) => {
+    const dateA = a.depDate || a.arrDate;
+    const timeA = a.depTime || '00:00';
+    const dateB = b.depDate || b.arrDate;
+    const timeB = b.depTime || '00:00';
+    const cmp = dateA.localeCompare(dateB);
+    if (cmp !== 0) return cmp;
+    return timeA.localeCompare(timeB);
+  });
+
+  if (sorted.length === 0) return [];
+
+  const autoTrips = [];
+
+  for (let i = 0; i < sorted.length; i++) {
+    const t = sorted[i];
+    const dest = t.arrTz || 'cairo';
+
+    // 若落地开罗，表明是返回常驻总部，不作为出差目的地产生新的行程
+    if (dest === 'cairo') {
+      continue;
+    }
+
+    const start = t.depDate || t.arrDate;
+    let end = '2099-12-31';
+    let isIndefinite = true;
+
+    // 寻找下一个改变位置的航班（飞往另一城市或返回开罗）
+    for (let j = i + 1; j < sorted.length; j++) {
+      const nextT = sorted[j];
+      const nextDepDate = nextT.depDate || nextT.arrDate;
+      if (nextDepDate >= start) {
+        if (nextT.arrTz === 'cairo') {
+          // 返程飞回开罗：出差在返抵开罗当天结束
+          end = nextT.arrDate || nextT.depDate;
+          isIndefinite = false;
+          break;
+        } else if (nextT.arrTz !== dest) {
+          // 飞往下一出差站：在前一站的出差在该航班起飞当天结束
+          end = nextT.depDate || nextT.arrDate;
+          isIndefinite = false;
+          break;
+        }
+      }
+    }
+
+    const tzInfo = TRIP_TIMEZONE_MAP[dest] || TRIP_TIMEZONE_MAP.cairo;
+    const diffHours = (tzInfo.utcOffset !== undefined) ? (tzInfo.utcOffset - 2) : 0;
+
+    autoTrips.push({
+      id: 'auto_transit_' + t.id,
+      transitId: t.id,
+      destination: dest,
+      startDate: start,
+      endDate: end,
+      isIndefinite,
+      isAutoFromTransit: true,
+      flightNo: t.flightNo || '',
+      transitTitle: t.title || '',
+      tzInfo,
+      diffHours,
+      tzName: tzInfo.name,
+      tzFlag: tzInfo.flag,
+      diffText: tzInfo.diffText,
+      remark: t.remark || (isIndefinite ? '根据在途航空自动识别（未登记返回开罗，默认在最后目的地）' : '根据在途航空自动识别')
+    });
+  }
+
+  return autoTrips;
+}
+
 function getTripForDate(dateStr) {
   if (!dateStr) return null;
+
+  // 1. 优先使用根据在途航空自动识别的出差目的地（未返程默认留在最后目的地）
+  const autoTrips = getTransitAutoTrips();
+  const matchingAutoTrips = autoTrips.filter(t => t.startDate <= dateStr && dateStr <= t.endDate);
+  if (matchingAutoTrips.length > 0) {
+    return matchingAutoTrips[matchingAutoTrips.length - 1];
+  }
+
+  // 2. 兼容手动登记的出差行程
   const trips = getLeaderTrips();
   const match = trips.find(t => t.startDate <= dateStr && dateStr <= t.endDate);
   if (!match) return null;
@@ -7672,14 +7772,14 @@ function getMeetingDisplayTime(m) {
   const trip = getTripForDate(mDate);
 
   // 1. If meeting date falls into a leader business trip, display in leader's trip destination local time!
-  if (trip && trip.diffHours !== 0) {
-    const tripStart = shiftTimeStrByHours(baseStart, trip.diffHours);
-    const tripEnd = shiftTimeStrByHours(baseEnd, trip.diffHours);
+  if (trip) {
+    const tripStart = (trip.diffHours !== 0) ? shiftTimeStrByHours(baseStart, trip.diffHours) : baseStart;
+    const tripEnd = (trip.diffHours !== 0) ? shiftTimeStrByHours(baseEnd, trip.diffHours) : baseEnd;
 
     return {
       start: tripStart,
       end: tripEnd,
-      isShifted: true,
+      isShifted: (trip.diffHours !== 0),
       isTripDate: true,
       trip,
       tzName: trip.tzName,
@@ -7875,31 +7975,65 @@ function renderLeaderTripExistingList() {
   const listEl = document.getElementById('tripExistingListArea');
   if (!listEl) return;
   const trips = getLeaderTrips();
-  if (trips.length === 0) {
-    listEl.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:8px; background:var(--card-subtle); border-radius:var(--radius-sm);">暂无已登记的出差行程</div>';
+  const autoTrips = (typeof getTransitAutoTrips === 'function') ? getTransitAutoTrips() : [];
+
+  if (trips.length === 0 && autoTrips.length === 0) {
+    listEl.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:8px; background:var(--card-subtle); border-radius:var(--radius-sm);">暂无已登记的出差行程。您可在【登记在途】中录入航班，系统将全自动识别！</div>';
     return;
   }
-  listEl.innerHTML = `
-    <div style="font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:6px;">
-      📋 已登记的出差行程清单 (${trips.length} 条)：
-    </div>
-    <div style="display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;">
-      ${trips.map(t => {
-        const tz = TRIP_TIMEZONE_MAP[t.destination] || TRIP_TIMEZONE_MAP.cairo;
-        return `
-          <div style="display:flex; align-items:center; justify-content:space-between; background:var(--card-subtle); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 10px; font-size:12px;">
-            <div>
-              <span style="font-weight:700; color:#15803d;">${tz.flag} ${tz.name}</span>
-              <span style="margin-left:8px; color:var(--text-primary); font-weight:600;">${t.startDate} 至 ${t.endDate}</span>
-              <span style="margin-left:6px; font-size:11px; color:var(--text-muted);">(比开罗${tz.diffText})</span>
-              ${t.remark ? `<span style="margin-left:8px; font-size:11px; color:var(--text-secondary);">· ${escapeHtml(t.remark)}</span>` : ''}
+
+  let html = '';
+
+  // 1. 航空在途自动识别的目的地
+  if (autoTrips.length > 0) {
+    html += `
+      <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:var(--radius-sm); padding:8px 10px; margin-bottom:8px;">
+        <div style="font-size:11.5px; font-weight:700; color:#0369a1; display:flex; align-items:center; gap:5px; margin-bottom:6px;">
+          <span>🛫 根据在途航空自动识别 (${autoTrips.length} 条 · 无需手动重复登记)：</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:5px;">
+          ${autoTrips.map(at => `
+            <div style="display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid #e0f2fe; border-radius:4px; padding:5px 8px; font-size:11.5px;">
+              <div>
+                <span style="font-weight:700; color:#0284c7;">${at.tzFlag} ${at.tzName}</span>
+                <span style="margin-left:6px; color:#475569;">${at.startDate} ${at.isIndefinite ? '起 (未登记返程，默认在目的地)' : `至 ${at.endDate}`}</span>
+                <span style="margin-left:4px; font-size:11px; color:#0369a1;">(比开罗${at.diffText})</span>
+                ${at.flightNo ? `<span style="margin-left:6px; background:#e0f2fe; color:#0369a1; padding:1px 4px; border-radius:3px; font-size:10.5px;">${escapeHtml(at.flightNo)}</span>` : ''}
+              </div>
+              <span class="badge" style="background:#e0f2fe; color:#0284c7; font-size:10.5px; padding:1px 6px;">航空自动同步</span>
             </div>
-            <button class="btn btn-sm btn-ghost" style="color:#dc2626; padding:1px 6px; font-size:11.5px;" onclick="deleteLeaderTrip(${t.id})" title="删除此条行程">✕</button>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // 2. 手动登记的出差行程
+  if (trips.length > 0) {
+    html += `
+      <div style="font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:6px;">
+        📋 手动登记的出差行程清单 (${trips.length} 条)：
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;">
+        ${trips.map(t => {
+          const tz = TRIP_TIMEZONE_MAP[t.destination] || TRIP_TIMEZONE_MAP.cairo;
+          return `
+            <div style="display:flex; align-items:center; justify-content:space-between; background:var(--card-subtle); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 10px; font-size:12px;">
+              <div>
+                <span style="font-weight:700; color:#15803d;">${tz.flag} ${tz.name}</span>
+                <span style="margin-left:8px; color:var(--text-primary); font-weight:600;">${t.startDate} 至 ${t.endDate}</span>
+                <span style="margin-left:6px; font-size:11px; color:var(--text-muted);">(比开罗${tz.diffText})</span>
+                ${t.remark ? `<span style="margin-left:8px; font-size:11px; color:var(--text-secondary);">· ${escapeHtml(t.remark)}</span>` : ''}
+              </div>
+              <button class="btn btn-sm btn-ghost" style="color:#dc2626; padding:1px 6px; font-size:11.5px;" onclick="deleteLeaderTrip(${t.id})" title="删除此条行程">✕</button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  listEl.innerHTML = html;
 }
 
 // ================= 领导在途行程管理 (Leader In-Transit Flight & Cross-Timezone Engine) =================
@@ -7996,7 +8130,8 @@ function handleTransitFormChange() {
   } else {
     const depInfo = TRIP_TIMEZONE_MAP[depTz] || TRIP_TIMEZONE_MAP.cairo;
     const arrInfo = TRIP_TIMEZONE_MAP[arrTz] || TRIP_TIMEZONE_MAP.cameroon;
-    hintEl.innerHTML = `⏱️ 跨时区飞行耗时：<strong>约 ${calc.text}</strong>（起飞: ${depInfo.name} UTC+${depInfo.utcOffset} ➔ 落地: ${arrInfo.name} UTC+${arrInfo.utcOffset}）`;
+    const destInfo = (arrTz === 'cairo') ? '🛬 返回开罗总部常驻' : `✈️ 出差目的地：${arrInfo.name} (未登记返程默认在目的地)`;
+    hintEl.innerHTML = `⏱️ 跨时区飞行耗时：<strong>约 ${calc.text}</strong>（起飞: ${depInfo.name} UTC+${depInfo.utcOffset} ➔ 落地: ${arrInfo.name} UTC+${arrInfo.utcOffset}）<br><span style="font-size:11px; color:#0284c7; font-weight:600; margin-top:3px; display:inline-block;">✨ 自动识别出差行程：${destInfo}</span>`;
     hintEl.style.color = '#0369a1';
     hintEl.style.background = '#f0f9ff';
     hintEl.style.borderColor = '#bae6fd';
@@ -8043,10 +8178,20 @@ function openTransitModal(transitId) {
     if (titleInput) titleInput.value = '';
     if (depDateInput) depDateInput.value = todayStr;
     if (depTimeInput) depTimeInput.value = '09:30';
-    if (depTzSelect) depTzSelect.value = 'cairo';
+    if (depTzSelect) {
+      // 智能预选出发地：若当前领导已在出差地，起飞地自动选该出差地；否则默认开罗
+      depTzSelect.value = (activeTrip && activeTrip.destination && activeTrip.destination !== 'cairo') ? activeTrip.destination : 'cairo';
+    }
     if (arrDateInput) arrDateInput.value = todayStr;
     if (arrTimeInput) arrTimeInput.value = '14:45';
-    if (arrTzSelect) arrTzSelect.value = activeTrip ? activeTrip.destination : 'cameroon';
+    if (arrTzSelect) {
+      // 智能预选落地地：若起飞地为出差地，落地默认预选开罗（返回总部）；若起飞为开罗，落地预选喀麦隆
+      if (depTzSelect && depTzSelect.value !== 'cairo') {
+        arrTzSelect.value = 'cairo';
+      } else {
+        arrTzSelect.value = 'cameroon';
+      }
+    }
     if (flightNoInput) flightNoInput.value = '';
     if (remarkInput) remarkInput.value = '';
     if (btnDelete) btnDelete.style.display = 'none';
@@ -8141,10 +8286,20 @@ function saveLeaderTransit() {
   closeModal('transitModal');
   renderSupervisorWeeklyBoard();
   renderSupervisorDayCalendar();
+  if (typeof renderSupervisorMonthCalendar === 'function') {
+    renderSupervisorMonthCalendar();
+  }
   if (typeof updateChalkboardExecutiveBar === 'function') {
     updateChalkboardExecutiveBar();
   }
-  showToast(`🛫 在途行程已保存：${title}（飞行约 ${calc.text}）`);
+  if (typeof renderMeetings === 'function') {
+    renderMeetings();
+  }
+  const isReturnCairo = (arrTz === 'cairo');
+  const autoTripHint = isReturnCairo
+    ? '，🛬 自动识别领导返回开罗总部常驻'
+    : `，✨ 自动识别出差目的地：${arrInfo.name}（未登记返程将默认在最后目的地）`;
+  showToast(`🛫 在途行程已保存：${title}${autoTripHint}`);
 }
 
 function deleteLeaderTransit(id) {
@@ -8154,10 +8309,16 @@ function deleteLeaderTransit(id) {
   renderTransitExistingList();
   renderSupervisorWeeklyBoard();
   renderSupervisorDayCalendar();
+  if (typeof renderSupervisorMonthCalendar === 'function') {
+    renderSupervisorMonthCalendar();
+  }
   if (typeof updateChalkboardExecutiveBar === 'function') {
     updateChalkboardExecutiveBar();
   }
-  showToast('🗑️ 该在途行程已删除');
+  if (typeof renderMeetings === 'function') {
+    renderMeetings();
+  }
+  showToast('🗑️ 该在途行程已删除，出差目的地与时区已重新自动计算');
 }
 
 function deleteCurrentTransit() {
@@ -13633,7 +13794,7 @@ function exportExecutiveScheduleBriefing() {
 
         lines.push(`【${mNum}月${dNum}日（${wDay}）】`);
         if (trip) {
-          lines.push(`📍 出差目的地：${trip.destination} (${trip.tzName || ''}当地时间)`);
+          lines.push(`📍 出差目的地：${trip.tzName || trip.destination} (${trip.tzName || ''}当地时间)`);
         }
 
         dayMeetings.forEach(mItem => {
@@ -13713,7 +13874,7 @@ function updateTomorrowReminderPreview() {
   const titlePrefix = isTomorrow ? '📅 曦总明日日程' : '📅 曦总日程安排';
   lines.push(`${titlePrefix}｜${mNum}月${dNum}日（${wDay}）`);
   if (trip) {
-    lines.push(`📍 出差目的地：${trip.destination} (${trip.tzName || ''}当地时间)`);
+    lines.push(`📍 出差目的地：${trip.tzName || trip.destination} (${trip.tzName || ''}当地时间)`);
   }
   lines.push('');
 
