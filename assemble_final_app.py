@@ -8720,6 +8720,7 @@ function spawnSnoopyParticles() {
 
 // ================= SNOOPY'S CLASSROOM & BIG CHALKBOARD =================
 let currentBlackboardDate = '';
+let _lastRenderedBlackboardDate = null;
 let teacherQuoteIdx = 0;
 const TEACHER_SNOOPY_QUOTES = [
   "“敲黑板！每天学到一点新东西，生活就会变得更有趣！”",
@@ -8729,6 +8730,55 @@ const TEACHER_SNOOPY_QUOTES = [
   "“不积跬步无以至千里，每天在黑板上留下一点新知，你就是最棒的！”",
   "“Woodstock 助教提醒您：今天学习打卡成功，继续加油！♪”"
 ];
+
+function cleanDuplicateTodayBlackboard() {
+  try {
+    const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
+    if (!records || typeof records !== 'object') return;
+    let modified = false;
+    const todayStr = getTodayDateStr();
+
+    // 检查是否有今日（如 2026-11-05）与 2026-11-01（或其他以往日期）完全重复的误复制记录
+    const todayRec = records[todayStr];
+    if (todayRec && todayStr !== '2026-11-01') {
+      const todayText = (todayRec.content || todayRec.notes || todayRec.highlight || '').trim();
+      const histRec = records['2026-11-01'];
+      if (histRec) {
+        const histText = (histRec.content || histRec.notes || histRec.highlight || '').trim();
+        // 如果今日内容与历史 11-01 记录一模一样（仅因展示而误存），果断清除今日的冗余副本
+        if (todayText && histText && todayText === histText) {
+          delete records[todayStr];
+          modified = true;
+        }
+      }
+      if (!todayText) {
+        delete records[todayStr];
+        modified = true;
+      }
+    }
+
+    // 清理所有历史记录中的空幽灵记录
+    Object.keys(records).forEach(d => {
+      const r = records[d];
+      if (!r) {
+        delete records[d];
+        modified = true;
+        return;
+      }
+      const t = (r.content || r.notes || r.highlight || r.title || '').trim();
+      if (!t) {
+        delete records[d];
+        modified = true;
+      }
+    });
+
+    if (modified) {
+      setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
+    }
+  } catch (e) {
+    console.error('cleanDuplicateTodayBlackboard error:', e);
+  }
+}
 
 function renderHomeDashboard() {
   renderChalkboard();
@@ -8742,8 +8792,10 @@ function renderHomeDashboard() {
 }
 
 function renderChalkboard(dateStr) {
+  cleanDuplicateTodayBlackboard();
   const todayStr = getTodayDateStr();
 
+  const prevDate = currentBlackboardDate;
   if (dateStr) {
     currentBlackboardDate = dateStr;
   } else if (!currentBlackboardDate) {
@@ -8754,6 +8806,9 @@ function renderChalkboard(dateStr) {
   if (currentBlackboardDate > todayStr) {
     currentBlackboardDate = todayStr;
   }
+
+  const dateChanged = (prevDate !== currentBlackboardDate) || (_lastRenderedBlackboardDate !== currentBlackboardDate);
+  _lastRenderedBlackboardDate = currentBlackboardDate;
 
   const datePill = document.getElementById('chalkDatePill');
   const btnToday = document.getElementById('btnChalkToday');
@@ -8791,7 +8846,7 @@ function renderChalkboard(dateStr) {
   const editor = document.getElementById('chalkboardDirectInput');
   if (editor) {
     if (typeof initBlackboardFontSettings === 'function') initBlackboardFontSettings();
-    const isEditing = (document.activeElement === editor) || _isBlackboardComposing;
+    const isEditing = !dateChanged && ((document.activeElement === editor) || _isBlackboardComposing);
     if (!isEditing) {
       const record = records[currentBlackboardDate];
       let val = '';
@@ -8862,7 +8917,7 @@ function initBlackboardInputListeners() {
       clearTimeout(_blackboardDebounceTimer);
       _blackboardDebounceTimer = null;
     }
-    commitBlackboardDirectInput();
+    commitBlackboardDirectInput(currentBlackboardDate);
   });
 }
 
@@ -8875,42 +8930,64 @@ function handleDirectBlackboardInput() {
 
   const html = (editor.tagName === 'TEXTAREA') ? editor.value : editor.innerHTML;
   const plain = (editor.tagName === 'TEXTAREA') ? editor.value : (editor.innerText || editor.textContent || '');
+  const saveDate = currentBlackboardDate;
 
   // 1. Immediately cache in localStorage so no confirmed text is lost
   try {
     const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
-    if (!records[currentBlackboardDate]) {
-      records[currentBlackboardDate] = { date: currentBlackboardDate };
+    if (plain.trim() === '') {
+      if (records[saveDate]) {
+        delete records[saveDate];
+        localStorage.setItem(STORAGE_KEYS.BLACKBOARD_RECORDS, JSON.stringify(records));
+      }
+    } else {
+      if (!records[saveDate]) {
+        records[saveDate] = { date: saveDate };
+      }
+      records[saveDate].content = html;
+      records[saveDate].notes = plain;
+      records[saveDate].updatedAt = Date.now();
+      localStorage.setItem(STORAGE_KEYS.BLACKBOARD_RECORDS, JSON.stringify(records));
     }
-    records[currentBlackboardDate].content = html;
-    records[currentBlackboardDate].notes = plain;
-    records[currentBlackboardDate].updatedAt = Date.now();
-    localStorage.setItem(STORAGE_KEYS.BLACKBOARD_RECORDS, JSON.stringify(records));
   } catch (e) {}
 
-  // 2. Debounce sync to remote backend (800ms) so smooth typing is never interrupted
+  // 2. Debounce sync to remote backend (800ms) with explicitly captured saveDate
   if (_blackboardDebounceTimer) {
     clearTimeout(_blackboardDebounceTimer);
   }
   _blackboardDebounceTimer = setTimeout(() => {
-    commitBlackboardDirectInput();
+    commitBlackboardDirectInput(saveDate);
   }, 800);
 }
 
-function commitBlackboardDirectInput() {
+function commitBlackboardDirectInput(targetDate) {
   if (_isBlackboardComposing) return;
   const editor = document.getElementById('chalkboardDirectInput');
   if (!editor) return;
+
+  const saveDate = targetDate || currentBlackboardDate;
+  if (targetDate && targetDate !== currentBlackboardDate) {
+    return;
+  }
+
   const html = (editor.tagName === 'TEXTAREA') ? editor.value : editor.innerHTML;
   const plain = (editor.tagName === 'TEXTAREA') ? editor.value : (editor.innerText || editor.textContent || '');
 
   const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
-  if (!records[currentBlackboardDate]) {
-    records[currentBlackboardDate] = { date: currentBlackboardDate };
+  if (plain.trim() === '') {
+    if (records[saveDate]) {
+      delete records[saveDate];
+      setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
+    }
+    return;
   }
-  records[currentBlackboardDate].content = html;
-  records[currentBlackboardDate].notes = plain;
-  records[currentBlackboardDate].updatedAt = Date.now();
+
+  if (!records[saveDate]) {
+    records[saveDate] = { date: saveDate };
+  }
+  records[saveDate].content = html;
+  records[saveDate].notes = plain;
+  records[saveDate].updatedAt = Date.now();
   setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
 }
 
@@ -8930,15 +9007,10 @@ function eraseCurrentBlackboard() {
   }
 
   const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
-  records[currentBlackboardDate] = {
-    date: currentBlackboardDate,
-    content: '',
-    notes: '',
-    highlight: '',
-    reflection: '',
-    updatedAt: Date.now()
-  };
-  setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
+  if (records[currentBlackboardDate]) {
+    delete records[currentBlackboardDate];
+    setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
+  }
 
   const editor = document.getElementById('chalkboardDirectInput');
   if (editor) {
@@ -8990,6 +9062,14 @@ function copyBlackboardText() {
 }
 
 function changeBlackboardDayOffset(offset) {
+  if (_blackboardDebounceTimer) {
+    clearTimeout(_blackboardDebounceTimer);
+    _blackboardDebounceTimer = null;
+  }
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (editor && document.activeElement === editor) {
+    editor.blur();
+  }
   try {
     const todayStr = getTodayDateStr();
     const parts = currentBlackboardDate.split('-');
@@ -9012,6 +9092,14 @@ function changeBlackboardDayOffset(offset) {
 }
 
 function jumpToTodayBlackboard() {
+  if (_blackboardDebounceTimer) {
+    clearTimeout(_blackboardDebounceTimer);
+    _blackboardDebounceTimer = null;
+  }
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (editor && document.activeElement === editor) {
+    editor.blur();
+  }
   currentBlackboardDate = getTodayDateStr();
   renderChalkboard();
   showToast('📅 已回到今日黑板');
@@ -9157,6 +9245,7 @@ function toggleBlackboardBold() {
 function openBlackboardHistoryModal() {
   const modal = document.getElementById('blackboardHistoryModal');
   if (!modal) return;
+  cleanDuplicateTodayBlackboard();
   const searchInp = document.getElementById('inputBlackboardHistorySearch');
   if (searchInp) searchInp.value = '';
   renderBlackboardHistoryList();
@@ -9169,6 +9258,7 @@ function closeBlackboardHistoryModal() {
 }
 
 function renderBlackboardHistoryList() {
+  cleanDuplicateTodayBlackboard();
   const listEl = document.getElementById('blackboardHistoryList');
   if (!listEl) return;
   const searchInp = document.getElementById('inputBlackboardHistorySearch');
@@ -9266,6 +9356,14 @@ function copySingleHistoryBlackboard(dateStr) {
 }
 
 function loadHistoryDateToBlackboard(dateStr) {
+  if (_blackboardDebounceTimer) {
+    clearTimeout(_blackboardDebounceTimer);
+    _blackboardDebounceTimer = null;
+  }
+  const editor = document.getElementById('chalkboardDirectInput');
+  if (editor && document.activeElement === editor) {
+    editor.blur();
+  }
   closeBlackboardHistoryModal();
   renderChalkboard(dateStr);
   showToast(`已切换至 ${dateStr} 的黑板板书`);
