@@ -5554,16 +5554,15 @@
             </div>
           </div>
 
-          <!-- Non-black Beagle Scout Green Add Button, Strictly Single-Line -->
+          <!-- Non-black Beagle Scout Green Add Button, Strictly Single-Line, No Date Picker -->
           <div class="todo-input-bar" id="todoInputBar">
             <input type="text" id="inputTodoText" placeholder="添加待办事项，回车快速保存..." onkeydown="if(event.key==='Enter') addTodo()" style="flex:1; min-width:180px;" />
-            <select id="selectTodoPriority" style="width: 135px; flex-shrink:0;">
-              <option value="q1" selected>🔥 今天完成</option>
-              <option value="q2">⭐ 这周安排上</option>
-              <option value="q3">⚡ 先放一放</option>
-              <option value="q4">☕ 有空再说</option>
+            <select id="selectTodoPriority" style="width: 120px; flex-shrink:0;">
+              <option value="q1" selected>今天完成</option>
+              <option value="q2">这周安排上</option>
+              <option value="q3">先放一放</option>
+              <option value="q4">有空再说</option>
             </select>
-            <input type="date" id="inputTodoDate" style="width: 130px; flex-shrink:0;" />
             <button class="btn btn-todo-add" onclick="addTodo()">添加任务</button>
           </div>
 
@@ -5610,8 +5609,8 @@
           <button class="btn" id="btnRemindTomorrowMeetings" onclick="openTomorrowMeetingReminderModal()" style="font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff;" title="一键提醒领导明日日程并复制">
             📋 提醒领导明日会议
           </button>
-          <button class="btn" onclick="exportExecutiveScheduleBriefing()" style="font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff;" title="复制排版周报">
-            复制排版周报
+          <button class="btn" id="btnExportWeeklyBriefing" onclick="exportExecutiveScheduleBriefing()" style="font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff;" title="一键复制本周日程安排">
+            📋 复制本周安排
           </button>
           <button class="btn" onclick="openLeaderTripModal()" style="font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff;" title="登记出差">
             ✈️ 登记出差
@@ -5897,7 +5896,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.4.5</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.4.6</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -7100,24 +7099,19 @@
       </div>
       <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
         <input type="hidden" id="editTodoId" />
+        <input type="hidden" id="editTodoDate" />
         <div>
           <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">任务描述</label>
           <input type="text" id="editTodoText" style="width:100%; box-sizing:border-box;" placeholder="输入任务描述..." />
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-          <div>
-            <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">截止日期</label>
-            <input type="date" id="editTodoDate" style="width:100%; box-sizing:border-box;" />
-          </div>
-          <div>
-            <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">任务分类</label>
-            <select id="editTodoPriority" style="width:100%; box-sizing:border-box;">
-              <option value="q1">🔥 今天完成</option>
-              <option value="q2">⭐ 这周安排上</option>
-              <option value="q3">⚡ 先放一放</option>
-              <option value="q4">☕ 有空再说</option>
-            </select>
-          </div>
+        <div>
+          <label style="font-weight:600; font-size:13px; display:block; margin-bottom:5px;">任务分类</label>
+          <select id="editTodoPriority" style="width:100%; box-sizing:border-box;">
+            <option value="q1">今天完成</option>
+            <option value="q2">这周安排上</option>
+            <option value="q3">先放一放</option>
+            <option value="q4">有空再说</option>
+          </select>
         </div>
       </div>
       <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
@@ -10286,19 +10280,6 @@ function renderChalkboard(dateStr) {
 
   const records = getData(STORAGE_KEYS.BLACKBOARD_RECORDS, {});
 
-  // Auto-seed for today if completely first visit (clean & empty per user request)
-  const rawStore = localStorage.getItem(STORAGE_KEYS.BLACKBOARD_RECORDS);
-  if (!rawStore && currentBlackboardDate === todayStr) {
-    records[todayStr] = {
-      content: '',
-      notes: '',
-      highlight: '',
-      reflection: '',
-      date: todayStr
-    };
-    setData(STORAGE_KEYS.BLACKBOARD_RECORDS, records);
-  }
-
   // Update streak count
   updateBlackboardStreak();
 
@@ -10308,10 +10289,24 @@ function renderChalkboard(dateStr) {
     if (typeof initBlackboardFontSettings === 'function') initBlackboardFontSettings();
     const isEditing = (document.activeElement === editor) || _isBlackboardComposing;
     if (!isEditing) {
-      const record = records[currentBlackboardDate];
+      let record = records[currentBlackboardDate];
       let val = '';
       if (record) {
         val = record.content || record.notes || [record.highlight, record.notes, record.reflection].filter(Boolean).join('\n\n') || '';
+      }
+      // 如果当前日期尚未书写新内容，自动延续最近一次有内容的黑板板书，防止因跨日黑板被置空
+      if (!val) {
+        const sortedDates = Object.keys(records).sort().reverse();
+        for (const d of sortedDates) {
+          const r = records[d];
+          if (r && !r.cleared) {
+            const hVal = r.content || r.notes || '';
+            if (hVal && hVal.trim()) {
+              val = hVal;
+              break;
+            }
+          }
+        }
       }
       if (editor.tagName === 'TEXTAREA') {
         if (editor.value !== val) editor.value = val;
@@ -14990,51 +14985,72 @@ function exportExecutiveScheduleBriefing() {
   const weekEndStr = formatDateToStr(satDate);
 
   const weekMeetings = meetings.filter(m => m.date >= weekStartStr && m.date <= weekEndStr && m.status !== 'cancelled');
-  weekMeetings.sort((a, b) => (a.date + ' ' + a.time).localeCompare(b.date + ' ' + b.time));
+  weekMeetings.sort((a, b) => (a.date + ' ' + (a.startTime || a.time || '10:00')).localeCompare(b.date + ' ' + (b.startTime || b.time || '10:00')));
 
-  const activeTz = getActiveTripTimezone();
-  const isShifted = (activeTz !== 'cairo');
-  const tzInfo = TRIP_TIMEZONE_MAP[activeTz] || TRIP_TIMEZONE_MAP.cairo;
-  const tzHeaderSuffix = isShifted ? ` (${tzInfo.flag} ${tzInfo.name}当地时间 · 比开罗${tzInfo.diffText})` : '';
+  const startParts = weekStartStr.split('-');
+  const endParts = weekEndStr.split('-');
+  const startLabel = `${parseInt(startParts[1], 10)}月${parseInt(startParts[2], 10)}日`;
+  const endLabel = `${parseInt(endParts[1], 10)}月${parseInt(endParts[2], 10)}日`;
 
   const lines = [
-    `【主管本周日程安排 · 秘书处通报${tzHeaderSuffix}】`,
-    `排期周期：${weekStartStr} 至 ${weekEndStr} · 共 ${weekMeetings.length} 场重点会议`,
-    '══════════════════════════════════════════════'
+    `📅 曦总本周日程安排｜${startLabel}–${endLabel}`,
+    ''
   ];
 
-  const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  for (let i = 0; i < 7; i++) {
-    const curD = new Date(sunDate);
-    curD.setDate(sunDate.getDate() + i);
-    const curDStr = formatDateToStr(curD);
-    const dayM = weekMeetings.filter(m => m.date === curDStr);
+  if (weekMeetings.length === 0) {
+    lines.push('本周暂无已排期会议安排，祝曦总工作顺利！');
+  } else {
+    const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    for (let i = 0; i < 7; i++) {
+      const curD = new Date(sunDate);
+      curD.setDate(sunDate.getDate() + i);
+      const curDStr = formatDateToStr(curD);
+      const dayMeetings = weekMeetings.filter(m => m.date === curDStr);
 
-    if (dayM.length > 0) {
-      lines.push(`\n【${weekdayNames[i]} ${curDStr}】:`);
-      dayM.forEach(m => {
-        const durHours = m.durationHours || (parseInt(m.duration || 45, 10) / 60).toFixed(2);
-        const dt = getMeetingDisplayTime(m);
-        const tzNote = dt.isShifted ? ` [开罗时间 ${dt.cairoStart} - ${dt.cairoEnd}]` : '';
-        lines.push(`  ▪ ${dt.start} - ${dt.end} (${durHours}H) 《${m.subject}》${tzNote}`);
-        lines.push(`    - 汇报人：${m.reporter || '未注明'} | 纪要人：${m.minuter || '秘书处'}`);
-        if (m.attendees && m.attendees.trim()) {
-          lines.push(`    - 参会人：${m.attendees.trim()}`);
+      if (dayMeetings.length > 0) {
+        const parts = curDStr.split('-');
+        const mNum = parseInt(parts[1], 10);
+        const dNum = parseInt(parts[2], 10);
+        const wDay = weekdayNames[i];
+
+        const trip = (typeof getTripForDate === 'function') ? getTripForDate(curDStr) : null;
+
+        lines.push(`【${mNum}月${dNum}日（${wDay}）】`);
+        if (trip) {
+          lines.push(`📍 出差目的地：${trip.destination} (${trip.tzName || ''}当地时间)`);
         }
-        if (m.decision && m.decision.trim()) {
-          lines.push(`    - 决策要点：${m.decision.trim()}`);
-        }
-        if (m.notes && m.notes.trim()) {
-          lines.push(`    - 备注：${m.notes.trim()}`);
-        }
-      });
+
+        dayMeetings.forEach(mItem => {
+          const dtInfo = getMeetingDisplayTime(mItem);
+          const isHighPri = (mItem.priority === 'high' || mItem.priority === 'urgent');
+          const icon = isHighPri ? '🔴' : '📌';
+
+          let timeStr = `${dtInfo.start}–${dtInfo.end}`;
+          if (dtInfo.isTripDate && dtInfo.tzName) {
+            timeStr += ` (${dtInfo.tzName}当地时间)`;
+          }
+
+          const subject = mItem.subject || mItem.title || '待定会议';
+          lines.push(`${icon} ${timeStr}｜${subject}`);
+
+          // 严格规则：未注明、默认秘书处等缺失信息全部删除不展示，格式参照“提醒领导明日会议”
+          const noteText = (mItem.decision || mItem.notes || mItem.background || '').trim();
+          if (noteText) {
+            lines.push(`　↳ ${noteText}`);
+          } else if (mItem.location) {
+            lines.push(`　↳ 地点：${mItem.location}`);
+          }
+        });
+        lines.push('');
+      }
     }
   }
 
-  lines.push('\n══════════════════════════════════════════════');
-  lines.push('秘书处提醒：请各汇报人提前5分钟就座，精简汇报，直奔决策要点。');
+  while (lines.length > 0 && lines[lines.length - 1] === '') {
+    lines.pop();
+  }
 
-  copyToClipboard(lines.join('\n'), '领导周日程通报已复制到剪贴板，可直接发送微信或邮件。');
+  copyToClipboard(lines.join('\n'), '🎉 本周安排已复制到剪贴板，可直接发送微信或群通知！');
 }
 
 // ================= 明日会议提醒 (一键复制给领导) =================
@@ -17000,8 +17016,8 @@ const QUADRANT_CONFIG = {
   q1: {
     title: '今天完成',
     code: 'Q1',
-    action: '🔥 今日必办',
-    icon: '🔥',
+    action: '今日必办',
+    icon: '',
     badgeCls: 'badge-q1',
     boxCls: 'quadrant-q1',
     desc: '今日死线、高优攻坚、加急交办'
@@ -17009,8 +17025,8 @@ const QUADRANT_CONFIG = {
   q2: {
     title: '这周安排上',
     code: 'Q2',
-    action: '⭐ 本周重点',
-    icon: '⭐',
+    action: '本周重点',
+    icon: '',
     badgeCls: 'badge-q2',
     boxCls: 'quadrant-q2',
     desc: '本周核心事项、阶段推进、规划实施'
@@ -17018,8 +17034,8 @@ const QUADRANT_CONFIG = {
   q3: {
     title: '先放一放',
     code: 'Q3',
-    action: '⚡ 暂缓/委派',
-    icon: '⚡',
+    action: '暂缓/委派',
+    icon: '',
     badgeCls: 'badge-q3',
     boxCls: 'quadrant-q3',
     desc: '非紧急事务、外部常规催办、可暂缓协作'
@@ -17027,8 +17043,8 @@ const QUADRANT_CONFIG = {
   q4: {
     title: '有空再说',
     code: 'Q4',
-    action: '☕ 闲暇处理',
-    icon: '☕',
+    action: '闲暇处理',
+    icon: '',
     badgeCls: 'badge-q4',
     boxCls: 'quadrant-q4',
     desc: '随手整理、低优备忘、机动查漏补缺'
@@ -17175,11 +17191,11 @@ function renderTodos() {
 
     matrixEl.innerHTML = `
       <div class="todo-focus-layout" style="gap:14px; margin-top:10px;">
-        <!-- 1. 「🔥 今天完成」焦点卡片 (极简设计，内嵌轻量进度，支持拖拽排序) -->
+        <!-- 1. 「今天完成」焦点卡片 (极简设计，内嵌轻量进度，支持拖拽排序) -->
         <div class="today-hero-board">
           <div class="today-hero-header" style="padding:10px 16px;">
             <div class="today-hero-title" style="font-size:14px;">
-              <span>🔥 <strong>今天完成</strong></span>
+              <span><strong>今天完成</strong></span>
             </div>
             <div style="display:flex; align-items:center; gap:12px;">
               <!-- 紧凑微型进度条 (保留 todo-energy-card 与 todo-progress-fill 兼容测试) -->
@@ -17212,15 +17228,14 @@ function renderTodos() {
                   <input type="checkbox" class="todo-check" style="width:16px; height:16px; cursor:pointer;" ${t.completed ? 'checked' : ''} onchange="toggleTodo(${t.id})" />
                   <div style="flex:1; min-width:0;">
                     <span class="today-task-text" style="font-size:13px;">${escapeHtml(t.text)}</span>
-                    ${t.dueDate ? `<span style="margin-left:8px; font-size:11px; color:var(--text-muted);">📅 ${t.dueDate}</span>` : ''}
                   </div>
                 </div>
                 <div class="today-task-actions">
                   <select class="shift-quadrant-select" onchange="quickMoveTodo(${t.id}, this.value)" title="调整分类">
-                    <option value="q1" selected>🔥 今天完成</option>
-                    <option value="q2">⭐ 这周安排上</option>
-                    <option value="q3">⚡ 先放一放</option>
-                    <option value="q4">☕ 有空再说</option>
+                    <option value="q1" selected>今天完成</option>
+                    <option value="q2">这周安排上</option>
+                    <option value="q3">先放一放</option>
+                    <option value="q4">有空再说</option>
                   </select>
                   ${t.completed ? `<button class="btn btn-sm btn-ghost" title="归档该任务" onclick="archiveSingleTodo(${t.id})" style="padding:2px 6px; font-size:11px; color:#2563eb;">📦 归档</button>` : ''}
                   <button class="btn btn-sm btn-ghost" title="编辑" onclick="openEditTodoModal(${t.id})" style="padding:2px 6px; font-size:11px;">✏️</button>
@@ -17231,7 +17246,7 @@ function renderTodos() {
           </div>
         </div>
 
-        <!-- 2. 后续规划轻量三列 (⭐ 这周安排上 | ⚡ 先放一放 | ☕ 有空再说 - 无赘述文案) -->
+        <!-- 2. 后续规划轻量三列 (这周安排上 | 先放一放 | 有空再说 - 无赘述文案) -->
         <div class="todo-submatrix-grid">
           ${subQuadrants.map(qKey => {
             const qInfo = QUADRANT_CONFIG[qKey];
@@ -17240,7 +17255,7 @@ function renderTodos() {
               <div class="sub-quadrant-card sub-quadrant-${qKey}">
                 <div class="sub-quadrant-header" style="padding:8px 12px; font-size:12.5px;">
                   <div style="display:flex; align-items:center; gap:6px;">
-                    <span>${qInfo.icon} <strong>${qInfo.title}</strong></span>
+                    <span><strong>${qInfo.title}</strong></span>
                   </div>
                   <div style="display:flex; align-items:center; gap:6px;">
                     <span class="badge" style="background:#fff; border:1px solid var(--border); font-size:10.5px; padding:1px 6px;">${subTasks.length}</span>
@@ -17256,11 +17271,10 @@ function renderTodos() {
                         <input type="checkbox" class="todo-check" style="margin-top:2px;" ${t.completed ? 'checked' : ''} onchange="toggleTodo(${t.id})" />
                         <div style="flex:1; min-width:0;">
                           <div class="quadrant-mini-text" style="font-size:12px;">${escapeHtml(t.text)}</div>
-                          ${t.dueDate ? `<div class="quadrant-mini-meta" style="margin-top:2px;"><span>📅 ${t.dueDate}</span></div>` : ''}
                         </div>
                       </div>
                       <div style="display:flex; gap:2px; align-items:center;">
-                        <button class="btn btn-sm btn-ghost" style="padding:1px 4px; font-size:10px; color:#ea580c;" onclick="quickMoveTodo(${t.id}, 'q1')" title="移入今日">🔥今日</button>
+                        <button class="btn btn-sm btn-ghost" style="padding:1px 4px; font-size:10px; color:#ea580c;" onclick="quickMoveTodo(${t.id}, 'q1')" title="移入今日">今日</button>
                         ${t.completed ? `<button class="btn btn-sm btn-ghost" title="归档" onclick="archiveSingleTodo(${t.id})" style="padding:1px 4px; font-size:10px; color:#2563eb;">📦</button>` : ''}
                         <button class="btn btn-sm btn-ghost" title="编辑" onclick="openEditTodoModal(${t.id})" style="padding:1px 4px; font-size:10px;">✏️</button>
                         <button class="btn btn-sm btn-ghost" title="删除" style="color:#dc2626; padding:1px 4px; font-size:10px;" onclick="deleteTodo(${t.id})">✕</button>
@@ -17291,8 +17305,7 @@ function renderTodos() {
               <span class="todo-text">${escapeHtml(t.text)}</span>
             </div>
             <div class="todo-tags">
-              <span class="priority-badge ${qInfo.badgeCls}" title="${qInfo.action}">${qInfo.icon} ${qInfo.title}</span>
-              ${t.dueDate ? `<span style="font-size:11px; color:var(--text-muted);">📅 ${t.dueDate}</span>` : ''}
+              <span class="priority-badge ${qInfo.badgeCls}" title="${qInfo.action}">${qInfo.title}</span>
               ${t.completed ? `<button class="btn btn-sm btn-ghost" title="归档该任务" onclick="archiveSingleTodo(${t.id})" style="font-size:11px; padding:2px 6px; color:#2563eb;">📦 归档</button>` : ''}
               <button class="btn btn-sm btn-ghost" title="编辑任务" onclick="openEditTodoModal(${t.id})" style="font-size:12px; padding:2px 6px;">✏️</button>
               <button class="btn btn-sm btn-ghost" style="color:#dc2626;" title="删除任务" onclick="deleteTodo(${t.id})">✕</button>
@@ -17332,10 +17345,9 @@ function renderTodos() {
                 <div style="display:flex; align-items:center; gap:10px; flex:1;">
                   <span style="color:#16a34a; font-size:14px;">✓</span>
                   <span style="text-decoration:line-through; color:var(--text-secondary);">${escapeHtml(t.text)}</span>
-                  <span class="priority-badge ${qInfo.badgeCls}" style="font-size:10px;">${qInfo.icon} ${qInfo.title}</span>
+                  <span class="priority-badge ${qInfo.badgeCls}" style="font-size:10px;">${qInfo.title}</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                  ${t.dueDate ? `<span style="font-size:11px; color:var(--text-muted);">📅 ${t.dueDate}</span>` : ''}
                   <button class="btn btn-sm btn-ghost" onclick="unarchiveTodo(${t.id})" title="重新恢复到待办列表">↩ 恢复</button>
                   <button class="btn btn-sm btn-ghost" style="color:#dc2626;" onclick="deleteTodo(${t.id})" title="彻底删除">✕</button>
                 </div>
@@ -17364,7 +17376,7 @@ function renderTodos() {
       dashEl.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:8px;">
           <div style="display:flex; justify-content:space-between; align-items:center; padding:0 2px;">
-            <span style="font-size:12.5px; font-weight:700; color:var(--text-primary);">🔥 今天完成</span>
+            <span style="font-size:12.5px; font-weight:700; color:var(--text-primary);">今天完成</span>
             <span style="font-size:11px; color:var(--text-muted);">${q1Done}/${allQ1.length} 完成</span>
           </div>
 
@@ -17387,9 +17399,9 @@ function renderTodos() {
 
           <!-- 次要与后续维度快速统计栏 -->
           <div style="display:flex; gap:6px; flex-wrap:wrap; font-size:11px; color:var(--text-secondary); padding-top:6px; border-top:1px dashed var(--border);">
-            <span>⭐ 这周安排上: <strong>${q2Active.length}</strong></span>
-            <span>⚡ 先放一放: <strong>${q3Active.length}</strong></span>
-            <span>☕ 有空再说: <strong>${q4Active.length}</strong></span>
+            <span>这周安排上: <strong>${q2Active.length}</strong></span>
+            <span>先放一放: <strong>${q3Active.length}</strong></span>
+            <span>有空再说: <strong>${q4Active.length}</strong></span>
             <button class="btn btn-sm btn-ghost" style="font-size:11px; padding:0 4px; margin-left:auto; color:var(--color-primary);" onclick="switchTab('tab-todos')">前往看板 →</button>
           </div>
         </div>
@@ -17405,7 +17417,8 @@ function openEditTodoModal(id) {
   if (!t) return;
   document.getElementById('editTodoId').value = t.id;
   document.getElementById('editTodoText').value = t.text || '';
-  document.getElementById('editTodoDate').value = t.dueDate || '';
+  const dateInp = document.getElementById('editTodoDate');
+  if (dateInp) dateInp.value = t.dueDate || '';
   document.getElementById('editTodoPriority').value = getTodoQuadrant(t);
   openModal('editTodoModal');
 }
@@ -17417,7 +17430,8 @@ function saveEditTodo() {
     showToast('任务描述不能为空！');
     return;
   }
-  const dueDate = document.getElementById('editTodoDate').value;
+  const dateEl = document.getElementById('editTodoDate');
+  const dueDate = dateEl ? dateEl.value : '';
   const priority = document.getElementById('editTodoPriority').value;
 
   let todos = getData(STORAGE_KEYS.TODOS);
@@ -17445,7 +17459,8 @@ function addTodo() {
   const text = document.getElementById('inputTodoText').value.trim();
   if (!text) return;
   const priority = document.getElementById('selectTodoPriority').value;
-  const dueDate = document.getElementById('inputTodoDate').value;
+  const dateEl = document.getElementById('inputTodoDate');
+  const dueDate = dateEl ? dateEl.value : '';
 
   const todos = getData(STORAGE_KEYS.TODOS);
   todos.unshift({ id: Date.now(), text, priority, quadrant: priority, dueDate, completed: false, archived: false });
@@ -19439,7 +19454,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.4.5';
+window.APP_VERSION = 'v1.4.6';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
