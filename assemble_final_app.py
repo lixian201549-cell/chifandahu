@@ -5406,9 +5406,9 @@ html_template = """<!DOCTYPE html>
             <!-- Chalkboard Header Bar: Date navigation on left, font & history controls on right -->
             <div class="chalkboard-header-bar">
               <div class="chalk-date-group">
-                <button class="chalk-nav-btn" onclick="changeBlackboardDayOffset(-1)" title="翻看前一天板书">◀ 昨天</button>
+                <button class="chalk-nav-btn" id="btnChalkPrevDay" onclick="changeBlackboardDayOffset(-1)" title="翻看前一天板书">◀ 前一天</button>
                 <span class="chalk-date-pill" id="chalkDatePill">📅 2026年10月22日 周四</span>
-                <button class="chalk-nav-btn" onclick="changeBlackboardDayOffset(1)" title="翻看后一天板书">明天 ▶</button>
+                <button class="chalk-nav-btn" id="btnChalkNextDay" onclick="changeBlackboardDayOffset(1)" title="翻看后一天板书" style="display:none;">后一天 ▶</button>
                 <button class="chalk-nav-btn" id="btnChalkToday" style="display:none;" onclick="jumpToTodayBlackboard()">回到今天</button>
                 <span class="chalk-streak-badge" id="chalkStreakBadge" style="display:none !important;"></span>
               </div>
@@ -8742,30 +8742,40 @@ function renderHomeDashboard() {
 }
 
 function renderChalkboard(dateStr) {
+  const todayStr = getTodayDateStr();
+
   if (dateStr) {
     currentBlackboardDate = dateStr;
   } else if (!currentBlackboardDate) {
-    currentBlackboardDate = getTodayDateStr();
+    currentBlackboardDate = todayStr;
   }
 
-  const todayStr = getTodayDateStr();
+  // 严禁导航到未来日期（明天尚未到来）
+  if (currentBlackboardDate > todayStr) {
+    currentBlackboardDate = todayStr;
+  }
+
   const datePill = document.getElementById('chalkDatePill');
   const btnToday = document.getElementById('btnChalkToday');
-  const streakBadge = document.getElementById('chalkStreakBadge');
-  const contentEl = document.getElementById('chalkboardContentArea');
-  const titleDisplay = document.getElementById('chalkboardTitleDisplay');
+  const btnNextDay = document.getElementById('btnChalkNextDay');
 
-  // Format date display (e.g. 2026年10月22日 周四)
+  // Format date display (e.g. 2026年11月5日 周四 · 今日)
   if (datePill) {
     try {
       const parts = currentBlackboardDate.split('-');
-      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
       const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
       const weekStr = weekDays[d.getDay()];
-      datePill.textContent = `📅 ${parts[0]}年${parseInt(parts[1])}月${parseInt(parts[2])}日 ${weekStr}`;
+      const isToday = (currentBlackboardDate === todayStr);
+      datePill.textContent = `📅 ${parts[0]}年${parseInt(parts[1], 10)}月${parseInt(parts[2], 10)}日 ${weekStr}${isToday ? ' · 今日' : ' · 历史'}`;
     } catch (e) {
       datePill.textContent = `📅 ${currentBlackboardDate}`;
     }
+  }
+
+  // 严禁翻到未来：仅在查看历史日期时才允许翻向下一天；在今天时绝对隐藏后一天按钮（明天未到来）
+  if (btnNextDay) {
+    btnNextDay.style.display = (currentBlackboardDate < todayStr) ? 'inline-block' : 'none';
   }
 
   if (btnToday) {
@@ -8777,30 +8787,16 @@ function renderChalkboard(dateStr) {
   // Update streak count
   updateBlackboardStreak();
 
-  // Populate editor directly (only when not actively typing to avoid cursor jump or IME interruption)
+  // Populate editor directly: 严格显示当前选中日期的内容，独立存储，不混淆跨日数据
   const editor = document.getElementById('chalkboardDirectInput');
   if (editor) {
     if (typeof initBlackboardFontSettings === 'function') initBlackboardFontSettings();
     const isEditing = (document.activeElement === editor) || _isBlackboardComposing;
     if (!isEditing) {
-      let record = records[currentBlackboardDate];
+      const record = records[currentBlackboardDate];
       let val = '';
       if (record) {
         val = record.content || record.notes || [record.highlight, record.notes, record.reflection].filter(Boolean).join('\\n\\n') || '';
-      }
-      // 如果当前日期尚未书写新内容，自动延续最近一次有内容的黑板板书，防止因跨日黑板被置空
-      if (!val) {
-        const sortedDates = Object.keys(records).sort().reverse();
-        for (const d of sortedDates) {
-          const r = records[d];
-          if (r && !r.cleared) {
-            const hVal = r.content || r.notes || '';
-            if (hVal && hVal.trim()) {
-              val = hVal;
-              break;
-            }
-          }
-        }
       }
       if (editor.tagName === 'TEXTAREA') {
         if (editor.value !== val) editor.value = val;
@@ -8995,10 +8991,19 @@ function copyBlackboardText() {
 
 function changeBlackboardDayOffset(offset) {
   try {
+    const todayStr = getTodayDateStr();
     const parts = currentBlackboardDate.split('-');
-    const cur = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const cur = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
     cur.setDate(cur.getDate() + offset);
-    currentBlackboardDate = formatDateToStr(cur);
+    const target = formatDateToStr(cur);
+
+    // 严禁翻看未来日期（明天尚未到来）
+    if (target > todayStr) {
+      showToast('⚠️ 明天还没到来，黑板只记录今天与以往的板书');
+      currentBlackboardDate = todayStr;
+    } else {
+      currentBlackboardDate = target;
+    }
     renderChalkboard();
   } catch (e) {
     currentBlackboardDate = getTodayDateStr();
@@ -9009,6 +9014,7 @@ function changeBlackboardDayOffset(offset) {
 function jumpToTodayBlackboard() {
   currentBlackboardDate = getTodayDateStr();
   renderChalkboard();
+  showToast('📅 已回到今日黑板');
 }
 
 // ================= 小黑板字体与历史记录控制 =================
