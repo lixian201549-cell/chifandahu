@@ -3433,374 +3433,237 @@
     color: #1e3a8a;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   }
+  /* Minimalist Monthly Quest Layout */
   .routine-timeline {
     position: relative;
-    padding: 8px 0 16px 86px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
   .routine-timeline::before {
-    content: '';
-    position: absolute;
-    top: 14px;
-    bottom: 20px;
-    left: 43px;
-    width: 3px;
-    background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 35%, #0284c7 70%, #0d9488 100%);
-    border-radius: 3px;
+    display: none !important;
   }
-  .routine-timeline-node {
-    position: relative;
-    margin-bottom: 14px;
+
+  .routine-urgency-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   }
-  .routine-timeline-node:last-child {
-    margin-bottom: 0;
+  .routine-urgency-banner.banner-urgent {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
   }
-  .routine-node-marker {
-    position: absolute;
-    left: -86px;
-    top: 9px;
-    width: 76px;
+  .routine-urgency-banner.banner-info {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+  }
+  .routine-urgency-banner.banner-done {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+  }
+
+  .routine-minimal-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+  }
+  .routine-minimal-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: #94a3b8;
+  }
+  .routine-minimal-card.urgency-overdue,
+  .routine-minimal-card.urgency-today {
+    border-left: 4px solid #ef4444;
+    background: #fffafa;
+  }
+  .routine-minimal-card.urgency-tomorrow,
+  .routine-minimal-card.urgency-soon {
+    border-left: 4px solid #f97316;
+    background: #fffdfa;
+  }
+  .routine-minimal-card.urgency-this_week {
+    border-left: 4px solid #3b82f6;
+  }
+  .routine-minimal-card.urgency-later {
+    border-left: 4px solid #94a3b8;
+  }
+  .routine-minimal-card.is-completed {
+    border-left: 4px solid #10b981;
+    background: #f8fafc;
+    opacity: 0.78;
+  }
+
+  .routine-card-left-col {
+    flex-shrink: 0;
+  }
+  .routine-check-btn {
+    width: 30px;
     height: 30px;
-    border-radius: 15px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
     background: #ffffff;
-    border: 2px solid #3b82f6;
-    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.18);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-    color: #1d4ed8;
-    z-index: 2;
-    transition: all 0.25s ease;
-    padding: 0 4px;
-    box-sizing: border-box;
-    white-space: nowrap;
-    letter-spacing: -0.2px;
-  }
-  .routine-timeline-node.completed .routine-node-marker {
-    border-color: #10b981 !important;
-    background: #10b981 !important;
-    color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
-  }
-  .routine-axis-cute-hint {
-    position: absolute;
-    left: -86px;
-    top: 42px;
-    width: 76px;
-    text-align: center;
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1.25;
-    padding: 2px 3px;
-    border-radius: 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    box-sizing: border-box;
-    z-index: 2;
-  }
-  .routine-axis-cute-hint.hint-upcoming {
-    background: #fef3c7;
-    color: #b45309;
-    border: 1px solid #fde68a;
-  }
-  .routine-axis-cute-hint.hint-urgent {
-    background: #fee2e2;
-    color: #dc2626;
-    border: 1px solid #fca5a5;
-  }
-  .routine-axis-cute-hint.hint-today {
-    background: #fdf2f8;
-    color: #db2777;
-    border: 1px solid #fbcfe8;
-  }
-  .routine-axis-cute-hint.hint-overdue {
-    background: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #f87171;
-  }
-  .routine-axis-cute-hint.hint-done {
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #86efac;
-  }
-  .routine-cute-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 12px;
-    white-space: nowrap;
-  }
-  .routine-cute-badge.hint-upcoming {
-    background: #fef3c7;
-    color: #b45309;
-    border: 1px solid #fde68a;
-  }
-  .routine-cute-badge.hint-urgent {
-    background: #fee2e2;
-    color: #dc2626;
-    border: 1px solid #fca5a5;
-  }
-  .routine-cute-badge.hint-today {
-    background: #fdf2f8;
-    color: #db2777;
-    border: 1px solid #fbcfe8;
-  }
-  .routine-cute-badge.hint-overdue {
-    background: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #f87171;
-  }
-  .routine-cute-badge.hint-done {
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #86efac;
-  }
-  .routine-pill-actual {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 12px;
-    border-radius: 5px;
-    padding: 3px 9px;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .routine-pill-actual:hover {
-    filter: brightness(0.95);
-  }
-  .routine-today-marker {
-    position: relative;
-    margin: 8px 0 12px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .routine-today-dot {
-    position: absolute;
-    left: -86px;
-    width: 76px;
-    height: 26px;
-    border-radius: 13px;
-    background: #f59e0b;
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    cursor: pointer;
+    font-size: 15px;
     font-weight: 800;
-    z-index: 3;
-    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
-    white-space: nowrap;
+    transition: all 0.2s ease;
+    padding: 0;
   }
-  .routine-today-dot-inner {
-    display: none;
+  .routine-check-btn:hover {
+    border-color: #10b981;
+    background: #f0fdf4;
+    color: #10b981;
   }
-  @keyframes routine-pulse-ring {
-    0% { box-shadow: 0 0 0 2px #f59e0b, 0 0 6px rgba(245, 158, 11, 0.6); }
-    50% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.4), 0 0 10px rgba(245, 158, 11, 0.8); }
-    100% { box-shadow: 0 0 0 2px #f59e0b, 0 0 6px rgba(245, 158, 11, 0.6); }
+  .routine-check-btn.checked {
+    border-color: #10b981;
+    background: #10b981;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
   }
-  .routine-today-badge {
-    background: #fffbeb;
-    border: 1px solid #fcd34d;
-    color: #b45309;
-    padding: 2px 9px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
+
+  .routine-card-main-col {
+    flex: 1;
+    min-width: 0;
+  }
+  .routine-card-topline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 5px;
+  }
+  .routine-urgent-pill {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    box-shadow: 0 1px 4px rgba(245, 158, 11, 0.12);
-  }
-  .routine-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 11px 15px;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
-    position: relative;
-  }
-  .routine-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: #94a3b8;
-    transform: translateY(-1px);
-  }
-  .routine-timeline-node.completed .routine-card {
-    border-color: #86efac;
-    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
-  }
-  .routine-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-  .routine-card-tags {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .routine-pill-rule {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 1.5px 8px;
-    border-radius: 10px;
-    letter-spacing: 0.2px;
-  }
-  .routine-pill-date {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-primary);
-    background: var(--card-subtle);
-    border: 1px solid var(--border);
-    padding: 1.5px 7px;
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 2.5px 8px;
     border-radius: 4px;
+    letter-spacing: -0.2px;
   }
-  .routine-pill-category {
-    font-size: 11px;
-    color: var(--text-muted);
-    background: var(--card-subtle);
-    padding: 1.5px 6px;
-    border-radius: 4px;
+  .routine-urgent-pill.pill-overdue {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
   }
-  .routine-status-badge {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 1.5px 8px;
-    border-radius: 10px;
+  .routine-urgent-pill.pill-today {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #f87171;
   }
-  .routine-status-badge.done {
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
+  .routine-urgent-pill.pill-tomorrow {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
   }
-  .routine-status-badge.current {
-    background: #dbeafe;
+  .routine-urgent-pill.pill-soon {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  .routine-urgent-pill.pill-thisweek {
+    background: #eff6ff;
     color: #1d4ed8;
     border: 1px solid #bfdbfe;
   }
-  .routine-status-badge.upcoming {
+  .routine-urgent-pill.pill-later {
     background: #f1f5f9;
     color: #475569;
     border: 1px solid #e2e8f0;
   }
-  .routine-status-badge.overdue {
-    background: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
+  .routine-urgent-pill.pill-done {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
   }
-  .routine-card-title {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-    line-height: 1.35;
-  }
-  .routine-timeline-node.completed .routine-card-title {
-    color: #166534;
-  }
-  .routine-hint-bar {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
+
+  .routine-plan-date {
+    font-size: 12px;
     font-weight: 600;
-    color: #0369a1;
-    background: #e0f2fe;
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     padding: 2px 7px;
     border-radius: 4px;
-    margin-bottom: 6px;
   }
-  .routine-card-desc {
+  .routine-actual-pill {
     font-size: 12px;
-    color: var(--text-secondary);
-    line-height: 1.45;
-    margin-bottom: 8px;
-  }
-  .routine-subtasks-list {
-    background: var(--card-subtle);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 8px 10px;
-    margin-bottom: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .routine-subtask-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    font-size: 11.5px;
-    color: var(--text-primary);
-    line-height: 1.4;
-  }
-  .routine-subtask-bullet {
-    color: var(--primary);
-    font-weight: 800;
-    flex-shrink: 0;
-  }
-  .routine-card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-top: 7px;
-    margin-top: 4px;
-    border-top: 1px solid var(--border);
-  }
-  .routine-action-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .routine-action-right {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .btn-toggle-routine {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
     font-weight: 700;
-    font-size: 11.5px;
-    padding: 3.5px 10px;
-    border-radius: 5px;
-    border: 1px solid var(--border);
-    background: #ffffff;
-    color: var(--text-primary);
+    color: #059669;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    padding: 2px 7px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
   }
-  .btn-toggle-routine:hover {
+  .routine-actual-pill:hover {
+    filter: brightness(0.95);
+  }
+  .routine-actual-pill-empty {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    padding: 2px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .routine-actual-pill-empty:hover {
+    color: #2563eb;
+    border-color: #93c5fd;
+    background: #eff6ff;
+  }
+
+  .routine-card-title-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+  .routine-minimal-card.is-completed .routine-card-title-text {
+    color: #94a3b8;
+    text-decoration: line-through;
+  }
+  .routine-card-note-preview {
+    font-size: 12px;
+    color: #475569;
+    margin-top: 4px;
     background: #f8fafc;
-    border-color: #94a3b8;
+    border-left: 2px solid #94a3b8;
+    padding: 3px 8px;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
   }
-  .btn-toggle-routine.is-done {
-    background: #10b981;
-    border-color: #059669;
-    color: #ffffff;
-  }
-  .btn-toggle-routine.is-done:hover {
-    background: #059669;
+  .routine-card-actions-col {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
   .routine-note-drawer {
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
     border-top: 1px dashed var(--border);
   }
   .routine-note-textarea {
@@ -5902,7 +5765,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.3</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.4</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -13002,9 +12865,8 @@ function renderLegacyCardsView(tasks, allMeetings) {
   }
 
   const filterNoticeHTML = legacyKpiFilter !== 'all' ? `
-    <div style="grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; background:${legacyKpiFilter === 'pending_minutes' ? '#fef2f2' : '#eff6ff'}; border:1px solid ${legacyKpiFilter === 'pending_minutes' ? '#fca5a5' : '#bfdbfe'}; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:12px; color:${legacyKpiFilter === 'pending_minutes' ? '#991b1b' : '#1e40af'};">
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <span>🔍 当前筛选：<strong>${legacyKpiFilter === 'this_week' ? '本周汇报遗留任务 (' + tasks.length + '项)' : '待发送会议纪要 (' + tasks.length + '项)'}</strong></span>
+    <div style="grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; background:${legacyKpiFilter === 'pending_minutes' ? '#fef2f2' : '#eff6ff'}; border:1px solid ${legacyKpiFilter === 'pending_minutes' ? '#fca5a5' : '#bfdbfe'}; border-radius:8px; padding:6px 12px; margin-bottom:12px;">
+      <div>
         ${legacyKpiFilter === 'pending_minutes' ? `
           <button class="btn btn-sm" onclick="copyPendingMinutesGroupNotice()" style="background:#dc2626; color:#ffffff; font-weight:700; border:none; padding:4px 12px; border-radius:6px; box-shadow:0 2px 4px rgba(220,38,38,0.25); cursor:pointer;" title="一键复制未发纪要催办清单并在群里通知">
             📋 一键复制未发纪要群通知
@@ -13129,9 +12991,8 @@ function renderLegacyTableView(tasks, allMeetings) {
   }
 
   const filterNoticeHTML = legacyKpiFilter !== 'all' ? `
-    <div style="display:flex; justify-content:space-between; align-items:center; background:${legacyKpiFilter === 'pending_minutes' ? '#fef2f2' : '#eff6ff'}; border:1px solid ${legacyKpiFilter === 'pending_minutes' ? '#fca5a5' : '#bfdbfe'}; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:12px; color:${legacyKpiFilter === 'pending_minutes' ? '#991b1b' : '#1e40af'};">
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <span>🔍 当前筛选：<strong>${legacyKpiFilter === 'this_week' ? '本周汇报遗留任务 (' + tasks.length + '项)' : '待发送会议纪要 (' + tasks.length + '项)'}</strong></span>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:${legacyKpiFilter === 'pending_minutes' ? '#fef2f2' : '#eff6ff'}; border:1px solid ${legacyKpiFilter === 'pending_minutes' ? '#fca5a5' : '#bfdbfe'}; border-radius:8px; padding:6px 12px; margin-bottom:12px;">
+      <div>
         ${legacyKpiFilter === 'pending_minutes' ? `
           <button class="btn btn-sm" onclick="copyPendingMinutesGroupNotice()" style="background:#dc2626; color:#ffffff; font-weight:700; border:none; padding:4px 12px; border-radius:6px; box-shadow:0 2px 4px rgba(220,38,38,0.25); cursor:pointer;" title="一键复制未发纪要催办清单并在群里通知">
             📋 一键复制未发纪要群通知
@@ -18204,61 +18065,95 @@ function getWorkDaysBetween(d1, d2) {
   return isFuture ? count : -count;
 }
 
-// 在轴上和卡片头呈现可爱的小提示 (剩余工作日 / 达成提示)
-function getCuteWorkDaysHint(targetDateStr, isCompleted) {
+// 计算月度关卡的紧迫度与截止倒计时
+function getRoutineUrgencyInfo(item, isCompleted, year, month, now) {
   if (isCompleted) {
     return {
-      text: '🎉 已达成通关',
-      badgeClass: 'hint-done',
-      axisHint: '🎉 已通关',
-      workDays: 0
+      urgencyLevel: 'done',
+      sortOrder: 99,
+      badgeHtml: '<span class="routine-urgent-pill pill-done">✅ 已完成</span>',
+      summary: '已完成'
     };
   }
-  if (!targetDateStr) {
-    return {
-      text: '待定',
-      badgeClass: 'hint-upcoming',
-      axisHint: '待定',
-      workDays: 999
-    };
+
+  const nowYear = now.getFullYear();
+  const nowMonth = now.getMonth() + 1;
+  const todayDay = now.getDate();
+  const todayDate = new Date(nowYear, nowMonth - 1, todayDay);
+
+  const effectiveDateStr = item.check?.actualDate || item.actualDate || item.details?.dateStr;
+  let targetDate = null;
+  if (effectiveDateStr) {
+    const parts = String(effectiveDateStr).split('-').map(n => parseInt(n, 10));
+    if (parts.length === 3) {
+      targetDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    }
   }
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const target = new Date(targetDateStr);
-  target.setHours(0, 0, 0, 0);
-  
-  const workDays = getWorkDaysBetween(today, target);
-  
-  if (workDays === 0) {
+  if (!targetDate) {
+    targetDate = new Date(year, month - 1, item.details?.sortDay || 15);
+  }
+
+  const diffMs = targetDate.getTime() - todayDate.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  let isCurrentWeekRange = false;
+  if (item.type === 'week') {
+    const startDay = (item.value - 1) * 7 + 1;
+    const maxDay = new Date(year, month, 0).getDate();
+    const endDay = Math.min(item.value * 7, maxDay);
+    if (nowYear === year && nowMonth === month && todayDay >= startDay && todayDay <= endDay) {
+      isCurrentWeekRange = true;
+    }
+  }
+
+  if (diffDays < 0) {
+    const overdueDays = Math.abs(diffDays);
     return {
-      text: '🌟 就在今天！',
-      badgeClass: 'hint-today',
-      axisHint: '🌟 就在今天',
-      workDays: 0
+      urgencyLevel: 'overdue',
+      sortOrder: 1,
+      diffDays,
+      badgeHtml: `<span class="routine-urgent-pill pill-overdue">🚨 逾期 ${overdueDays} 天 (加急)</span>`,
+      summary: `已逾期 ${overdueDays} 天`
     };
-  } else if (workDays === 1) {
+  } else if (diffDays === 0) {
     return {
-      text: '⚡ 还有 1 个工作日 (明天)',
-      badgeClass: 'hint-urgent',
-      axisHint: '🐾 剩 1 工作日',
-      workDays: 1
+      urgencyLevel: 'today',
+      sortOrder: 2,
+      diffDays,
+      badgeHtml: `<span class="routine-urgent-pill pill-today">🔥 今天截止 (特急)</span>`,
+      summary: `今天截止`
     };
-  } else if (workDays > 1) {
-    const badgeClass = workDays <= 2 ? 'hint-urgent' : 'hint-upcoming';
+  } else if (diffDays === 1) {
     return {
-      text: `🐾 还有 ${workDays} 个工作日`,
-      badgeClass: badgeClass,
-      axisHint: `🐾 剩 ${workDays} 工作日`,
-      workDays: workDays
+      urgencyLevel: 'tomorrow',
+      sortOrder: 3,
+      diffDays,
+      badgeHtml: `<span class="routine-urgent-pill pill-tomorrow">🚨 明天截止 (紧急)</span>`,
+      summary: `明天截止`
+    };
+  } else if (diffDays === 2) {
+    return {
+      urgencyLevel: 'soon',
+      sortOrder: 4,
+      diffDays,
+      badgeHtml: `<span class="routine-urgent-pill pill-soon">⚡ 后天截止 (剩 2 天)</span>`,
+      summary: `后天截止`
+    };
+  } else if (isCurrentWeekRange || (diffDays > 0 && diffDays <= 7)) {
+    return {
+      urgencyLevel: 'this_week',
+      sortOrder: 5,
+      diffDays,
+      badgeHtml: `<span class="routine-urgent-pill pill-thisweek">⏳ 本周重点 (剩 ${diffDays} 天)</span>`,
+      summary: `本周重点 (剩 ${diffDays} 天)`
     };
   } else {
-    const overdueDays = Math.abs(workDays);
     return {
-      text: `⚠️ 已过 ${overdueDays} 个工作日`,
-      badgeClass: 'hint-overdue',
-      axisHint: `⚠️ 过 ${overdueDays} 工作日`,
-      workDays: workDays
+      urgencyLevel: 'later',
+      sortOrder: 6,
+      diffDays,
+      badgeHtml: `<span class="routine-urgent-pill pill-later">📅 剩 ${diffDays} 天</span>`,
+      summary: `还剩 ${diffDays} 天`
     };
   }
 }
@@ -18313,22 +18208,26 @@ function renderMonthlyRoutines() {
   const now = new Date();
   const isCurrentCalendarMonth = (now.getFullYear() === year && (now.getMonth() + 1) === month);
   const todayDay = now.getDate();
-  const todayDayOfWeek = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
 
   const computedItems = routines.map(r => {
     const details = getRoutineDateDetails(r, year, month);
     const check = monthChecklist[String(r.id)] || { completed: false, completedAt: null, note: '' };
+    const isCompleted = !!check.completed;
+    const urgency = getRoutineUrgencyInfo({ ...r, check, details }, isCompleted, year, month, now);
     return {
       ...r,
       details,
-      check
+      check,
+      isCompleted,
+      urgency
     };
   });
 
-  computedItems.sort((a, b) => a.details.sortDay - b.details.sortDay);
+  // Urgency-first sorting: Overdue -> Today -> Tomorrow -> Soon -> This week -> Later -> Completed
+  computedItems.sort((a, b) => a.urgency.sortOrder - b.urgency.sortOrder || a.details.sortDay - b.details.sortDay);
 
   const totalCount = computedItems.length;
-  const completedCount = computedItems.filter(i => i.check.completed).length;
+  const completedCount = computedItems.filter(i => i.isCompleted).length;
   const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   const statProgressEl = document.getElementById('statMonthlyProgress');
@@ -18340,10 +18239,20 @@ function renderMonthlyRoutines() {
   const progressPercentEl = document.getElementById('routineProgressPercent');
   if (progressPercentEl) progressPercentEl.textContent = `${percent}%`;
 
-  const nextItem = computedItems.find(i => !i.check.completed && (!isCurrentCalendarMonth || i.details.sortDay >= todayDay)) || computedItems.find(i => !i.check.completed) || computedItems[0];
+  const uncompletedItems = computedItems.filter(i => !i.isCompleted);
+  const nextItem = uncompletedItems[0] || computedItems[0];
   const statNextDateEl = document.getElementById('statMonthlyNextDate');
-  if (statNextDateEl && nextItem) {
-    if (nextItem.type === 'date') {
+  if (statNextDateEl) {
+    if (!nextItem || (totalCount > 0 && completedCount === totalCount)) {
+      statNextDateEl.textContent = '全部通关';
+    } else if (nextItem.check.actualDate) {
+      const parts = String(nextItem.check.actualDate).split('-');
+      if (parts.length === 3) {
+        statNextDateEl.textContent = `${parseInt(parts[1], 10)}月${parseInt(parts[2], 10)}日`;
+      } else {
+        statNextDateEl.textContent = nextItem.check.actualDate;
+      }
+    } else if (nextItem.type === 'date') {
       statNextDateEl.textContent = `${month}月${nextItem.value}日`;
     } else {
       const startD = (nextItem.value - 1) * 7 + 1;
@@ -18356,150 +18265,119 @@ function renderMonthlyRoutines() {
   const container = document.getElementById('monthlyTimelineContainer');
   if (!container) return;
 
-  let timelineHtml = '';
-  let todayMarkerInserted = false;
+  // Top urgency banner: 一眼明白当前什么事情最着急干
+  const overdueItems = uncompletedItems.filter(i => i.urgency.urgencyLevel === 'overdue');
+  const urgentItems = uncompletedItems.filter(i => ['today', 'tomorrow', 'soon'].includes(i.urgency.urgencyLevel));
+  const thisWeekItems = uncompletedItems.filter(i => i.urgency.urgencyLevel === 'this_week');
 
-  computedItems.forEach((item, index) => {
-    if (isCurrentCalendarMonth && !todayMarkerInserted && todayDay < item.details.sortDay) {
-      timelineHtml += `
-        <div class="routine-today-marker">
-          <div class="routine-today-dot">
-            📍 今天
-          </div>
-          <div class="routine-today-badge">
-            <span>今日进度 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
-          </div>
-        </div>
-      `;
-      todayMarkerInserted = true;
-    }
-
-    const isCompleted = !!item.check.completed;
-    const actualDate = item.check.actualDate || item.actualDate || '';
-    const effectiveDateStr = actualDate || item.details.dateStr;
-    const cuteHint = getCuteWorkDaysHint(effectiveDateStr, isCompleted);
-
-    let statusClass = 'upcoming';
-    let statusText = '待办';
-
-    if (isCompleted) {
-      statusClass = 'done';
-      statusText = '已完成';
-    } else if (isCurrentCalendarMonth) {
-      if (item.type === 'date') {
-        if (todayDay === item.value) {
-          statusClass = 'current';
-          statusText = '今日计划';
-        } else if (todayDay > item.value) {
-          statusClass = 'overdue';
-          statusText = '待完成';
-        }
-      } else {
-        const startD = (item.value - 1) * 7 + 1;
-        const endD = item.value * 7;
-        if (todayDay >= startD && todayDay <= endD) {
-          statusClass = 'current';
-          statusText = '本周重点';
-        } else if (todayDay > endD) {
-          statusClass = 'overdue';
-          statusText = '待完成';
-        }
-      }
-    }
-
-    const ruleColor = item.color || '#3b82f6';
-    const ruleBg = ruleColor + '18';
-
-    let axisDateLabel = '';
-    if (item.type === 'date') {
-      axisDateLabel = `${month}月${item.value}日`;
-    } else {
-      const startD = (item.value - 1) * 7 + 1;
-      const maxD = new Date(year, month, 0).getDate();
-      const endD = Math.min(item.value * 7, maxD);
-      axisDateLabel = `${startD}日~${endD}日`;
-    }
-    const markerContent = isCompleted ? `✓ ${axisDateLabel}` : axisDateLabel;
-
-    timelineHtml += `
-      <div class="routine-timeline-node ${isCompleted ? 'completed' : ''}" id="routine-node-${item.id}">
-        <!-- 轴上的可爱小提示 (剩余工作日 / 达成提示) -->
-        <div class="routine-axis-cute-hint ${cuteHint.badgeClass}" title="${cuteHint.text}">
-          ${cuteHint.axisHint}
-        </div>
-
-        <div class="routine-node-marker" style="border-color:${isCompleted ? '#10b981' : ruleColor}; color:${isCompleted ? '#ffffff' : ruleColor};" title="${escapeHtml(item.details.displayDate)}">
-          ${markerContent}
-        </div>
-
-        <div class="routine-card">
-          <div class="routine-card-header">
-            <div class="routine-card-tags">
-              <span class="routine-pill-date" style="background:${ruleBg}; color:${ruleColor}; font-weight:700; border:1px solid ${ruleColor}33; border-radius:5px; padding:3px 9px; font-size:12px;">📅 计划：${escapeHtml(item.details.displayDate)}</span>
-              ${actualDate ? `
-                <span class="routine-pill-actual" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-weight:700;" onclick="openEditMonthlyRoutineModal(${item.id})" title="实际发生时间：${escapeHtml(actualDate)} (点击修改)">
-                  🎯 实际：${formatDisplayDateOnly(actualDate)} ✏️
-                </span>
-              ` : `
-                <span class="routine-pill-actual" style="background:#f1f5f9; color:#64748b; border:1px dashed #cbd5e1;" onclick="openEditMonthlyRoutineModal(${item.id})" title="计划时间已锁定，实际时间可能会不同，点击填写本月实际时间">
-                  🎯 实际时间：待填写 ✏️
-                </span>
-              `}
-              <span class="routine-cute-badge ${cuteHint.badgeClass}">
-                ${cuteHint.text}
-              </span>
-            </div>
-            <div class="routine-status-badge ${statusClass}">
-              ${statusText}
-            </div>
-          </div>
-
-          <div class="routine-card-title">${escapeHtml(item.title)}</div>
-
-          ${item.details.fridayHint ? `
-            <div class="routine-hint-bar" style="font-size:12px;">
-              <span>交付计划：${escapeHtml(item.details.fridayHint)}</span>
-            </div>
-          ` : ''}
-
-          <div class="routine-card-footer">
-            <div class="routine-action-left">
-              <button class="btn-toggle-routine ${isCompleted ? 'is-done' : ''}" onclick="toggleMonthlyRoutineComplete(${item.id})">
-                ${isCompleted ? '已完成 (点击取消)' : '标记完成'}
-              </button>
-              <button class="btn btn-sm btn-ghost" onclick="toggleRoutineNoteBox(${item.id})">
-                ${item.check.note ? '查看/修改备注' : '添加备注'}
-              </button>
-            </div>
-            <div class="routine-action-right">
-              <button class="btn btn-sm btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项与实际时间">编辑</button>
-              ${item.isCustom ? `<button class="btn btn-sm btn-ghost" style="color:#dc2626;" onclick="deleteMonthlyRoutine(${item.id})" title="删除">删除</button>` : ''}
-            </div>
-          </div>
-
-          <div class="routine-note-drawer" id="routine-note-box-${item.id}" style="${item.check.note ? 'display:block;' : 'display:none;'}">
-            <div style="font-size:12px; font-weight:700; margin-bottom:6px; color:var(--text-secondary);">本月备忘记录：</div>
-            <textarea class="routine-note-textarea" id="routine-note-input-${item.id}" placeholder="输入会议室号、邮件主题或备忘记录..." onblur="saveMonthlyRoutineNote(${item.id})">${escapeHtml(item.check.note || '')}</textarea>
+  let bannerHtml = '';
+  if (overdueItems.length > 0) {
+    bannerHtml = `
+      <div class="routine-urgency-banner banner-urgent">
+        <div style="font-size:20px; line-height:1;">🚨</div>
+        <div style="flex:1;">
+          <div style="font-weight:800; font-size:13px; color:#991b1b;">逾期警告：有 ${overdueItems.length} 项月度事项已超期，请加急处理！</div>
+          <div style="font-size:12px; color:#b91c1c; margin-top:2px;">
+            ${overdueItems.map(i => `<strong>【${escapeHtml(i.title)}】</strong>(${i.urgency.summary})`).join('、')}
           </div>
         </div>
       </div>
     `;
-  });
-
-  if (isCurrentCalendarMonth && !todayMarkerInserted) {
-    timelineHtml += `
-      <div class="routine-today-marker">
-        <div class="routine-today-dot">
-          📍 今天
+  } else if (urgentItems.length > 0) {
+    bannerHtml = `
+      <div class="routine-urgency-banner banner-urgent">
+        <div style="font-size:20px; line-height:1;">🚨</div>
+        <div style="flex:1;">
+          <div style="font-weight:800; font-size:13px; color:#9a3412;">紧急待办提醒：近期有 ${urgentItems.length} 项关键事项临近截止</div>
+          <div style="font-size:12px; color:#c2410c; margin-top:2px;">
+            ${urgentItems.map(i => `<strong>【${escapeHtml(i.title)}】</strong>(${i.urgency.summary})`).join('、')}
+          </div>
         </div>
-        <div class="routine-today-badge">
-          <span>今日进度 (${month}月${todayDay}日 ${todayDayOfWeek})</span>
+      </div>
+    `;
+  } else if (thisWeekItems.length > 0) {
+    bannerHtml = `
+      <div class="routine-urgency-banner banner-info">
+        <div style="font-size:20px; line-height:1;">⏳</div>
+        <div style="flex:1;">
+          <div style="font-weight:800; font-size:13px; color:#1e40af;">本周推进提醒</div>
+          <div style="font-size:12px; color:#1d4ed8; margin-top:2px;">
+            本周重点事项：${thisWeekItems.map(i => `<strong>【${escapeHtml(i.title)}】</strong>`).join('、')}，请按期推进！
+          </div>
         </div>
+      </div>
+    `;
+  } else if (totalCount > 0 && completedCount === totalCount) {
+    bannerHtml = `
+      <div class="routine-urgency-banner banner-done">
+        <div style="font-size:20px; line-height:1;">🎉</div>
+        <div style="flex:1; font-weight:700; font-size:13px; color:#166534;">太棒了！本月所有月度关卡事项均已顺利完成！</div>
       </div>
     `;
   }
 
-  container.innerHTML = timelineHtml;
+  // Render minimal, clean cards
+  let cardsHtml = computedItems.map(item => {
+    const isCompleted = item.isCompleted;
+    const actualDate = item.check.actualDate || item.actualDate || '';
+
+    return `
+      <div class="routine-minimal-card ${isCompleted ? 'is-completed' : ''} urgency-${item.urgency.urgencyLevel}" id="routine-node-${item.id}">
+        <div class="routine-card-left-col">
+          <button class="routine-check-btn ${isCompleted ? 'checked' : ''}" onclick="toggleMonthlyRoutineComplete(${item.id})" title="${isCompleted ? '已完成，点击标记为未完成' : '点击标记为本月已完成'}">
+            ${isCompleted ? '✓' : ''}
+          </button>
+        </div>
+
+        <div class="routine-card-main-col">
+          <div class="routine-card-topline">
+            ${item.urgency.badgeHtml}
+            <span class="routine-plan-date">📅 计划：${escapeHtml(item.timingDisplay || item.details.displayDate)}</span>
+            ${actualDate ? `
+              <span class="routine-actual-pill" onclick="openEditMonthlyRoutineModal(${item.id})" title="实际发生时间：${escapeHtml(actualDate)} (点击修改)">
+                🎯 实际：${formatDisplayDateOnly(actualDate)} ✏️
+              </span>
+            ` : `
+              <span class="routine-actual-pill-empty" onclick="openEditMonthlyRoutineModal(${item.id})" title="计划时间已锁定，点击设定本月实际时间">
+                ＋ 实际时间
+              </span>
+            `}
+          </div>
+
+          <div class="routine-card-title-text" onclick="toggleMonthlyRoutineComplete(${item.id})" title="点击可切换完成状态">
+            ${escapeHtml(item.title)}
+          </div>
+
+          ${item.check.note ? `
+            <div class="routine-card-note-preview" onclick="toggleRoutineNoteBox(${item.id})" title="点击展开编辑备忘">
+              💬 <strong>备忘：</strong>${escapeHtml(item.check.note)}
+            </div>
+          ` : ''}
+
+          <div class="routine-note-drawer" id="routine-note-box-${item.id}" style="${item.check.note ? 'display:block;' : 'display:none;'}">
+            <div style="font-size:11.5px; font-weight:700; margin-bottom:5px; color:var(--text-secondary);">本月备忘记录：</div>
+            <textarea class="routine-note-textarea" id="routine-note-input-${item.id}" placeholder="输入会议室号、邮件主题或备忘记录..." onblur="saveMonthlyRoutineNote(${item.id})">${escapeHtml(item.check.note || '')}</textarea>
+          </div>
+        </div>
+
+        <div class="routine-card-actions-col">
+          <button class="btn btn-xs btn-ghost" onclick="toggleRoutineNoteBox(${item.id})" title="添加或修改备忘">
+            ${item.check.note ? '📝 修改备忘' : '＋ 备忘'}
+          </button>
+          <button class="btn btn-xs btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项与实际时间">
+            ✏️ 编辑
+          </button>
+          ${item.isCustom ? `
+            <button class="btn btn-xs btn-ghost" style="color:#dc2626;" onclick="deleteMonthlyRoutine(${item.id})" title="删除此事项">
+              🗑️
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = bannerHtml + cardsHtml;
 }
 
 function toggleMonthlyRoutineComplete(routineId) {
@@ -18552,6 +18430,7 @@ function saveMonthlyRoutineNote(routineId) {
     setData(STORAGE_KEYS.MONTHLY_CHECKLIST, allChecklists);
     syncKeyToHostDatabase(STORAGE_KEYS.MONTHLY_CHECKLIST, allChecklists);
     showToast('💾 本月纪要备忘已保存');
+    renderMonthlyRoutines();
   }
 }
 
@@ -19897,7 +19776,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.5.3';
+window.APP_VERSION = 'v1.5.4';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
