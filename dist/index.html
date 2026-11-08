@@ -5683,13 +5683,16 @@
 
       <!-- 工具栏: 责任人筛选、搜索、视图切换 -->
       <div class="legacy-toolbar">
-        <div class="legacy-toolbar-left" style="display:flex; align-items:center; gap:12px;">
+        <div class="legacy-toolbar-left" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
           <div class="legacy-filter-group" style="display:inline-flex; align-items:center; gap:6px; white-space:nowrap;">
             <label style="white-space:nowrap; margin:0; font-size:12px; font-weight:700; color:#475569; display:inline-flex; align-items:center;">👤 责任人：</label>
             <select id="legacyOwnerFilter" onchange="filterLegacyTasksOwner(this.value)" style="white-space:nowrap;">
               <option value="all">全部责任人</option>
             </select>
           </div>
+          <label style="font-size:12px; font-weight:600; color:#64748b; display:inline-flex; align-items:center; gap:5px; cursor:pointer; margin-left:4px; user-select:none;">
+            <input type="checkbox" id="checkLegacyShowClosed" onchange="toggleLegacyShowClosed(this.checked)" /> 查看已关闭任务
+          </label>
         </div>
         <div class="legacy-toolbar-right" style="display:flex; align-items:center; gap:10px;">
           <div class="legacy-search-box">
@@ -5899,7 +5902,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.1</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.2</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -12395,8 +12398,17 @@ function isAllowedPanelTask(t) {
   }
   if (!owner && title.length > 30) return false;
 
-  // 3. 排除所有已闭环 / 已关闭 / 已完成
-  if (
+  // 3. 排除所有已闭环 / 已关闭 / 已完成 (除非 includeClosed 为 true)
+  if (isTaskClosed(t) && !includeClosed) {
+    return false;
+  }
+  return true;
+}
+
+function isTaskClosed(t) {
+  if (!t) return false;
+  const s = String(t.status || '').trim().toLowerCase();
+  return (
     s === 'completed' ||
     s === 'closed' ||
     s === '已闭环' ||
@@ -12409,10 +12421,7 @@ function isAllowedPanelTask(t) {
     t.isCurrentClosed === true ||
     t.isCurrentClosed === '是' ||
     t.isCurrentClosed === 'yes'
-  ) {
-    return false;
-  }
-  return true;
+  );
 }
 
 function isTaskApplyingClosed(t) {
@@ -12423,9 +12432,54 @@ function isTaskApplyingClosed(t) {
 
 function isTaskOpen(t) {
   if (!t) return false;
-  if (!isAllowedPanelTask(t)) return false;
+  if (!isAllowedPanelTask(t, false)) return false;
   if (isTaskApplyingClosed(t)) return false;
   return true;
+}
+
+let legacyShowClosedTasks = false;
+function toggleLegacyShowClosed(checked) {
+  legacyShowClosedTasks = Boolean(checked);
+  renderLegacyTasks();
+}
+
+// 核心功能：关闭遗留任务
+function closeLegacyTask(taskId) {
+  let tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  const idx = tasks.findIndex(t => t.id == taskId);
+  if (idx === -1) return;
+  const task = tasks[idx];
+
+  const briefTitle = task.title ? (task.title.length > 25 ? task.title.slice(0, 25) + '...' : task.title) : '该遗留任务';
+  if (!confirm(`确定要关闭遗留任务【${briefTitle}】吗？
+
+确认后，该任务状态将置为【已关闭】，并从当前活跃清单中移出。`)) {
+    return;
+  }
+
+  tasks[idx].status = '已关闭';
+  tasks[idx].isCurrentClosed = true;
+  tasks[idx].closedAt = Date.now();
+  tasks[idx].updatedAt = Date.now();
+
+  setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
+  renderLegacyTasks();
+  showToast('🎉 该遗留任务已成功关闭！');
+}
+
+// 恢复已关闭的遗留任务
+function reopenLegacyTask(taskId) {
+  let tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  const idx = tasks.findIndex(t => t.id == taskId);
+  if (idx === -1) return;
+
+  tasks[idx].status = 'Open';
+  tasks[idx].isCurrentClosed = false;
+  tasks[idx].updatedAt = Date.now();
+
+  setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
+  renderLegacyTasks();
+  showToast('🔄 该遗留任务已恢复为 Open 状态！');
 }
 
 // 拆分多次汇报时间
@@ -12794,8 +12848,8 @@ function renderLegacyTasks() {
   const allTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
 
-  // 严格规则：在整个面板，只展示 open 的任务和申请关闭的任务，完全排除已闭环/已完成的任务
-  const panelTasks = allTasks.filter(isAllowedPanelTask);
+  // 严格规则：默认只展示 open 任务和申请关闭任务；勾选查看已关闭后展示已关闭任务
+  const panelTasks = allTasks.filter(t => isAllowedPanelTask(t, legacyShowClosedTasks));
 
   const openCount = panelTasks.filter(isTaskOpen).length;
 
@@ -13013,9 +13067,7 @@ function renderLegacyCardsView(tasks, allMeetings) {
                         ${opText ? '✏️ 修改意见' : '✍️ 填写意见'}
                       </button>
                     </div>
-                    <div style="color:${opText ? '#14532d' : '#86efac'}; font-size:12px; line-height:1.45; word-break:break-word;">
-                      ${opText ? escapeHtml(opText) : '<span style="color:#65a30d; font-style:italic;">暂无主管评审纪要意见，点击右上角【✍️ 填写意见】录入</span>'}
-                    </div>
+${opText ? `<div style="color:#14532d; font-size:12px; line-height:1.45; word-break:break-word;">${escapeHtml(opText)}</div>` : ''}
                   </div>
                 `;
               }
@@ -13036,8 +13088,13 @@ function renderLegacyCardsView(tasks, allMeetings) {
           </div>
         </div>
 
-        <!-- 底部操作按钮 (纯粹操作，绝无任务流转按钮) -->
-        <div class="legacy-card-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+        <!-- 底部操作按钮 -->
+        <div class="legacy-card-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; align-items:center;">
+          ${isTaskClosed(task) ? `
+            <button class="btn btn-xs" onclick="reopenLegacyTask(${task.id})" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; font-weight:700; padding:2px 8px; border-radius:4px;" title="重新恢复为Open">↩️ 恢复</button>
+          ` : `
+            <button class="btn btn-xs" onclick="closeLegacyTask(${task.id})" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-weight:700; padding:2px 8px; border-radius:4px; cursor:pointer;" title="如果任务已完成/闭环，点击关闭此任务">🔒 关闭</button>
+          `}
           <button class="btn btn-xs btn-ghost" onclick="openAddReportSessionModal(${task.id})" title="登记汇报">🎙️ 登记汇报</button>
           <button class="btn btn-xs btn-ghost" onclick="scheduleReportMeetingForLegacyTask(${task.id})" title="预约排期">📅 会议预约</button>
           <button class="btn btn-xs btn-ghost" onclick="openEditLegacyTaskModal(${task.id})" title="编辑">✏️ 编辑</button>
@@ -13088,9 +13145,10 @@ function renderLegacyTableView(tasks, allMeetings) {
     <table class="legacy-table">
       <thead>
         <tr style="background:#f8fafc;">
-          <th style="min-width:360px; font-weight:700;">遗留任务</th>
-          <th style="min-width:120px; font-weight:700;">责任人</th>
-          <th style="min-width:440px; font-weight:700;">汇报记录&输出纪要</th>
+          <th style="min-width:340px; font-weight:700;">遗留任务</th>
+          <th style="min-width:110px; font-weight:700;">责任人</th>
+          <th style="min-width:420px; font-weight:700;">汇报记录&输出纪要</th>
+          <th style="width:100px; font-weight:700; text-align:center;">操作</th>
         </tr>
       </thead>
       <tbody>
@@ -13156,9 +13214,7 @@ function renderLegacyTableView(tasks, allMeetings) {
                             ${opText ? '✏️ 修改意见' : '✍️ 填写意见'}
                           </button>
                         </div>
-                        <div style="color:${opText ? '#14532d' : '#86efac'}; font-size:12px; line-height:1.45; word-break:break-word;">
-                          ${opText ? escapeHtml(opText) : '<span style="color:#65a30d; font-style:italic;">暂无主管评审纪要意见，点击右上角【✍️ 填写意见】录入</span>'}
-                        </div>
+${opText ? `<div style="color:#14532d; font-size:12px; line-height:1.45; word-break:break-word;">${escapeHtml(opText)}</div>` : ''}
                       </div>
                     `;
                   }
@@ -13209,6 +13265,19 @@ function renderLegacyTableView(tasks, allMeetings) {
               <!-- 3. 汇报记录&输出纪要 (汇报时间与纪要 1对1 紧密对应) -->
               <td style="padding:12px 14px; vertical-align:middle;">
                 ${reportsHTML}
+              </td>
+
+              <!-- 4. 操作 (关闭按钮) -->
+              <td style="padding:12px 14px; text-align:center; vertical-align:middle; white-space:nowrap;">
+                ${isTaskClosed(task) ? `
+                  <button class="btn btn-xs" onclick="reopenLegacyTask(${task.id})" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; font-size:11px; font-weight:700; padding:3px 8px; border-radius:5px; cursor:pointer;" title="重新恢复为Open">
+                    ↩️ 恢复
+                  </button>
+                ` : `
+                  <button class="btn btn-xs" onclick="closeLegacyTask(${task.id})" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:5px; cursor:pointer;" title="如果任务已完成/闭环，点击关闭此任务">
+                    🔒 关闭
+                  </button>
+                `}
               </td>
             </tr>
           `;
@@ -15395,23 +15464,14 @@ function exportExecutiveScheduleBriefing() {
         const dNum = parseInt(parts[2], 10);
         const wDay = weekdayNames[i];
 
-        const trip = (typeof getTripForDate === 'function') ? getTripForDate(curDStr) : null;
-
         lines.push(`【${mNum}月${dNum}日（${wDay}）】`);
-        if (trip) {
-          lines.push(`📍 出差目的地：${trip.tzName || trip.destination} (${trip.tzName || ''}当地时间)`);
-        }
 
         dayMeetings.forEach(mItem => {
           const dtInfo = getMeetingDisplayTime(mItem);
           const isHighPri = (mItem.priority === 'high' || mItem.priority === 'urgent');
           const icon = isHighPri ? '🔴' : '📌';
 
-          let timeStr = `${dtInfo.start}–${dtInfo.end}`;
-          if (dtInfo.isTripDate && dtInfo.tzName) {
-            timeStr += ` (${dtInfo.tzName}当地时间)`;
-          }
-
+          const timeStr = `${dtInfo.start}–${dtInfo.end}`;
           const subject = mItem.subject || mItem.title || '待定会议';
           lines.push(`${icon} ${timeStr}｜${subject}`);
 
@@ -19836,7 +19896,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.5.1';
+window.APP_VERSION = 'v1.5.2';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
