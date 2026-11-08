@@ -5902,7 +5902,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.2</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.3</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -12362,8 +12362,9 @@ function handleLegacySearch(val) {
 }
 
 // 整个面板准入规则：只允许 open 任务与 申请关闭 任务，彻底排除已闭环/已完成及换行切断产生的审核意见碎片
-function isAllowedPanelTask(t) {
+function isAllowedPanelTask(t, includeClosed) {
   if (!t) return false;
+  const allowClosed = Boolean(includeClosed !== undefined ? includeClosed : (typeof legacyShowClosedTasks !== 'undefined' ? legacyShowClosedTasks : false));
   const title = (t.title || '').trim();
   const owner = (t.owner || '').trim();
   const s = String(t.status || '').trim().toLowerCase();
@@ -12398,8 +12399,8 @@ function isAllowedPanelTask(t) {
   }
   if (!owner && title.length > 30) return false;
 
-  // 3. 排除所有已闭环 / 已关闭 / 已完成 (除非 includeClosed 为 true)
-  if (isTaskClosed(t) && !includeClosed) {
+  // 3. 排除所有已闭环 / 已关闭 / 已完成 (除非 allowClosed 为 true)
+  if (isTaskClosed(t) && !allowClosed) {
     return false;
   }
   return true;
@@ -19896,7 +19897,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.5.2';
+window.APP_VERSION = 'v1.5.3';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>

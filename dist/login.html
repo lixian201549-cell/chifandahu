@@ -309,17 +309,17 @@
         <div>🔐 密码只发送给你的主机验证；登录会话使用安全 Cookie，页面不会保存密码。</div>
         <div class="login-card-version">
           <span>当前发布版本</span>
-          <span class="login-version-pill" id="loginCardVersionBadge">🏷️ v1.5.2</span>
+          <span class="login-version-pill" id="loginCardVersionBadge">🏷️ v1.5.3</span>
         </div>
       </div>
     </section>
   </main>
   <footer class="login-footer">
     <span>Snoopy’s Little Lab · Sanyli.</span>
-    <span class="login-version-badge" id="loginFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.2</span>
+    <span class="login-version-badge" id="loginFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.3</span>
   </footer>
 <script>
-  window.APP_VERSION = 'v1.5.2';
+  window.APP_VERSION = 'v1.5.3';
   const form = document.getElementById('loginForm');
   const passwordInput = document.getElementById('password');
   const submitButton = document.getElementById('submitButton');
@@ -331,14 +331,23 @@
     this.setAttribute('aria-label', showing ? '显示密码' : '隐藏密码');
     passwordInput.focus();
   });
-  form.addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const password = passwordInput.value;
+  let autoLoginTimer = null;
+  let isSubmitting = false;
+  let lastAttemptedPassword = '';
+
+  async function performLogin() {
+    if (isSubmitting) return;
+    const password = passwordInput.value.trim();
     if (!password) {
       loginError.textContent = 'Snoopy 还没听到口令呢。';
       passwordInput.focus();
       return;
     }
+    if (password === lastAttemptedPassword) {
+      return;
+    }
+    lastAttemptedPassword = password;
+    isSubmitting = true;
     submitButton.disabled = true;
     submitButton.textContent = '正在确认口令…';
     loginError.textContent = '';
@@ -363,9 +372,49 @@
     } catch (error) {
       loginError.textContent = '暂时联系不上小实验室，请稍后重试。';
     } finally {
+      isSubmitting = false;
       submitButton.disabled = false;
       submitButton.textContent = '🐾 打开我的小实验室';
     }
+  }
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    if (autoLoginTimer) clearTimeout(autoLoginTimer);
+    lastAttemptedPassword = '';
+    performLogin();
+  });
+
+  passwordInput.addEventListener('input', function() {
+    if (autoLoginTimer) clearTimeout(autoLoginTimer);
+    const val = passwordInput.value.trim();
+    if (!val) {
+      lastAttemptedPassword = '';
+      return;
+    }
+
+    // 1. 若为 6 位纯数字口令，输完第 6 位瞬间立即自动验证登录
+    if (/^\d{6}$/.test(val)) {
+      performLogin();
+      return;
+    }
+
+    // 2. 其它口令输入停顿 500ms 后自动提交登录
+    if (val.length >= 2) {
+      autoLoginTimer = setTimeout(() => {
+        performLogin();
+      }, 500);
+    }
+  });
+
+  passwordInput.addEventListener('paste', function() {
+    setTimeout(() => {
+      const val = passwordInput.value.trim();
+      if (val.length >= 2) {
+        lastAttemptedPassword = '';
+        performLogin();
+      }
+    }, 50);
   });
 </script>
 </body>

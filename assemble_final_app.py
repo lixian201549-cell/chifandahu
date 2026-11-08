@@ -10853,8 +10853,9 @@ function handleLegacySearch(val) {
 }
 
 // 整个面板准入规则：只允许 open 任务与 申请关闭 任务，彻底排除已闭环/已完成及换行切断产生的审核意见碎片
-function isAllowedPanelTask(t) {
+function isAllowedPanelTask(t, includeClosed) {
   if (!t) return false;
+  const allowClosed = Boolean(includeClosed !== undefined ? includeClosed : (typeof legacyShowClosedTasks !== 'undefined' ? legacyShowClosedTasks : false));
   const title = (t.title || '').trim();
   const owner = (t.owner || '').trim();
   const s = String(t.status || '').trim().toLowerCase();
@@ -10889,8 +10890,8 @@ function isAllowedPanelTask(t) {
   }
   if (!owner && title.length > 30) return false;
 
-  // 3. 排除所有已闭环 / 已关闭 / 已完成 (除非 includeClosed 为 true)
-  if (isTaskClosed(t) && !includeClosed) {
+  // 3. 排除所有已闭环 / 已关闭 / 已完成 (除非 allowClosed 为 true)
+  if (isTaskClosed(t) && !allowClosed) {
     return false;
   }
   return true;
@@ -18723,14 +18724,23 @@ login_template = """<!DOCTYPE html>
     this.setAttribute('aria-label', showing ? '显示密码' : '隐藏密码');
     passwordInput.focus();
   });
-  form.addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const password = passwordInput.value;
+  let autoLoginTimer = null;
+  let isSubmitting = false;
+  let lastAttemptedPassword = '';
+
+  async function performLogin() {
+    if (isSubmitting) return;
+    const password = passwordInput.value.trim();
     if (!password) {
       loginError.textContent = 'Snoopy 还没听到口令呢。';
       passwordInput.focus();
       return;
     }
+    if (password === lastAttemptedPassword) {
+      return;
+    }
+    lastAttemptedPassword = password;
+    isSubmitting = true;
     submitButton.disabled = true;
     submitButton.textContent = '正在确认口令…';
     loginError.textContent = '';
@@ -18755,9 +18765,49 @@ login_template = """<!DOCTYPE html>
     } catch (error) {
       loginError.textContent = '暂时联系不上小实验室，请稍后重试。';
     } finally {
+      isSubmitting = false;
       submitButton.disabled = false;
       submitButton.textContent = '🐾 打开我的小实验室';
     }
+  }
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    if (autoLoginTimer) clearTimeout(autoLoginTimer);
+    lastAttemptedPassword = '';
+    performLogin();
+  });
+
+  passwordInput.addEventListener('input', function() {
+    if (autoLoginTimer) clearTimeout(autoLoginTimer);
+    const val = passwordInput.value.trim();
+    if (!val) {
+      lastAttemptedPassword = '';
+      return;
+    }
+
+    // 1. 若为 6 位纯数字口令，输完第 6 位瞬间立即自动验证登录
+    if (/^\d{6}$/.test(val)) {
+      performLogin();
+      return;
+    }
+
+    // 2. 其它口令输入停顿 500ms 后自动提交登录
+    if (val.length >= 2) {
+      autoLoginTimer = setTimeout(() => {
+        performLogin();
+      }, 500);
+    }
+  });
+
+  passwordInput.addEventListener('paste', function() {
+    setTimeout(() => {
+      const val = passwordInput.value.trim();
+      if (val.length >= 2) {
+        lastAttemptedPassword = '';
+        performLogin();
+      }
+    }, 50);
   });
 </script>
 </body>
