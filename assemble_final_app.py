@@ -5322,9 +5322,9 @@ html_template = """<!DOCTYPE html>
               <img src="__IMG_CANONICAL__" alt="">
               <div><strong>Sanyli</strong><span>Snoopy’s Little Lab 管理员</span></div>
             </div>
-            <button class="profile-action" type="button" role="menuitem" onclick="openPasswordSettings()"><span>🔓</span><span>免密访问模式 (已开启)</span></button>
+            <button class="profile-action" type="button" role="menuitem" onclick="openPasswordSettings()"><span>🔐</span><span>密码管理</span></button>
             <div class="profile-divider"></div>
-            <button class="profile-action is-danger" type="button" role="menuitem" onclick="logoutFromLab()"><span>🏠</span><span>刷新小实验室</span></button>
+            <button class="profile-action is-danger" type="button" role="menuitem" onclick="logoutFromLab()"><span>🚪</span><span>退出登录</span></button>
           </div>
         </div>
       </div>
@@ -5951,15 +5951,15 @@ html_template = """<!DOCTYPE html>
   <div class="modal-overlay" id="passwordSettingsModal">
     <div class="modal-box" style="max-width: 450px;">
       <div class="modal-header">
-        <div class="modal-title">🔓 登录安全设置</div>
+        <div class="modal-title">🔐 登录安全设置</div>
         <button class="btn btn-sm btn-ghost" type="button" onclick="closePasswordSettings()">✕</button>
       </div>
       <div class="modal-body">
         <div style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:16px;border:1.5px solid #86efac;border-radius:12px;background:#f0fdf4;">
           <img src="__IMG_CANONICAL__" alt="Snoopy" style="width:48px;height:48px;object-fit:contain;">
           <div>
-            <div style="font-size:13px;font-weight:750;color:#166534;">🔓 当前已开启免密直达模式</div>
-            <div style="font-size:11.5px;color:#15803d;margin-top:2px;">登入密码已删除，无需输入密码，任何设备打开链接即可直接进入。</div>
+            <div style="font-size:13px;font-weight:750;color:#166534;">🔐 当前已开启密码保护</div>
+            <div style="font-size:11.5px;color:#15803d;margin-top:2px;">输入密码后才能进入平台。你可以在这里修改登录密码。</div>
           </div>
         </div>
         <form id="passwordSettingsForm" onsubmit="submitPasswordChange(event)">
@@ -5969,12 +5969,12 @@ html_template = """<!DOCTYPE html>
           </div>
           <div class="form-group">
             <label for="newAccountPassword">新密码</label>
-            <input id="newAccountPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required>
-            <div class="password-help">可以设置为 6 位纯数字，或至少 10 个字符的强密码。</div>
+            <input id="newAccountPassword" type="password" autocomplete="new-password" minlength="2" maxlength="256" required>
+            <div class="password-help">密码长度为 2–256 个字符。</div>
           </div>
           <div class="form-group">
             <label for="confirmAccountPassword">再次输入新密码</label>
-            <input id="confirmAccountPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required>
+            <input id="confirmAccountPassword" type="password" autocomplete="new-password" minlength="2" maxlength="256" required>
           </div>
           <div class="password-error" id="passwordSettingsError" role="alert" aria-live="polite"></div>
         </form>
@@ -6792,8 +6792,8 @@ html_template = """<!DOCTYPE html>
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label style="font-weight:700; color:#1e40af;">审核意见 (曦总批示 / 决议结论)：</label>
-          <textarea id="inputAddReportReviewOpinion" rows="2" placeholder="记录向曦总汇报后领导的审阅意见、特批定夺要求或核心结论..." style="font-size:12.5px;"></textarea>
+          <label style="font-weight:700; color:#1e40af;">主管评审纪要意见 (指导批示 / 评审要求 / 核心决议)：</label>
+          <textarea id="inputAddReportReviewOpinion" rows="3" placeholder="填写主管针对本次纪要的审阅评审意见、指导批示或定夺要求..." style="font-size:12.5px;"></textarea>
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
@@ -6843,8 +6843,8 @@ html_template = """<!DOCTYPE html>
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label style="font-weight:700; color:#1e40af;">审核意见 (曦总批示 / 决议结论)：</label>
-          <textarea id="inputEditReportReviewOpinion" rows="2" placeholder="记录曦总的指导批示、定夺要求或审核意见..." style="font-size:12.5px;"></textarea>
+          <label style="font-weight:700; color:#1e40af;">主管评审纪要意见 (指导批示 / 评审要求 / 核心决议)：</label>
+          <textarea id="inputEditReportReviewOpinion" rows="3" placeholder="填写主管针对本次纪要的审阅评审意见、指导批示或定夺要求..." style="font-size:12.5px;"></textarea>
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
@@ -8741,10 +8741,9 @@ function submitPasswordChange(event) {
   const currentPassword = currentInput ? currentInput.value : '';
   const newPassword = newInput ? newInput.value : '';
   const confirmation = confirmInput ? confirmInput.value : '';
-  const isSixDigitPin = /^\d{6}$/.test(newPassword);
-  const isStrongPassword = newPassword.length >= 10 && newPassword.length <= 256;
-  if (!isSixDigitPin && !isStrongPassword) {
-    error.textContent = '请输入 6 位纯数字，或至少 10 个字符的密码。';
+  const passwordLength = Array.from(newPassword).length;
+  if (passwordLength < 2 || passwordLength > 256) {
+    error.textContent = '请输入 2–256 个字符的密码。';
     if (newInput) newInput.focus();
     return;
   }
@@ -8787,11 +8786,14 @@ function submitPasswordChange(event) {
   });
 }
 
-function logoutFromLab() {
-  showToast('当前已开启免密直达模式，直接打开链接即可进入小实验室！');
-  setTimeout(() => {
-    window.location.href = '/';
-  }, 400);
+async function logoutFromLab() {
+  try {
+    const response = await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    if (!response.ok) throw new Error('logout failed');
+    window.location.replace('/login');
+  } catch (error) {
+    showToast('退出登录失败，请重试。');
+  }
 }
 
 // ================= TAB SWITCHING =================
@@ -11119,16 +11121,26 @@ function isDateInCurrentWeek(dateStr) {
   const targetDate = new Date(year, month, day);
 
   const now = new Date();
-  const currentDay = now.getDay();
-  const distanceToMonday = (currentDay + 6) % 7; // Monday = 0, Sunday = 6
+  const currentDay = now.getDay(); // 0 是周日 (工作周起始日)
+  const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - currentDay);
+  sunday.setHours(0, 0, 0, 0);
   
-  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - distanceToMonday);
-  monday.setHours(0, 0, 0, 0);
-  
-  const sunday = new Date(monday.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
+  const saturday = new Date(sunday.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
   
   const targetTime = targetDate.getTime();
-  return targetTime >= monday.getTime() && targetTime <= sunday.getTime();
+  return targetTime >= sunday.getTime() && targetTime <= saturday.getTime();
+}
+
+function formatReportTimeForNotice(timeStr) {
+  if (!timeStr) return '已汇报';
+  const m = String(timeStr).match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:\s+(\d{1,2}:\d{1,2}))?/);
+  if (m) {
+    const mon = parseInt(m[2], 10);
+    const d = parseInt(m[3], 10);
+    const hm = m[4] ? ' ' + m[4] : '';
+    return `${mon}月${d}日${hm}`;
+  }
+  return timeStr;
 }
 
 // 核心规则：还没开会的，不要放进待发纪要！开完会再加进来。
@@ -11167,6 +11179,9 @@ function formatTaskTitleForNotice(title) {
 }
 
 // 核心功能：一键复制未发纪要群通知 (供在微信/飞书/企微群催办)
+// 严格指令执行：
+// 1. 回到会议预约，把会议名称写出来，而不是把一整个遗留任务写出来
+// 2. 一行写完，不要分3行
 function copyPendingMinutesGroupNotice() {
   const allTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
@@ -11177,30 +11192,58 @@ function copyPendingMinutesGroupNotice() {
     const reps = getNormalizedTaskReports(task, allMeetings);
     // 还没开会的，不要放进待发纪要，开完会再加进来
     const unminutedReps = reps.filter(r => isReportPendingMinutes(r));
-    if (unminutedReps.length > 0) {
+    unminutedReps.forEach(r => {
+      // 提取会议预约中的会议名称，而不是整个长遗留任务
+      let mName = (r.meetingSubject || '').trim();
+      if (!mName && r.meetingId) {
+        const foundM = allMeetings.find(m => String(m.id) === String(r.meetingId));
+        if (foundM && foundM.subject) mName = foundM.subject.trim();
+      }
+      if (!mName) {
+        const taskMeetings = getTaskReportMeetings(task, allMeetings);
+        if (taskMeetings.length > 0) {
+          mName = (taskMeetings[0].subject || '').trim();
+        }
+      }
+      if (!mName) {
+        mName = (task.title || '重点遗留任务').trim();
+      }
+      mName = formatTaskTitleForNotice(mName);
+      if (!mName.startsWith('【')) {
+        mName = '【' + mName + '】';
+      }
+
+      const owner = (r.reporter || task.owner || '待定').trim();
+      const timeStr = formatReportTimeForNotice(r.reportTime);
+
       pendingItems.push({
-        task: task,
-        reports: unminutedReps
+        meetingName: mName,
+        owner: owner,
+        reportTime: timeStr
       });
+    });
+  });
+
+  // 去重 (若同一会议关联多条子项，避免通知重复)
+  const dedupedItems = [];
+  const seenKeys = new Set();
+  pendingItems.forEach(item => {
+    const key = `${item.meetingName}_${item.owner}_${item.reportTime}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      dedupedItems.push(item);
     }
   });
 
-  if (pendingItems.length === 0) {
+  if (dedupedItems.length === 0) {
     showToast('🎉 太棒了！当前没有待发送会议纪要的重点遗留任务。');
     return;
   }
 
+  // 严格规则：一行写完，不要分3行；会议名称来自会议预约
   let text = '【📢 重点遗留任务·待发送会议纪要】\\n\\n';
-
-  pendingItems.forEach((item, idx) => {
-    const t = item.task;
-    const cleanTitle = formatTaskTitleForNotice(t.title);
-    text += (idx + 1) + '. ' + cleanTitle + '\\n';
-    text += '   👤 责任人：' + (t.owner || '待定') + '\\n';
-    item.reports.forEach(r => {
-      text += '   🕒 汇报时间：' + (r.reportTime || '已汇报') + ' ⚠️ 待发纪要\\n';
-    });
-    text += '\\n';
+  dedupedItems.forEach((item, idx) => {
+    text += `${idx + 1}. ${item.meetingName} ｜ 责任人：${item.owner} ｜ 汇报时间：${item.reportTime}\\n`;
   });
 
   text = text.trim();
@@ -11439,12 +11482,33 @@ function renderLegacyCardsView(tasks, allMeetings) {
             ` : reports.map((r, rIdx) => {
               const isFuture = isReportPending(r);
               let badgeHTML = '';
+              const hasMin = Boolean(r.hasMinutes);
               if (isFuture) {
                 badgeHTML = `<span class="legacy-minutes-badge pending-report" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="已排期，待正式汇报">⏳ 待汇报 📅</span>`;
-              } else if (r.hasMinutes) {
-                badgeHTML = `<span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与批示">✅ 已出纪要 📝</span>`;
+              } else if (hasMin) {
+                badgeHTML = `<span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与主管评审意见">✅ 已出纪要 📝</span>`;
               } else {
                 badgeHTML = `<span class="legacy-minutes-badge no-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击快速补录本次汇报纪要">⚠️ 待发送纪要 ✏️</span>`;
+              }
+
+              let reviewBoxHTML = '';
+              if (hasMin) {
+                const opText = (r.reviewOpinion || '').trim();
+                reviewBoxHTML = `
+                  <div class="legacy-review-opinion-box" style="margin-top:6px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:6px 10px; font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                      <span style="font-weight:700; color:#166534; display:flex; align-items:center; gap:4px;">
+                        <span>📌</span><span>主管评审纪要意见：</span>
+                      </span>
+                      <button type="button" class="btn btn-xs" onclick="openEditReportSessionModal(${task.id}, ${rIdx}, 'opinion')" style="background:#ffffff; color:#15803d; border:1px solid #86efac; font-size:11px; font-weight:700; padding:1px 8px; border-radius:4px; cursor:pointer;" title="填写或修改主管评审纪要意见">
+                        ${opText ? '✏️ 修改意见' : '✍️ 填写意见'}
+                      </button>
+                    </div>
+                    <div style="color:${opText ? '#14532d' : '#86efac'}; font-size:12px; line-height:1.45; word-break:break-word;">
+                      ${opText ? escapeHtml(opText) : '<span style="color:#65a30d; font-style:italic;">暂无主管评审纪要意见，点击右上角【✍️ 填写意见】录入</span>'}
+                    </div>
+                  </div>
+                `;
               }
 
               return `
@@ -11456,6 +11520,7 @@ function renderLegacyCardsView(tasks, allMeetings) {
                     </div>
                     ${badgeHTML}
                   </div>
+                  ${reviewBoxHTML}
                 </div>
               `;
             }).join('')}
@@ -11557,7 +11622,7 @@ function renderLegacyTableView(tasks, allMeetings) {
                     `;
                   } else if (hasMin) {
                     badgeHTML = `
-                      <span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与批示">
+                      <span class="legacy-minutes-badge has-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击查看/修改本次纪要与主管评审意见">
                         ✅ 已出纪要 📝
                       </span>
                     `;
@@ -11566,6 +11631,26 @@ function renderLegacyTableView(tasks, allMeetings) {
                       <span class="legacy-minutes-badge no-minutes" onclick="openEditReportSessionModal(${task.id}, ${rIdx})" title="点击快速补录本次汇报纪要">
                         ⚠️ 待发送纪要 ✏️
                       </span>
+                    `;
+                  }
+
+                  let reviewBoxHTML = '';
+                  if (hasMin) {
+                    const opText = (rep.reviewOpinion || '').trim();
+                    reviewBoxHTML = `
+                      <div class="legacy-review-opinion-box" style="margin-top:6px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:6px 10px; font-size:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                          <span style="font-weight:700; color:#166534; display:flex; align-items:center; gap:4px;">
+                            <span>📌</span><span>主管评审纪要意见：</span>
+                          </span>
+                          <button type="button" class="btn btn-xs" onclick="openEditReportSessionModal(${task.id}, ${rIdx}, 'opinion')" style="background:#ffffff; color:#15803d; border:1px solid #86efac; font-size:11px; font-weight:700; padding:1px 8px; border-radius:4px; cursor:pointer;" title="填写或修改主管评审纪要意见">
+                            ${opText ? '✏️ 修改意见' : '✍️ 填写意见'}
+                          </button>
+                        </div>
+                        <div style="color:${opText ? '#14532d' : '#86efac'}; font-size:12px; line-height:1.45; word-break:break-word;">
+                          ${opText ? escapeHtml(opText) : '<span style="color:#65a30d; font-style:italic;">暂无主管评审纪要意见，点击右上角【✍️ 填写意见】录入</span>'}
+                        </div>
+                      </div>
                     `;
                   }
 
@@ -11580,6 +11665,7 @@ function renderLegacyTableView(tasks, allMeetings) {
                           ${badgeHTML}
                         </div>
                       </div>
+                      ${reviewBoxHTML}
                     </div>
                   `;
                 }).join('')}
@@ -11655,10 +11741,10 @@ function handleAddReportHasMinutesChange(val) {
   const opinionEl = document.getElementById('inputAddReportReviewOpinion');
   const minEl = document.getElementById('inputAddReportMinutes');
   if (val === 'no') {
-    if (opinionEl) opinionEl.placeholder = '可先留空，待向曦总汇报完毕后补录批示...';
+    if (opinionEl) opinionEl.placeholder = '可先留空，待主管汇报评审完毕后补录主管意见...';
     if (minEl) minEl.placeholder = '待汇报完毕后补录完整纪要与下一步计划...';
   } else {
-    if (opinionEl) opinionEl.placeholder = '记录向曦总汇报后领导的审阅意见、特批定夺要求或核心结论...';
+    if (opinionEl) opinionEl.placeholder = '填写主管针对本次纪要的审阅评审意见、指导批示或定夺要求...';
     if (minEl) minEl.placeholder = '记录本次汇报后达成的会议纪要内容、具体责任分工与落实排期...';
   }
 }
@@ -11708,7 +11794,7 @@ function saveAddReportSession() {
 }
 
 // 模态框：查看与编辑单次汇报与纪要
-function openEditReportSessionModal(taskId, rIdx) {
+function openEditReportSessionModal(taskId, rIdx, focusField) {
   const tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
   const task = tasks.find(t => t.id == taskId);
   if (!task) return;
@@ -11719,7 +11805,7 @@ function openEditReportSessionModal(taskId, rIdx) {
 
   document.getElementById('inputEditReportTaskId').value = task.id;
   document.getElementById('inputEditReportIdx').value = rIdx;
-  document.getElementById('textEditReportModalTitle').textContent = `📝 查看与更新第${rep.seq || (rIdx + 1)}次汇报纪要`;
+  document.getElementById('textEditReportModalTitle').textContent = `📝 查看与更新第${rep.seq || (rIdx + 1)}次汇报纪要与主管评审意见`;
   document.getElementById('textEditReportTaskDesc').textContent = `【遗留任务】${task.title || ''} (责任人: ${task.owner || '待分配'})`;
 
   document.getElementById('inputEditReportTime').value = rep.reportTime || '';
@@ -11729,6 +11815,15 @@ function openEditReportSessionModal(taskId, rIdx) {
   document.getElementById('inputEditReportMinutes').value = rep.minutes || '';
 
   openModal('legacyEditReportModal');
+  if (focusField === 'opinion') {
+    setTimeout(() => {
+      const el = document.getElementById('inputEditReportReviewOpinion');
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
+  }
 }
 
 function saveEditReportSession() {
@@ -18514,10 +18609,6 @@ login_template = """<!DOCTYPE html>
     .mini-brand { margin-bottom: 24px; }
   }
 </style>
-<script>
-  // 免密直达模式：不需要输入密码，直接进入小实验室
-  window.location.replace('/');
-</script>
 </head>
 <body>
   <main class="login-shell">

@@ -16,13 +16,13 @@ ITERATIONS = 310_000
 
 def main():
     print("Change Snoopy's Little Lab login password")
-    password = getpass.getpass("New password (6 digits or at least 10 characters): ")
+    password = getpass.getpass("New password (2 to 256 characters): ")
     confirm = getpass.getpass("Confirm new password: ")
     if password != confirm:
         raise SystemExit("Passwords do not match.")
-    valid_password = (len(password) == 6 and password.isascii() and password.isdigit()) or len(password) >= 10
+    valid_password = 2 <= len(password) <= 256
     if not valid_password:
-        raise SystemExit("Password must be exactly 6 digits or contain at least 10 characters.")
+        raise SystemExit("Password must contain 2 to 256 characters.")
     salt = secrets.token_bytes(16)
     password_hash = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, ITERATIONS)
     os.makedirs(DATA_DIR, exist_ok=True)

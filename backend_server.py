@@ -43,7 +43,7 @@ SESSION_TTL_SECONDS = 12 * 60 * 60
 PASSWORD_ITERATIONS = 310_000
 MAX_LOGIN_FAILURES = 5
 LOGIN_BLOCK_SECONDS = 15 * 60
-AUTH_ENABLED = False  # 用户指令：删除登入密码，不需要输密码，开启免密直达模式
+AUTH_ENABLED = True  # Require password login for the platform and its data APIs.
 ALLOWED_KEY_PREFIX = "snoopy_"
 
 _sessions = {}
@@ -117,7 +117,7 @@ def verify_password(password):
 def valid_new_password(password):
     if not isinstance(password, str) or len(password) > 256:
         return False
-    return (len(password) == 6 and password.isascii() and password.isdigit()) or len(password) >= 10
+    return len(password) >= 2
 
 
 def update_password(password):
@@ -523,7 +523,7 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
         if path == "/api/session":
             self._json_response(200, {
                 "success": True,
-                "authenticated": True,
+                "authenticated": self._is_authenticated(),
                 "noPasswordRequired": not AUTH_ENABLED
             })
             return
