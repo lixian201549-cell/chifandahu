@@ -3475,18 +3475,7 @@ html_template = """<!DOCTYPE html>
     color: #1e3a8a;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   }
-  /* Minimalist Monthly Quest Layout */
-  .routine-timeline {
-    position: relative;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .routine-timeline::before {
-    display: none !important;
-  }
-
+  /* ================= Clear Timeline (清晰月度时间轴) ================= */
   .routine-urgency-banner {
     display: flex;
     align-items: center;
@@ -3512,84 +3501,169 @@ html_template = """<!DOCTYPE html>
     color: #166534;
   }
 
-  .routine-minimal-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 16px;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
+  .quest-timeline-container {
+    position: relative;
+    padding: 8px 0 16px 0;
   }
-  .routine-minimal-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: #94a3b8;
+  .quest-timeline-track {
+    position: relative;
+    padding-left: 54px;
   }
-  .routine-minimal-card.urgency-overdue,
-  .routine-minimal-card.urgency-today {
-    border-left: 4px solid #ef4444;
-    background: #fffafa;
-  }
-  .routine-minimal-card.urgency-tomorrow,
-  .routine-minimal-card.urgency-soon {
-    border-left: 4px solid #f97316;
-    background: #fffdfa;
-  }
-  .routine-minimal-card.urgency-this_week {
-    border-left: 4px solid #3b82f6;
-  }
-  .routine-minimal-card.urgency-later {
-    border-left: 4px solid #94a3b8;
-  }
-  .routine-minimal-card.is-completed {
-    border-left: 4px solid #10b981;
-    background: #f8fafc;
-    opacity: 0.78;
+  /* Continuous clean vertical spine line */
+  .quest-timeline-track::before {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 16px;
+    bottom: 24px;
+    width: 2px;
+    background: #cbd5e1;
+    border-radius: 1px;
+    z-index: 1;
   }
 
-  .routine-card-left-col {
-    flex-shrink: 0;
+  /* Timeline Nodes */
+  .quest-node {
+    position: relative;
+    margin-bottom: 22px;
+    transition: all 0.2s ease;
   }
-  .routine-check-btn {
-    width: 30px;
-    height: 30px;
+  .quest-node:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Node Milestone Bullet on Spine */
+  .quest-node-bullet {
+    position: absolute;
+    left: -44px;
+    top: 14px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    border: 2px solid #cbd5e1;
     background: #ffffff;
-    color: #ffffff;
+    border: 2px solid #3b82f6;
+    color: #2563eb;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 800;
+    font-family: var(--font-mono);
+    box-shadow: 0 0 0 4px #eff6ff, 0 1px 3px rgba(0,0,0,0.06);
+    z-index: 2;
     transition: all 0.2s ease;
-    padding: 0;
+    user-select: none;
   }
-  .routine-check-btn:hover {
-    border-color: #10b981;
-    background: #f0fdf4;
-    color: #10b981;
+  .quest-node.is-completed .quest-node-bullet {
+    background: #10b981 !important;
+    border-color: #059669 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 4px #dcfce7 !important;
   }
-  .routine-check-btn.checked {
-    border-color: #10b981;
-    background: #10b981;
-    color: #ffffff;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+  .quest-node.is-urgent .quest-node-bullet {
+    border-color: #ef4444;
+    color: #dc2626;
+    box-shadow: 0 0 0 4px #fee2e2;
+  }
+  .quest-node.is-tomorrow .quest-node-bullet {
+    border-color: #f97316;
+    color: #ea580c;
+    box-shadow: 0 0 0 4px #ffedd5;
   }
 
-  .routine-card-main-col {
-    flex: 1;
-    min-width: 0;
-  }
-  .routine-card-topline {
+  /* Today Divider */
+  .quest-today-divider {
+    position: relative;
+    margin: 8px 0 18px -54px;
+    padding-left: 54px;
     display: flex;
     align-items: center;
+    gap: 12px;
+    z-index: 3;
+  }
+  .quest-today-beacon {
+    position: absolute;
+    left: 17px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #f59e0b;
+    border: 2.5px solid #ffffff;
+    box-shadow: 0 0 0 3px #fde68a, 0 2px 6px rgba(245,158,11,0.4);
+    animation: quest-beacon-pulse 2s infinite ease-in-out;
+    z-index: 4;
+  }
+  @keyframes quest-beacon-pulse {
+    0%, 100% { transform: translateY(-50%) scale(1); box-shadow: 0 0 0 3px #fde68a; }
+    50% { transform: translateY(-50%) scale(1.15); box-shadow: 0 0 0 6px rgba(245,158,11,0.3); }
+  }
+  .quest-today-pill {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    color: #b45309;
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 3px 12px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(245,158,11,0.12);
+  }
+  .quest-today-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, #fcd34d 0%, rgba(252, 211, 77, 0.1) 80%, transparent 100%);
+  }
+
+  /* Timeline Card */
+  .quest-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+  }
+  .quest-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: #94a3b8;
+  }
+  .quest-node.is-urgent .quest-card {
+    border-left: 4px solid #ef4444;
+    background: #fffdfd;
+  }
+  .quest-node.is-tomorrow .quest-card {
+    border-left: 4px solid #f97316;
+    background: #fffdfa;
+  }
+  .quest-node.is-thisweek .quest-card {
+    border-left: 4px solid #3b82f6;
+  }
+  .quest-node.is-later .quest-card {
+    border-left: 4px solid #94a3b8;
+  }
+  .quest-node.is-completed .quest-card {
+    border-left: 4px solid #10b981;
+    background: #f8fafc;
+    opacity: 0.8;
+  }
+
+  .quest-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+  }
+  .quest-card-tags {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
   }
   .routine-urgent-pill {
     display: inline-flex;
@@ -3637,7 +3711,7 @@ html_template = """<!DOCTYPE html>
     border: 1px solid #a7f3d0;
   }
 
-  .routine-plan-date {
+  .quest-pill-date {
     font-size: 12px;
     font-weight: 600;
     color: #475569;
@@ -3646,7 +3720,7 @@ html_template = """<!DOCTYPE html>
     padding: 2px 7px;
     border-radius: 4px;
   }
-  .routine-actual-pill {
+  .quest-pill-actual {
     font-size: 12px;
     font-weight: 700;
     color: #059669;
@@ -3657,37 +3731,72 @@ html_template = """<!DOCTYPE html>
     cursor: pointer;
     transition: all 0.15s ease;
   }
-  .routine-actual-pill:hover {
+  .quest-pill-actual:hover {
     filter: brightness(0.95);
   }
-  .routine-actual-pill-empty {
+  .quest-pill-actual.empty {
     font-size: 11.5px;
     font-weight: 600;
     color: #94a3b8;
     background: #ffffff;
     border: 1px dashed #cbd5e1;
-    padding: 2px 7px;
-    border-radius: 4px;
-    cursor: pointer;
   }
-  .routine-actual-pill-empty:hover {
+  .quest-pill-actual.empty:hover {
     color: #2563eb;
     border-color: #93c5fd;
     background: #eff6ff;
   }
 
-  .routine-card-title-text {
+  .quest-btn-complete {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 5px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .quest-btn-complete:hover {
+    border-color: #10b981;
+    color: #059669;
+    background: #f0fdf4;
+  }
+  .quest-btn-complete.checked {
+    background: #10b981;
+    border-color: #059669;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.25);
+  }
+
+  .quest-card-title {
     font-size: 15px;
     font-weight: 700;
     color: #0f172a;
     line-height: 1.4;
     cursor: pointer;
+    margin-bottom: 6px;
   }
-  .routine-minimal-card.is-completed .routine-card-title-text {
+  .quest-node.is-completed .quest-card-title {
     color: #94a3b8;
     text-decoration: line-through;
   }
-  .routine-card-note-preview {
+
+  .quest-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-top: 6px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
+  }
+  .quest-card-note-preview {
     font-size: 12px;
     color: #475569;
     margin-top: 4px;
@@ -3696,12 +3805,6 @@ html_template = """<!DOCTYPE html>
     padding: 3px 8px;
     border-radius: 0 4px 4px 0;
     cursor: pointer;
-  }
-  .routine-card-actions-col {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
   }
   .routine-note-drawer {
     margin-top: 10px;
@@ -16695,6 +16798,7 @@ function renderMonthlyRoutines() {
   const now = new Date();
   const isCurrentCalendarMonth = (now.getFullYear() === year && (now.getMonth() + 1) === month);
   const todayDay = now.getDate();
+  const todayDayOfWeek = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
 
   const computedItems = routines.map(r => {
     const details = getRoutineDateDetails(r, year, month);
@@ -16710,8 +16814,8 @@ function renderMonthlyRoutines() {
     };
   });
 
-  // Urgency-first sorting: Overdue -> Today -> Tomorrow -> Soon -> This week -> Later -> Completed
-  computedItems.sort((a, b) => a.urgency.sortOrder - b.urgency.sortOrder || a.details.sortDay - b.details.sortDay);
+  // Timeline order: Chronological order of the month (sortDay 1 -> 31)
+  computedItems.sort((a, b) => a.details.sortDay - b.details.sortDay);
 
   const totalCount = computedItems.length;
   const completedCount = computedItems.filter(i => i.isCompleted).length;
@@ -16727,7 +16831,7 @@ function renderMonthlyRoutines() {
   if (progressPercentEl) progressPercentEl.textContent = `${percent}%`;
 
   const uncompletedItems = computedItems.filter(i => !i.isCompleted);
-  const nextItem = uncompletedItems[0] || computedItems[0];
+  const nextItem = computedItems.find(i => !i.isCompleted && (!isCurrentCalendarMonth || i.details.sortDay >= todayDay)) || uncompletedItems[0] || computedItems[0];
   const statNextDateEl = document.getElementById('statMonthlyNextDate');
   if (statNextDateEl) {
     if (!nextItem || (totalCount > 0 && completedCount === totalCount)) {
@@ -16763,7 +16867,7 @@ function renderMonthlyRoutines() {
       <div class="routine-urgency-banner banner-urgent">
         <div style="font-size:20px; line-height:1;">🚨</div>
         <div style="flex:1;">
-          <div style="font-weight:800; font-size:13px; color:#991b1b;">逾期警告：有 ${overdueItems.length} 项月度事项已超期，请加急处理！</div>
+          <div style="font-weight:800; font-size:13px; color:#991b1b;">逾期警告：有 ${overdueItems.length} 项月度关卡已超期，请加急处理！</div>
           <div style="font-size:12px; color:#b91c1c; margin-top:2px;">
             ${overdueItems.map(i => `<strong>【${escapeHtml(i.title)}】</strong>(${i.urgency.summary})`).join('、')}
           </div>
@@ -16775,7 +16879,7 @@ function renderMonthlyRoutines() {
       <div class="routine-urgency-banner banner-urgent">
         <div style="font-size:20px; line-height:1;">🚨</div>
         <div style="flex:1;">
-          <div style="font-weight:800; font-size:13px; color:#9a3412;">紧急待办提醒：近期有 ${urgentItems.length} 项关键事项临近截止</div>
+          <div style="font-weight:800; font-size:13px; color:#9a3412;">紧要待办提醒：近期有 ${urgentItems.length} 项关键关卡临近截止</div>
           <div style="font-size:12px; color:#c2410c; margin-top:2px;">
             ${urgentItems.map(i => `<strong>【${escapeHtml(i.title)}】</strong>(${i.urgency.summary})`).join('、')}
           </div>
@@ -16803,40 +16907,75 @@ function renderMonthlyRoutines() {
     `;
   }
 
-  // Render minimal, clean cards
-  let cardsHtml = computedItems.map(item => {
+  // Build clean timeline track
+  let timelineItemsHtml = '';
+  let todayMarkerInserted = false;
+
+  computedItems.forEach((item, index) => {
+    // Insert "Today" indicator before the first item whose sortDay >= todayDay
+    if (isCurrentCalendarMonth && !todayMarkerInserted && item.details.sortDay >= todayDay) {
+      timelineItemsHtml += `
+        <div class="quest-today-divider">
+          <div class="quest-today-beacon" title="当前日期位置"></div>
+          <div class="quest-today-pill">
+            <span>📍 今天是 ${month}月${todayDay}日 (${todayDayOfWeek})</span>
+          </div>
+          <div class="quest-today-line"></div>
+        </div>
+      `;
+      todayMarkerInserted = true;
+    }
+
     const isCompleted = item.isCompleted;
     const actualDate = item.check.actualDate || item.actualDate || '';
+    const nodeIndex = index + 1;
 
-    return `
-      <div class="routine-minimal-card ${isCompleted ? 'is-completed' : ''} urgency-${item.urgency.urgencyLevel}" id="routine-node-${item.id}">
-        <div class="routine-card-left-col">
-          <button class="routine-check-btn ${isCompleted ? 'checked' : ''}" onclick="toggleMonthlyRoutineComplete(${item.id})" title="${isCompleted ? '已完成，点击标记为未完成' : '点击标记为本月已完成'}">
-            ${isCompleted ? '✓' : ''}
-          </button>
+    let nodeStateClass = 'is-later';
+    if (isCompleted) {
+      nodeStateClass = 'is-completed';
+    } else if (['overdue', 'today'].includes(item.urgency.urgencyLevel)) {
+      nodeStateClass = 'is-urgent';
+    } else if (item.urgency.urgencyLevel === 'tomorrow') {
+      nodeStateClass = 'is-tomorrow';
+    } else if (item.urgency.urgencyLevel === 'this_week') {
+      nodeStateClass = 'is-thisweek';
+    }
+
+    timelineItemsHtml += `
+      <div class="quest-node ${nodeStateClass}" id="routine-node-${item.id}">
+        <!-- Node Milestone Bullet on Timeline Spine -->
+        <div class="quest-node-bullet" title="${isCompleted ? '已完成' : '关卡 ' + nodeIndex}">
+          ${isCompleted ? '✓' : nodeIndex}
         </div>
 
-        <div class="routine-card-main-col">
-          <div class="routine-card-topline">
-            ${item.urgency.badgeHtml}
-            <span class="routine-plan-date">📅 计划：${escapeHtml(item.timingDisplay || item.details.displayDate)}</span>
-            ${actualDate ? `
-              <span class="routine-actual-pill" onclick="openEditMonthlyRoutineModal(${item.id})" title="实际发生时间：${escapeHtml(actualDate)} (点击修改)">
-                🎯 实际：${formatDisplayDateOnly(actualDate)} ✏️
-              </span>
-            ` : `
-              <span class="routine-actual-pill-empty" onclick="openEditMonthlyRoutineModal(${item.id})" title="计划时间已锁定，点击设定本月实际时间">
-                ＋ 实际时间
-              </span>
-            `}
+        <!-- Quest Card on Timeline -->
+        <div class="quest-card">
+          <div class="quest-card-header">
+            <div class="quest-card-tags">
+              ${item.urgency.badgeHtml}
+              <span class="quest-pill-date">📅 计划：${escapeHtml(item.timingDisplay || item.details.displayDate)}</span>
+              ${actualDate ? `
+                <span class="quest-pill-actual" onclick="openEditMonthlyRoutineModal(${item.id})" title="实际发生时间：${escapeHtml(actualDate)} (点击修改)">
+                  🎯 实际：${formatDisplayDateOnly(actualDate)} ✏️
+                </span>
+              ` : `
+                <span class="quest-pill-actual empty" onclick="openEditMonthlyRoutineModal(${item.id})" title="计划时间已锁定，点击设定本月实际时间">
+                  ＋ 实际时间
+                </span>
+              `}
+            </div>
+
+            <button class="quest-btn-complete ${isCompleted ? 'checked' : ''}" onclick="toggleMonthlyRoutineComplete(${item.id})" title="${isCompleted ? '已完成，点击标记为未完成' : '点击标记为本月已完成'}">
+              ${isCompleted ? '✓ 已完成' : '○ 标记完成'}
+            </button>
           </div>
 
-          <div class="routine-card-title-text" onclick="toggleMonthlyRoutineComplete(${item.id})" title="点击可切换完成状态">
+          <div class="quest-card-title" onclick="toggleMonthlyRoutineComplete(${item.id})" title="点击切换完成状态">
             ${escapeHtml(item.title)}
           </div>
 
           ${item.check.note ? `
-            <div class="routine-card-note-preview" onclick="toggleRoutineNoteBox(${item.id})" title="点击展开编辑备忘">
+            <div class="quest-card-note-preview" onclick="toggleRoutineNoteBox(${item.id})" title="点击展开编辑备忘">
               💬 <strong>备忘：</strong>${escapeHtml(item.check.note)}
             </div>
           ` : ''}
@@ -16845,26 +16984,52 @@ function renderMonthlyRoutines() {
             <div style="font-size:11.5px; font-weight:700; margin-bottom:5px; color:var(--text-secondary);">本月备忘记录：</div>
             <textarea class="routine-note-textarea" id="routine-note-input-${item.id}" placeholder="输入会议室号、邮件主题或备忘记录..." onblur="saveMonthlyRoutineNote(${item.id})">${escapeHtml(item.check.note || '')}</textarea>
           </div>
-        </div>
 
-        <div class="routine-card-actions-col">
-          <button class="btn btn-xs btn-ghost" onclick="toggleRoutineNoteBox(${item.id})" title="添加或修改备忘">
-            ${item.check.note ? '📝 修改备忘' : '＋ 备忘'}
-          </button>
-          <button class="btn btn-xs btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项与实际时间">
-            ✏️ 编辑
-          </button>
-          ${item.isCustom ? `
-            <button class="btn btn-xs btn-ghost" style="color:#dc2626;" onclick="deleteMonthlyRoutine(${item.id})" title="删除此事项">
-              🗑️
-            </button>
-          ` : ''}
+          <div class="quest-card-footer">
+            <div style="font-size:11px; color:#94a3b8;">
+              ${item.category ? escapeHtml(item.category) : '月度关卡'}
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="btn btn-xs btn-ghost" onclick="toggleRoutineNoteBox(${item.id})" title="添加或修改备忘">
+                ${item.check.note ? '📝 修改备忘' : '＋ 备忘'}
+              </button>
+              <button class="btn btn-xs btn-ghost" onclick="openEditMonthlyRoutineModal(${item.id})" title="编辑此事项与实际时间">
+                ✏️ 编辑
+              </button>
+              ${item.isCustom ? `
+                <button class="btn btn-xs btn-ghost" style="color:#dc2626;" onclick="deleteMonthlyRoutine(${item.id})" title="删除此事项">
+                  🗑️
+                </button>
+              ` : ''}
+            </div>
+          </div>
         </div>
       </div>
     `;
-  }).join('');
+  });
 
-  container.innerHTML = bannerHtml + cardsHtml;
+  if (isCurrentCalendarMonth && !todayMarkerInserted) {
+    timelineItemsHtml += `
+      <div class="quest-today-divider">
+        <div class="quest-today-beacon" title="当前日期位置"></div>
+        <div class="quest-today-pill">
+          <span>📍 今天是 ${month}月${todayDay}日 (${todayDayOfWeek})</span>
+        </div>
+        <div class="quest-today-line"></div>
+      </div>
+    `;
+    todayMarkerInserted = true;
+  }
+
+  const timelineWrapHtml = `
+    <div class="quest-timeline-container">
+      <div class="quest-timeline-track">
+        ${timelineItemsHtml}
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = bannerHtml + timelineWrapHtml;
 }
 
 function toggleMonthlyRoutineComplete(routineId) {
