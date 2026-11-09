@@ -5868,7 +5868,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.5</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.6</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -18036,13 +18036,23 @@ const DEFAULT_MONTHLY_ROUTINES = [
   },
   {
     id: 2,
-    title: "发送技术运营月报 + 遗留任务双周报",
+    title: "发送技术运营月报",
     type: "week",
     value: 2,
     timingDisplay: "每月第二周",
-    category: "📊 运营月报 & 双周报",
+    category: "📊 技术运营月报",
     icon: "📊",
     color: "#8b5cf6"
+  },
+  {
+    id: 5,
+    title: "发送遗留任务双周报",
+    type: "week",
+    value: 2,
+    timingDisplay: "每月第二周",
+    category: "📋 遗留任务双周报",
+    icon: "📋",
+    color: "#ec4899"
   },
   {
     id: 3,
@@ -18293,15 +18303,47 @@ function renderMonthlyRoutines() {
     // Purge verbose default descriptions and subtasks to ensure an ultra-clean minimal panel
     let modified = false;
     routines = routines.map(r => {
-      if (r.id <= 4 && (r.description || (r.subtasks && r.subtasks.length > 0))) {
+      if (r.id <= 5 && (r.description || (r.subtasks && r.subtasks.length > 0))) {
         modified = true;
         const { description, subtasks, ...clean } = r;
         return clean;
       }
       return r;
     });
+
+    // Auto-migrate: split merged item "发送技术运营月报 + 遗留任务双周报" into two separate items
+    const mergedIdx = routines.findIndex(r => r.title && r.title.includes('技术运营月报') && r.title.includes('遗留任务双周报'));
+    if (mergedIdx !== -1) {
+      modified = true;
+      const mergedItem = routines[mergedIdx];
+      const itemTech = {
+        id: mergedItem.id || 2,
+        title: "发送技术运营月报",
+        type: mergedItem.type || "week",
+        value: mergedItem.value || 2,
+        timingDisplay: mergedItem.timingDisplay || "每月第二周",
+        category: "📊 技术运营月报",
+        icon: "📊",
+        color: "#8b5cf6"
+      };
+      const existingIds = routines.map(r => r.id);
+      const nextId = existingIds.includes(5) ? Math.max(...existingIds) + 1 : 5;
+      const itemLegacy = {
+        id: nextId,
+        title: "发送遗留任务双周报",
+        type: "week",
+        value: mergedItem.value || 2,
+        timingDisplay: mergedItem.timingDisplay || "每月第二周",
+        category: "📋 遗留任务双周报",
+        icon: "📋",
+        color: "#ec4899"
+      };
+      routines.splice(mergedIdx, 1, itemTech, itemLegacy);
+    }
+
     if (modified) {
       setData(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
+      syncKeyToHostDatabase(STORAGE_KEYS.MONTHLY_ROUTINES, routines);
     }
   }
 
@@ -18328,7 +18370,7 @@ function renderMonthlyRoutines() {
   });
 
   // Timeline order: Chronological order of the month (sortDay 1 -> 31)
-  computedItems.sort((a, b) => a.details.sortDay - b.details.sortDay);
+  computedItems.sort((a, b) => a.details.sortDay - b.details.sortDay || a.id - b.id);
 
   const totalCount = computedItems.length;
   const completedCount = computedItems.filter(i => i.isCompleted).length;
@@ -19941,7 +19983,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.5.5';
+window.APP_VERSION = 'v1.5.6';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
