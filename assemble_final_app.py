@@ -6352,14 +6352,16 @@ html_template = """<!DOCTYPE html>
         <input type="hidden" id="inputTransitId" value="" />
 
         <!-- 智能联动提醒 -->
+        <!-- 智能联动提醒 -->
         <div style="font-size:11.5px; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; border-radius:var(--radius-sm); padding:7px 10px; line-height:1.5;">
-          ✨ <strong>智能联动：</strong>登记在途航空后，系统将自动识别领导出差地与当地时区（无需另行登记出差）。若未登记返回开罗的航空，系统默认领导始终在最后的目的地。
+          ✨ <strong>智能联动：</strong>登记在途航空后，系统将自动识别领导出差地与当地时区（无需另行登记出差）。若未登记返回开罗的航空，系统默认领导始终在最后的目的地。<br>
+          <span style="color:#0284c7; font-weight:600;">💡 仅“起飞日期”为必填，时间、航程名称、时区等均为选填（留空自动使用默认值或生成）。</span>
         </div>
 
         <!-- 航程 / 行程说明 -->
         <div>
-          <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">行程说明 / 航程 *</label>
-          <input type="text" id="inputTransitTitle" placeholder="如：开罗 ✈ 喀麦隆 / 经停迪拜" class="form-control" style="width:100%; padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);" required />
+          <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">行程说明 / 航程 (选填，留空自动生成)</label>
+          <input type="text" id="inputTransitTitle" placeholder="留空自动根据时区生成，如：开罗 ✈ 喀麦隆" class="form-control" style="width:100%; padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);" />
         </div>
 
         <!-- 1. 起飞 (Departure) -->
@@ -6369,15 +6371,15 @@ html_template = """<!DOCTYPE html>
           </div>
           <div style="display:grid; grid-template-columns: 1.1fr 1fr 1.2fr; gap:8px;">
             <div>
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">起飞日期 *</span>
-              <input type="date" id="inputTransitDepDate" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" required />
+              <span style="font-size:11px; color:#0369a1; font-weight:700; display:block; margin-bottom:3px;">起飞日期 * (必填)</span>
+              <input type="date" id="inputTransitDepDate" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1.5px solid #0284c7; border-radius:4px;" required />
             </div>
             <div>
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">起飞时间 *</span>
-              <input type="text" id="inputTransitDepTime" placeholder="09:30" oninput="handleTransitFormChange()" onblur="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" required />
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">起飞时间 (选填)</span>
+              <input type="text" id="inputTransitDepTime" placeholder="如 09:30 (选填)" oninput="handleTransitFormChange()" onblur="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" />
             </div>
             <div>
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">起飞时区 *</span>
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">起飞时区 (默认开罗)</span>
               <select id="inputTransitDepTz" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
                 <option value="cairo" selected>埃及·开罗 (UTC+2)</option>
                 <option value="cameroon">喀麦隆 (UTC+1)</option>
@@ -6401,15 +6403,15 @@ html_template = """<!DOCTYPE html>
           </div>
           <div style="display:grid; grid-template-columns: 1.1fr 1fr 1.2fr; gap:8px;">
             <div>
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地日期 *</span>
-              <input type="date" id="inputTransitArrDate" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" required />
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地日期 (选填，留空同起飞)</span>
+              <input type="date" id="inputTransitArrDate" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" />
             </div>
             <div>
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地时间 *</span>
-              <input type="text" id="inputTransitArrTime" placeholder="14:45" oninput="handleTransitFormChange()" onblur="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" required />
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地时间 (选填)</span>
+              <input type="text" id="inputTransitArrTime" placeholder="如 14:45 (选填)" oninput="handleTransitFormChange()" onblur="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" />
             </div>
             <div>
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地时区 *</span>
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地时区 (默认喀麦隆)</span>
               <select id="inputTransitArrTz" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
                 <option value="cairo">埃及·开罗 (UTC+2)</option>
                 <option value="cameroon" selected>喀麦隆 (UTC+1)</option>
@@ -6428,18 +6430,18 @@ html_template = """<!DOCTYPE html>
 
         <!-- 3. 跨时区在途时长实时计算条 -->
         <div id="transitDurationLiveHint" style="font-size:11.5px; font-weight:600; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; border-radius:5px; padding:6px 10px;">
-          ⏱️ 跨时区飞行耗时：请输入起降时间计算
+          ⏱️ 跨时区飞行耗时：请输入起飞日期（起降时间选填）
         </div>
 
         <!-- 4. 航班号与备注 -->
         <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:10px;">
           <div>
-            <label style="display:block; font-size:11.5px; font-weight:600; margin-bottom:3px;">航班号 / 交通代码</label>
-            <input type="text" id="inputTransitFlightNo" placeholder="如：MS887" style="width:100%; padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);" />
+            <label style="display:block; font-size:11.5px; font-weight:600; margin-bottom:3px;">航班号 / 交通代码 (选填)</label>
+            <input type="text" id="inputTransitFlightNo" placeholder="如：MS887 (选填)" style="width:100%; padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);" />
           </div>
           <div>
-            <label style="display:block; font-size:11.5px; font-weight:600; margin-bottom:3px;">在途备注</label>
-            <input type="text" id="inputTransitRemark" placeholder="如：机上不可约 / 免打扰" style="width:100%; padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);" />
+            <label style="display:block; font-size:11.5px; font-weight:600; margin-bottom:3px;">在途备注 (选填)</label>
+            <input type="text" id="inputTransitRemark" placeholder="如：机上不可约 / 免打扰 (选填)" style="width:100%; padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);" />
           </div>
         </div>
 
@@ -8058,19 +8060,31 @@ function handleTransitFormChange() {
   const arrTzSelect = document.getElementById('inputTransitArrTz');
   const hintEl = document.getElementById('transitDurationLiveHint');
 
-  if (!depDateInput || !depTimeInput || !arrDateInput || !arrTimeInput || !hintEl) return;
+  if (!depDateInput || !hintEl) return;
 
   const depDate = depDateInput.value;
-  let depTime = depTimeInput.value.trim();
+  let depTime = depTimeInput ? depTimeInput.value.trim() : '';
   const depTz = depTzSelect ? depTzSelect.value : 'cairo';
-  let arrDate = arrDateInput.value;
-  let arrTime = arrTimeInput.value.trim();
+  let arrDate = arrDateInput ? arrDateInput.value : '';
+  let arrTime = arrTimeInput ? arrTimeInput.value.trim() : '';
   const arrTz = arrTzSelect ? arrTzSelect.value : 'cameroon';
 
-  // Auto-sync arrival date if empty
+  // 落地日期留空时自动参考起飞日期
   if (!arrDate && depDate) {
     arrDate = depDate;
-    arrDateInput.value = depDate;
+    if (arrDateInput) arrDateInput.placeholder = depDate;
+  }
+
+  const depInfo = TRIP_TIMEZONE_MAP[depTz] || TRIP_TIMEZONE_MAP.cairo;
+  const arrInfo = TRIP_TIMEZONE_MAP[arrTz] || TRIP_TIMEZONE_MAP.cameroon;
+  const destInfo = (arrTz === 'cairo') ? '🛬 返回开罗总部常驻' : `✈️ 出差目的地：${arrInfo.name} (未登记返程默认在目的地)`;
+
+  if (!depDate) {
+    hintEl.innerHTML = '⏱️ 请选择起飞日期（仅日期必填，其余均可留空）';
+    hintEl.style.color = '#0369a1';
+    hintEl.style.background = '#f0f9ff';
+    hintEl.style.borderColor = '#bae6fd';
+    return;
   }
 
   if (depTime) {
@@ -8082,24 +8096,24 @@ function handleTransitFormChange() {
     if (norm) arrTime = norm;
   }
 
-  if (!depDate || !depTime || !arrDate || !arrTime) {
-    hintEl.innerHTML = '⏱️ 跨时区飞行耗时：请输入起降时间计算';
+  const effectiveArrDate = arrDate || depDate;
+
+  // 起降时间未完整填写时，作为全天在途行程，不报错
+  if (!depTime || !arrTime) {
+    hintEl.innerHTML = `⏱️ <strong>全天在途行程</strong>：${depDate} (${depInfo.name}) ➔ ${effectiveArrDate} (${arrInfo.name})（起降时间选填，填写后可精确计算耗时）<br><span style="font-size:11px; color:#0284c7; font-weight:600; margin-top:3px; display:inline-block;">✨ 自动识别出差行程：${destInfo}</span>`;
     hintEl.style.color = '#0369a1';
     hintEl.style.background = '#f0f9ff';
     hintEl.style.borderColor = '#bae6fd';
     return;
   }
 
-  const calc = calculateTransitDuration(depDate, depTime, depTz, arrDate, arrTime, arrTz);
+  const calc = calculateTransitDuration(depDate, depTime, depTz, effectiveArrDate, arrTime, arrTz);
   if (!calc || !calc.isValid) {
     hintEl.innerHTML = '⚠️ 落地时间早于或等于起飞时间，请核对跨时区日期或时间';
     hintEl.style.color = '#dc2626';
     hintEl.style.background = '#fef2f2';
     hintEl.style.borderColor = '#fecaca';
   } else {
-    const depInfo = TRIP_TIMEZONE_MAP[depTz] || TRIP_TIMEZONE_MAP.cairo;
-    const arrInfo = TRIP_TIMEZONE_MAP[arrTz] || TRIP_TIMEZONE_MAP.cameroon;
-    const destInfo = (arrTz === 'cairo') ? '🛬 返回开罗总部常驻' : `✈️ 出差目的地：${arrInfo.name} (未登记返程默认在目的地)`;
     hintEl.innerHTML = `⏱️ 跨时区飞行耗时：<strong>约 ${calc.text}</strong>（起飞: ${depInfo.name} UTC+${depInfo.utcOffset} ➔ 落地: ${arrInfo.name} UTC+${arrInfo.utcOffset}）<br><span style="font-size:11px; color:#0284c7; font-weight:600; margin-top:3px; display:inline-block;">✨ 自动识别出差行程：${destInfo}</span>`;
     hintEl.style.color = '#0369a1';
     hintEl.style.background = '#f0f9ff';
@@ -8132,10 +8146,10 @@ function openTransitModal(transitId) {
       if (idInput) idInput.value = t.id;
       if (titleInput) titleInput.value = t.title || '';
       if (depDateInput) depDateInput.value = t.depDate || todayStr;
-      if (depTimeInput) depTimeInput.value = t.depTime || '09:30';
+      if (depTimeInput) depTimeInput.value = t.depTime || '';
       if (depTzSelect) depTzSelect.value = t.depTz || 'cairo';
-      if (arrDateInput) arrDateInput.value = t.arrDate || todayStr;
-      if (arrTimeInput) arrTimeInput.value = t.arrTime || '14:45';
+      if (arrDateInput) arrDateInput.value = t.arrDate || t.depDate || todayStr;
+      if (arrTimeInput) arrTimeInput.value = t.arrTime || '';
       if (arrTzSelect) arrTzSelect.value = t.arrTz || 'cameroon';
       if (flightNoInput) flightNoInput.value = t.flightNo || '';
       if (remarkInput) remarkInput.value = t.remark || '';
@@ -8146,13 +8160,13 @@ function openTransitModal(transitId) {
     if (idInput) idInput.value = '';
     if (titleInput) titleInput.value = '';
     if (depDateInput) depDateInput.value = todayStr;
-    if (depTimeInput) depTimeInput.value = '09:30';
+    if (depTimeInput) depTimeInput.value = ''; // 默认为空，选填
     if (depTzSelect) {
       // 智能预选出发地：若当前领导已在出差地，起飞地自动选该出差地；否则默认开罗
       depTzSelect.value = (activeTrip && activeTrip.destination && activeTrip.destination !== 'cairo') ? activeTrip.destination : 'cairo';
     }
     if (arrDateInput) arrDateInput.value = todayStr;
-    if (arrTimeInput) arrTimeInput.value = '14:45';
+    if (arrTimeInput) arrTimeInput.value = ''; // 默认为空，选填
     if (arrTzSelect) {
       // 智能预选落地地：若起飞地为出差地，落地默认预选开罗（返回总部）；若起飞为开罗，落地预选喀麦隆
       if (depTzSelect && depTzSelect.value !== 'cairo') {
@@ -8187,35 +8201,53 @@ function saveLeaderTransit() {
   const depDate = depDateInput ? depDateInput.value : '';
   let depTime = (depTimeInput ? depTimeInput.value : '').trim();
   const depTz = depTzSelect ? depTzSelect.value : 'cairo';
-  const arrDate = arrDateInput ? arrDateInput.value : '';
+  let arrDate = (arrDateInput ? arrDateInput.value : '').trim();
   let arrTime = (arrTimeInput ? arrTimeInput.value : '').trim();
   const arrTz = arrTzSelect ? arrTzSelect.value : 'cameroon';
   const flightNo = (flightNoInput ? flightNoInput.value : '').trim();
   const remark = (remarkInput ? remarkInput.value : '').trim();
 
-  if (!depDate || !depTime) {
-    showToast('⚠️ 请填写起飞日期与起飞时间');
-    return;
-  }
-  if (!arrDate || !arrTime) {
-    showToast('⚠️ 请填写落地日期与落地时间');
+  // 核心规则：仅起飞日期为必填项，其余均可选填
+  if (!depDate) {
+    showToast('⚠️ 请选择起飞日期');
     return;
   }
 
-  const normDep = normalizeTimeStr(depTime) || depTime;
-  const normArr = normalizeTimeStr(arrTime) || arrTime;
+  // 落地日期留空时默认同起飞日期
+  if (!arrDate) {
+    arrDate = depDate;
+  }
 
-  const calc = calculateTransitDuration(depDate, normDep, depTz, arrDate, normArr, arrTz);
-  if (!calc || !calc.isValid) {
-    showToast('⚠️ 落地时间不能早于或等于起飞时间，请核对跨时区时间');
-    return;
+  const normDep = depTime ? (normalizeTimeStr(depTime) || depTime) : '';
+  const normArr = arrTime ? (normalizeTimeStr(arrTime) || arrTime) : '';
+
+  let durationMins = 0;
+  let durationText = '在途';
+
+  if (normDep && normArr) {
+    const calc = calculateTransitDuration(depDate, normDep, depTz, arrDate, normArr, arrTz);
+    if (!calc || !calc.isValid) {
+      showToast('⚠️ 落地时间不能早于或等于起飞时间，请核对跨时区时间');
+      return;
+    }
+    durationMins = calc.diffMins;
+    durationText = calc.text;
+  } else if (normDep && !normArr) {
+    durationText = `${normDep}起飞`;
+  } else if (!normDep && normArr) {
+    durationText = `${normArr}落地`;
+  } else {
+    durationText = '全天在途';
   }
 
   const depInfo = TRIP_TIMEZONE_MAP[depTz] || TRIP_TIMEZONE_MAP.cairo;
   const arrInfo = TRIP_TIMEZONE_MAP[arrTz] || TRIP_TIMEZONE_MAP.cameroon;
 
+  // 标题留空时自动生成清晰航程，如：开罗 ✈ 喀麦隆
   if (!title) {
-    title = `${depInfo.name.replace(/.*·/, '')} ✈ ${arrInfo.name.replace(/.*·/, '')}`;
+    const depCity = (depInfo.name || '开罗').replace(/.*·/, '');
+    const arrCity = (arrInfo.name || '目的地').replace(/.*·/, '');
+    title = `${depCity} ✈ ${arrCity}`;
   }
 
   const transits = getLeaderTransits();
@@ -8235,8 +8267,8 @@ function saveLeaderTransit() {
     arrTz,
     arrTzName: arrInfo.name,
     arrUtcOffset: arrInfo.utcOffset,
-    durationMins: calc.diffMins,
-    durationText: calc.text,
+    durationMins,
+    durationText,
     remark
   };
 
@@ -8311,20 +8343,25 @@ function renderTransitExistingList() {
       📋 已登记在途行程 (${transits.length} 条)：
     </div>
     <div style="display:flex; flex-direction:column; gap:5px; max-height:120px; overflow-y:auto;">
-      ${transits.map(t => `
+      ${transits.map(t => {
+        const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
+        const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
+        const durStr = t.durationText ? `(${escapeHtml(t.durationText)})` : '';
+        return `
         <div style="display:flex; align-items:center; justify-content:space-between; background:#f0f9ff; border:1px solid #bae6fd; border-radius:var(--radius-sm); padding:5px 8px; font-size:11.5px;">
           <div>
             <span style="font-weight:700; color:#0369a1;">🛫 ${escapeHtml(t.title)}</span>
             ${t.flightNo ? `<span style="margin-left:6px; background:#e0f2fe; color:#0369a1; padding:1px 4px; border-radius:3px; font-size:10.5px; font-weight:600;">${escapeHtml(t.flightNo)}</span>` : ''}
-            <span style="margin-left:6px; color:#475569;">${t.depDate} ${t.depTime} ➔ ${t.arrDate} ${t.arrTime}</span>
-            <span style="margin-left:4px; color:#0284c7; font-weight:600;">(约 ${escapeHtml(t.durationText || '')})</span>
+            <span style="margin-left:6px; color:#475569;">${depStr} ➔ ${arrStr}</span>
+            <span style="margin-left:4px; color:#0284c7; font-weight:600;">${durStr}</span>
           </div>
           <div style="display:flex; gap:4px;">
             <button class="btn btn-sm btn-ghost" style="padding:1px 5px; font-size:11px;" onclick="openTransitModal(${t.id})">✏️</button>
             <button class="btn btn-sm btn-ghost" style="color:#dc2626; padding:1px 5px; font-size:11px;" onclick="deleteLeaderTransit(${t.id})" title="删除此在途行程">✕</button>
           </div>
         </div>
-      `).join('')}
+      `;
+      }).join('')}
     </div>
   `;
 }
@@ -8332,18 +8369,23 @@ function renderTransitExistingList() {
 function renderWeeklyTransitCard(t) {
   const depTzName = t.depTzName || ((TRIP_TIMEZONE_MAP[t.depTz] || TRIP_TIMEZONE_MAP.cairo).name);
   const arrTzName = t.arrTzName || ((TRIP_TIMEZONE_MAP[t.arrTz] || TRIP_TIMEZONE_MAP.cameroon).name);
+  const durLabel = t.durationText ? (t.durationText.includes('在途') || t.durationText.includes('起飞') || t.durationText.includes('落地') ? t.durationText : ('飞行约 ' + t.durationText)) : '在途';
+  const depDisplay = t.depTime ? `${t.depTime} (${depTzName})` : depTzName;
+  const arrDisplay = t.arrTime ? `${t.arrTime} (${arrTzName})` : arrTzName;
+  const tooltip = `🛫 领导在途：${escapeHtml(t.title)} (出发：${t.depDate} ${depDisplay} ➔ 到达：${t.arrDate} ${arrDisplay})，${escapeHtml(durLabel)}。点击查看/编辑`;
+
   return `
-    <div class="weekly-card weekly-card-transit" onclick="openTransitModal(${t.id})" title="🛫 领导在途：${escapeHtml(t.title)} (起飞：${t.depDate} ${t.depTime} ${depTzName} ➔ 落地：${t.arrDate} ${t.arrTime} ${arrTzName})，耗时约 ${escapeHtml(t.durationText || '')}。点击查看/编辑">
+    <div class="weekly-card weekly-card-transit" onclick="openTransitModal(${t.id})" title="${tooltip}">
       <div class="weekly-card-time" style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:11px; font-weight:700; color:#0284c7;">🛫 在途 · 飞行约 ${escapeHtml(t.durationText || '')}</span>
+        <span style="font-size:11px; font-weight:700; color:#0284c7;">🛫 在途 · ${escapeHtml(durLabel)}</span>
         ${t.flightNo ? `<span style="font-size:10px; background:#e0f2fe; color:#0369a1; padding:0 4px; border-radius:3px; font-weight:600;">${escapeHtml(t.flightNo)}</span>` : ''}
       </div>
       <div class="weekly-card-title" style="font-size:11.5px; font-weight:700; margin:2px 0; color:#0c4a6e;">
         ${escapeHtml(t.title)}
       </div>
       <div style="font-size:10px; color:#475569; display:flex; flex-direction:column; gap:1px;">
-        <div>起飞：${t.depTime} (${depTzName})</div>
-        <div>落地：${t.arrTime} (${arrTzName})</div>
+        <div>出发：${depDisplay}</div>
+        <div>到达：${arrDisplay}</div>
         ${t.remark ? `<div style="font-size:9.5px; color:#64748b; margin-top:1px;">📝 ${escapeHtml(t.remark)}</div>` : ''}
       </div>
     </div>
@@ -8353,24 +8395,28 @@ function renderWeeklyTransitCard(t) {
 function renderDayTransitCard(t) {
   const depTzName = t.depTzName || ((TRIP_TIMEZONE_MAP[t.depTz] || TRIP_TIMEZONE_MAP.cairo).name);
   const arrTzName = t.arrTzName || ((TRIP_TIMEZONE_MAP[t.arrTz] || TRIP_TIMEZONE_MAP.cameroon).name);
+  const durLabel = t.durationText ? (t.durationText.includes('在途') || t.durationText.includes('起飞') || t.durationText.includes('落地') ? t.durationText : ('飞行约 ' + t.durationText)) : '在途';
+  const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
+  const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
+
   return `
     <div class="day-meeting-card day-transit-card" onclick="openTransitModal(${t.id})" style="cursor:pointer;" title="点击编辑此在途行程">
       <div class="day-meeting-top">
         <div class="day-meeting-time-bar">
-          <span class="day-meeting-time-text" style="color:#0284c7; font-weight:800;">🛫 在途飞行 · 约 ${escapeHtml(t.durationText || '')}</span>
+          <span class="day-meeting-time-text" style="color:#0284c7; font-weight:800;">🛫 在途 · ${escapeHtml(durLabel)}</span>
           ${t.flightNo ? `<span style="background:#0284c7; color:#fff; font-size:11px; padding:1px 6px; border-radius:4px; font-weight:700;">${escapeHtml(t.flightNo)}</span>` : ''}
           <span class="status-badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;">旅途在途</span>
         </div>
         <div style="font-size:11.5px; color:#0369a1; font-weight:600;">
-          ⏱️ 真实跨时区航程
+          ⏱️ 跨时区在途行程
         </div>
       </div>
       <div class="day-meeting-title" style="color:#0c4a6e;">
         ✈️ ${escapeHtml(t.title)}
       </div>
       <div style="display:flex; flex-wrap:wrap; gap:16px; font-size:12px; color:#334155; margin:6px 0; background:#fff; padding:6px 10px; border-radius:4px; border:1px solid #e0f2fe;">
-        <div>🛫 <strong>起飞：</strong>${t.depDate} ${t.depTime} <span style="color:#64748b;">(${depTzName})</span></div>
-        <div>🛬 <strong>落地：</strong>${t.arrDate} ${t.arrTime} <span style="color:#64748b;">(${arrTzName})</span></div>
+        <div>🛫 <strong>出发：</strong>${depStr} <span style="color:#64748b;">(${depTzName})</span></div>
+        <div>🛬 <strong>到达：</strong>${arrStr} <span style="color:#64748b;">(${arrTzName})</span></div>
       </div>
       ${t.remark ? `<div style="font-size:11.5px; color:#475569; margin-top:2px;">📝 <strong>备注：</strong>${escapeHtml(t.remark)}</div>` : ''}
       <div class="day-meeting-actions" style="margin-top:8px;">
@@ -10263,8 +10309,11 @@ function exportSingleDayScheduleNotice(dateStr) {
     dayTransits.forEach(t => {
       const depTzName = t.depTzName || ((TRIP_TIMEZONE_MAP[t.depTz] || TRIP_TIMEZONE_MAP.cairo).name);
       const arrTzName = t.arrTzName || ((TRIP_TIMEZONE_MAP[t.arrTz] || TRIP_TIMEZONE_MAP.cameroon).name);
+      const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
+      const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
+      const durInfo = t.durationText ? `，${t.durationText}` : '';
       lines.push(`🛫 【领导在途动态】${t.title} ${t.flightNo ? '(' + t.flightNo + ')' : ''}`);
-      lines.push(`   起飞：${t.depDate} ${t.depTime} (${depTzName}) ➔ 落地：${t.arrDate} ${t.arrTime} (${arrTzName})，耗时约 ${t.durationText || ''}`);
+      lines.push(`   出发：${depStr} (${depTzName}) ➔ 到达：${arrStr} (${arrTzName})${durInfo}`);
       if (t.remark) lines.push(`   在途备忘：${t.remark}`);
       lines.push('');
     });
@@ -10511,7 +10560,7 @@ function renderSupervisorDayCalendar() {
         const curDayTrip = getTripForDate(curDateStr);
         return curDayTrip ? `<div class="day-stat-chip" style="background:#dcfce7; border-color:#86efac; color:#15803d; font-weight:700;">✈️ 领导出差中 · 目的地：${curDayTrip.tzFlag} ${curDayTrip.tzName} (会议已显示当地时间，并附注开罗开始时间)</div>` : '';
       })()}
-      ${curDayTransits.length > 0 ? `<div class="day-stat-chip" style="background:#e0f2fe; border-color:#bae6fd; color:#0369a1; font-weight:700;">🛫 领导在途 · ${escapeHtml(curDayTransits[0].title)} (耗时约 ${curDayTransits[0].durationText})</div>` : ''}
+      ${curDayTransits.length > 0 ? `<div class="day-stat-chip" style="background:#e0f2fe; border-color:#bae6fd; color:#0369a1; font-weight:700;">🛫 领导在途 · ${escapeHtml(curDayTransits[0].title)} (${escapeHtml(curDayTransits[0].durationText ? (curDayTransits[0].durationText.includes('在途') ? curDayTransits[0].durationText : ('耗时约 ' + curDayTransits[0].durationText)) : '在途')})</div>` : ''}
     </div>
 
     <div class="day-cal-layout">
