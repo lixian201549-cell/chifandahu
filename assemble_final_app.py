@@ -6351,18 +6351,88 @@ html_template = """<!DOCTYPE html>
       <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
         <input type="hidden" id="inputTransitId" value="" />
 
+        <!-- 全球常用国家/城市快速补全推荐清单 -->
+        <datalist id="transitLocationPresets">
+          <option value="埃及·开罗">🇪🇬 埃及·开罗 (常驻总部 · UTC+2)</option>
+          <option value="土耳其">🇹🇷 土耳其 (UTC+3 · 比开罗快 1 小时)</option>
+          <option value="阿联酋·迪拜">🇦🇪 阿联酋·迪拜 (UTC+4 · 比开罗快 2 小时)</option>
+          <option value="沙特·利雅得">🇸🇦 沙特·利雅得 (UTC+3 · 比开罗快 1 小时)</option>
+          <option value="卡塔尔·多哈">🇶🇦 卡塔尔·多哈 (UTC+3 · 比开罗快 1 小时)</option>
+          <option value="喀麦隆">🇨🇲 喀麦隆 (UTC+1 · 比开罗慢 1 小时)</option>
+          <option value="刚果（金）">🇨🇩 刚果（金） (UTC+1 · 比开罗慢 1 小时)</option>
+          <option value="科特迪瓦">🇨🇮 科特迪瓦 (UTC+0 · 比开罗慢 2 小时)</option>
+          <option value="塞内加尔">🇸🇳 塞内加尔 (UTC+0 · 比开罗慢 2 小时)</option>
+          <option value="利比亚">🇱🇾 利比亚 (UTC+2 · 无时差)</option>
+          <option value="突尼斯">🇹🇳 突尼斯 (UTC+1 · 比开罗慢 1 小时)</option>
+          <option value="阿尔及利亚">🇩🇿 阿尔及利亚 (UTC+1 · 比开罗慢 1 小时)</option>
+          <option value="摩洛哥">🇲🇦 摩洛哥 (UTC+0 · 比开罗慢 2 小时)</option>
+          <option value="肯尼亚·内罗毕">🇰🇪 肯尼亚·内罗毕 (UTC+3 · 比开罗快 1 小时)</option>
+          <option value="埃塞俄比亚">🇪🇹 埃塞俄比亚 (UTC+3 · 比开罗快 1 小时)</option>
+          <option value="南非·约翰内斯堡">🇿🇦 南非·约翰内斯堡 (UTC+2 · 无时差)</option>
+          <option value="尼日利亚·拉各斯">🇳🇬 尼日利亚·拉各斯 (UTC+1 · 比开罗慢 1 小时)</option>
+          <option value="中国·北京">🇨🇳 中国·北京 (UTC+8 · 比开罗快 6 小时)</option>
+          <option value="英国·伦敦">🇬🇧 英国·伦敦 (UTC+0 · 比开罗慢 2 小时)</option>
+          <option value="法国·巴黎">🇫🇷 法国·巴黎 (UTC+1 · 比开罗慢 1 小时)</option>
+          <option value="德国·柏林">🇩🇪 德国·柏林 (UTC+1 · 比开罗慢 1 小时)</option>
+        </datalist>
+
         <!-- 航程 / 行程说明 -->
         <div>
           <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">行程说明 / 航程</label>
-          <input type="text" id="inputTransitTitle" placeholder="如：开罗 ✈ 喀麦隆" class="form-control" style="width:100%; padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);" />
+          <input type="text" id="inputTransitTitle" placeholder="如：开罗 ✈ 土耳其" class="form-control" style="width:100%; padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);" />
         </div>
 
         <!-- 1. 起飞 (Departure) -->
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:3.5px solid #0284c7; border-radius:var(--radius-sm); padding:10px 12px;">
           <div style="font-size:12px; font-weight:700; color:#0369a1; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
-            <span>🛫 起飞信息 (出发地当地时区)</span>
+            <span>🛫 起飞信息</span>
           </div>
-          <div style="display:grid; grid-template-columns: 1.1fr 1fr 1.2fr; gap:8px;">
+          <div style="display:grid; grid-template-columns: 1.1fr 1.3fr; gap:8px; margin-bottom:8px;">
+            <div>
+              <span style="font-size:11px; color:#0369a1; font-weight:700; display:block; margin-bottom:3px;">出发点</span>
+              <input type="text" id="inputTransitDepCity" list="transitLocationPresets" placeholder="如：开罗 / 土耳其 / 迪拜" oninput="handleTransitLocationInput('dep')" onblur="handleTransitLocationBlur('dep')" style="width:100%; padding:5px 8px; font-size:11.5px; border:1px solid var(--border); border-radius:4px; font-weight:600;" />
+            </div>
+            <div>
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">出发时区</span>
+              <select id="inputTransitDepTz" onchange="handleTransitTzManualChange('dep')" style="width:100%; padding:5px 6px; font-size:11px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
+                <option value="cairo" selected>埃及·开罗 (UTC+2 · 基准)</option>
+                <option value="turkey">土耳其 (UTC+3 · 快 1 小时)</option>
+                <option value="uae_dubai">阿联酋·迪拜 (UTC+4 · 快 2 小时)</option>
+                <option value="saudi">沙特·利雅得 (UTC+3 · 快 1 小时)</option>
+                <option value="cameroon">喀麦隆 (UTC+1 · 慢 1 小时)</option>
+                <option value="congo_drc">刚果（金） (UTC+1 · 慢 1 小时)</option>
+                <option value="cote_divoire">科特迪瓦 (UTC+0 · 慢 2 小时)</option>
+                <option value="senegal">塞内加尔 (UTC+0 · 慢 2 小时)</option>
+                <option value="med_south_libya">利比亚 (UTC+2 · 无时差)</option>
+                <option value="med_south_tunis">突尼斯 (UTC+1 · 慢 1 小时)</option>
+                <option value="algeria">阿尔及利亚 (UTC+1 · 慢 1 小时)</option>
+                <option value="morocco">摩洛哥 (UTC+0 · 慢 2 小时)</option>
+                <option value="kenya">肯尼亚·内罗毕 (UTC+3 · 快 1 小时)</option>
+                <option value="south_africa">南非 (UTC+2 · 无时差)</option>
+                <option value="beijing">中国·北京 (UTC+8 · 快 6 小时)</option>
+                <option value="uk">英国·伦敦 (UTC+0 · 慢 2 小时)</option>
+                <option value="france">法国·巴黎 (UTC+1 · 慢 1 小时)</option>
+                <option value="germany">德国·柏林 (UTC+1 · 慢 1 小时)</option>
+                <optgroup label="── 任意全球标准时区 ──">
+                  <option value="-8">UTC-8 (美西/硅谷 · 慢 10 小时)</option>
+                  <option value="-5">UTC-5 (美东/纽约 · 慢 7 小时)</option>
+                  <option value="-4">UTC-4 (巴西/南美 · 慢 6 小时)</option>
+                  <option value="0">UTC+0 (伦敦/格林威治 · 慢 2 小时)</option>
+                  <option value="1">UTC+1 (西非/中欧 · 慢 1 小时)</option>
+                  <option value="2">UTC+2 (开罗/地南/东欧 · 基准)</option>
+                  <option value="3">UTC+3 (土耳其/东非/海湾 · 快 1 小时)</option>
+                  <option value="4">UTC+4 (阿联酋/阿曼 · 快 2 小时)</option>
+                  <option value="5">UTC+5 (巴基斯坦/中亚 · 快 3 小时)</option>
+                  <option value="5.5">UTC+5:30 (印度 · 快 3.5 小时)</option>
+                  <option value="7">UTC+7 (东南亚/曼谷 · 快 5 小时)</option>
+                  <option value="8">UTC+8 (北京/香港/新加坡 · 快 6 小时)</option>
+                  <option value="9">UTC+9 (日本/韩国 · 快 7 小时)</option>
+                  <option value="10">UTC+10 (澳洲东部/悉尼 · 快 8 小时)</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1.1fr 1fr; gap:8px;">
             <div>
               <span style="font-size:11px; color:#0369a1; font-weight:700; display:block; margin-bottom:3px;">起飞日期</span>
               <input type="date" id="inputTransitDepDate" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1.5px solid #0284c7; border-radius:4px;" required />
@@ -6371,30 +6441,60 @@ html_template = """<!DOCTYPE html>
               <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">起飞时间</span>
               <input type="text" id="inputTransitDepTime" placeholder="如 09:30" oninput="handleTransitFormChange()" onblur="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" />
             </div>
-            <div>
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">起飞时区</span>
-              <select id="inputTransitDepTz" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
-                <option value="cairo" selected>埃及·开罗 (UTC+2)</option>
-                <option value="cameroon">喀麦隆 (UTC+1)</option>
-                <option value="med_south_libya">利比亚 (UTC+2)</option>
-                <option value="med_south_tunis">突尼斯 (UTC+1)</option>
-                <option value="algeria">阿尔及利亚 (UTC+1)</option>
-                <option value="morocco">摩洛哥 (UTC+0)</option>
-                <option value="congo_drc">刚果（金） (UTC+1)</option>
-                <option value="cote_divoire">科特迪瓦 (UTC+0)</option>
-                <option value="senegal">塞内加尔 (UTC+0)</option>
-                <option value="beijing">北京 (UTC+8)</option>
-              </select>
-            </div>
           </div>
         </div>
 
         <!-- 2. 落地 (Arrival) -->
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:3.5px solid #10b981; border-radius:var(--radius-sm); padding:10px 12px;">
           <div style="font-size:12px; font-weight:700; color:#047857; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
-            <span>🛬 落地信息 (目的地当地时区)</span>
+            <span>🛬 落地信息</span>
           </div>
-          <div style="display:grid; grid-template-columns: 1.1fr 1fr 1.2fr; gap:8px;">
+          <div style="display:grid; grid-template-columns: 1.1fr 1.3fr; gap:8px; margin-bottom:8px;">
+            <div>
+              <span style="font-size:11px; color:#047857; font-weight:700; display:block; margin-bottom:3px;">抵达点</span>
+              <input type="text" id="inputTransitArrCity" list="transitLocationPresets" placeholder="如：土耳其 / 迪拜 / 喀麦隆" oninput="handleTransitLocationInput('arr')" onblur="handleTransitLocationBlur('arr')" style="width:100%; padding:5px 8px; font-size:11.5px; border:1px solid var(--border); border-radius:4px; font-weight:600;" />
+            </div>
+            <div>
+              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地时区</span>
+              <select id="inputTransitArrTz" onchange="handleTransitTzManualChange('arr')" style="width:100%; padding:5px 6px; font-size:11px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
+                <option value="cairo">埃及·开罗 (UTC+2 · 基准)</option>
+                <option value="turkey" selected>土耳其 (UTC+3 · 快 1 小时)</option>
+                <option value="uae_dubai">阿联酋·迪拜 (UTC+4 · 快 2 小时)</option>
+                <option value="saudi">沙特·利雅得 (UTC+3 · 快 1 小时)</option>
+                <option value="cameroon">喀麦隆 (UTC+1 · 慢 1 小时)</option>
+                <option value="congo_drc">刚果（金） (UTC+1 · 慢 1 小时)</option>
+                <option value="cote_divoire">科特迪瓦 (UTC+0 · 慢 2 小时)</option>
+                <option value="senegal">塞内加尔 (UTC+0 · 慢 2 小时)</option>
+                <option value="med_south_libya">利比亚 (UTC+2 · 无时差)</option>
+                <option value="med_south_tunis">突尼斯 (UTC+1 · 慢 1 小时)</option>
+                <option value="algeria">阿尔及利亚 (UTC+1 · 慢 1 小时)</option>
+                <option value="morocco">摩洛哥 (UTC+0 · 慢 2 小时)</option>
+                <option value="kenya">肯尼亚·内罗毕 (UTC+3 · 快 1 小时)</option>
+                <option value="south_africa">南非 (UTC+2 · 无时差)</option>
+                <option value="beijing">中国·北京 (UTC+8 · 快 6 小时)</option>
+                <option value="uk">英国·伦敦 (UTC+0 · 慢 2 小时)</option>
+                <option value="france">法国·巴黎 (UTC+1 · 慢 1 小时)</option>
+                <option value="germany">德国·柏林 (UTC+1 · 慢 1 小时)</option>
+                <optgroup label="── 任意全球标准时区 ──">
+                  <option value="-8">UTC-8 (美西/硅谷 · 慢 10 小时)</option>
+                  <option value="-5">UTC-5 (美东/纽约 · 慢 7 小时)</option>
+                  <option value="-4">UTC-4 (巴西/南美 · 慢 6 小时)</option>
+                  <option value="0">UTC+0 (伦敦/格林威治 · 慢 2 小时)</option>
+                  <option value="1">UTC+1 (西非/中欧 · 慢 1 小时)</option>
+                  <option value="2">UTC+2 (开罗/地南/东欧 · 基准)</option>
+                  <option value="3">UTC+3 (土耳其/东非/海湾 · 快 1 小时)</option>
+                  <option value="4">UTC+4 (阿联酋/阿曼 · 快 2 小时)</option>
+                  <option value="5">UTC+5 (巴基斯坦/中亚 · 快 3 小时)</option>
+                  <option value="5.5">UTC+5:30 (印度 · 快 3.5 小时)</option>
+                  <option value="7">UTC+7 (东南亚/曼谷 · 快 5 小时)</option>
+                  <option value="8">UTC+8 (北京/香港/新加坡 · 快 6 小时)</option>
+                  <option value="9">UTC+9 (日本/韩国 · 快 7 小时)</option>
+                  <option value="10">UTC+10 (澳洲东部/悉尼 · 快 8 小时)</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1.1fr 1fr; gap:8px;">
             <div>
               <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地日期</span>
               <input type="date" id="inputTransitArrDate" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" />
@@ -6402,21 +6502,6 @@ html_template = """<!DOCTYPE html>
             <div>
               <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地时间</span>
               <input type="text" id="inputTransitArrTime" placeholder="如 14:45" oninput="handleTransitFormChange()" onblur="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px;" />
-            </div>
-            <div>
-              <span style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:3px;">落地时区</span>
-              <select id="inputTransitArrTz" onchange="handleTransitFormChange()" style="width:100%; padding:5px 6px; font-size:11.5px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
-                <option value="cairo">埃及·开罗 (UTC+2)</option>
-                <option value="cameroon" selected>喀麦隆 (UTC+1)</option>
-                <option value="med_south_libya">利比亚 (UTC+2)</option>
-                <option value="med_south_tunis">突尼斯 (UTC+1)</option>
-                <option value="algeria">阿尔及利亚 (UTC+1)</option>
-                <option value="morocco">摩洛哥 (UTC+0)</option>
-                <option value="congo_drc">刚果（金） (UTC+1)</option>
-                <option value="cote_divoire">科特迪瓦 (UTC+0)</option>
-                <option value="senegal">塞内加尔 (UTC+0)</option>
-                <option value="beijing">北京 (UTC+8)</option>
-              </select>
             </div>
           </div>
         </div>
@@ -7565,6 +7650,13 @@ const TIMEZONE_REPS = [
 // 出差目的地时区映射与快速换算配置 (以开罗冬令时 UTC+2 为基础)
 const TRIP_TIMEZONE_MAP = {
   cairo: { id: 'cairo', name: '埃及·开罗', utcOffset: 2, flag: '🇪🇬', diffText: '常驻基准' },
+  turkey: { id: 'turkey', name: '土耳其', utcOffset: 3, flag: '🇹🇷', diffText: '快 1 小时' },
+  uae_dubai: { id: 'uae_dubai', name: '阿联酋·迪拜', utcOffset: 4, flag: '🇦🇪', diffText: '快 2 小时' },
+  saudi: { id: 'saudi', name: '沙特阿拉伯', utcOffset: 3, flag: '🇸🇦', diffText: '快 1 小时' },
+  qatar: { id: 'qatar', name: '卡塔尔·多哈', utcOffset: 3, flag: '🇶🇦', diffText: '快 1 小时' },
+  kenya: { id: 'kenya', name: '肯尼亚·内罗毕', utcOffset: 3, flag: '🇰🇪', diffText: '快 1 小时' },
+  ethiopia: { id: 'ethiopia', name: '埃塞俄比亚', utcOffset: 3, flag: '🇪🇹', diffText: '快 1 小时' },
+  south_africa: { id: 'south_africa', name: '南非', utcOffset: 2, flag: '🇿🇦', diffText: '无时差' },
   med_south_libya: { id: 'med_south_libya', name: '地南·利比亚', utcOffset: 2, flag: '🇱🇾', diffText: '无时差' },
   med_south_tunis: { id: 'med_south_tunis', name: '地南·突尼斯', utcOffset: 1, flag: '🇹🇳', diffText: '慢 1 小时' },
   algeria: { id: 'algeria', name: '阿尔及利亚', utcOffset: 1, flag: '🇩🇿', diffText: '慢 1 小时' },
@@ -7573,8 +7665,141 @@ const TRIP_TIMEZONE_MAP = {
   cameroon: { id: 'cameroon', name: '喀麦隆', utcOffset: 1, flag: '🇨🇲', diffText: '慢 1 小时' },
   cote_divoire: { id: 'cote_divoire', name: '科特迪瓦', utcOffset: 0, flag: '🇨🇮', diffText: '慢 2 小时' },
   senegal: { id: 'senegal', name: '塞内加尔', utcOffset: 0, flag: '🇸🇳', diffText: '慢 2 小时' },
-  beijing: { id: 'beijing', name: '中国·北京', utcOffset: 8, flag: '🇨🇳', diffText: '快 6 小时' }
+  beijing: { id: 'beijing', name: '中国·北京', utcOffset: 8, flag: '🇨🇳', diffText: '快 6 小时' },
+  uk: { id: 'uk', name: '英国·伦敦', utcOffset: 0, flag: '🇬🇧', diffText: '慢 2 小时' },
+  france: { id: 'france', name: '法国·巴黎', utcOffset: 1, flag: '🇫🇷', diffText: '慢 1 小时' },
+  germany: { id: 'germany', name: '德国·柏林', utcOffset: 1, flag: '🇩🇪', diffText: '慢 1 小时' }
 };
+
+// 全球常用国家/城市与其本地时区智能映射数据库
+const WORLD_LOCATION_TZ_DB = [
+  // 1. 常驻总部与埃及
+  { keywords: ['开罗', '埃及', 'cairo', 'egypt', '总部'], name: '埃及·开罗', utcOffset: 2, flag: '🇪🇬', tzKey: 'cairo', isCairo: true },
+
+  // 2. 土耳其及周边 (用户特别提及)
+  { keywords: ['土耳其', '伊斯坦布尔', '安卡拉', 'turkey', 'istanbul', 'ankara', 'türkiye'], name: '土耳其', utcOffset: 3, flag: '🇹🇷', tzKey: 'turkey' },
+
+  // 3. 中东与海湾
+  { keywords: ['迪拜', '阿联酋', '阿布扎比', 'dubai', 'uae', 'abu dhabi'], name: '阿联酋·迪拜', utcOffset: 4, flag: '🇦🇪', tzKey: 'uae_dubai' },
+  { keywords: ['沙特', '利雅得', '吉达', 'saudi', 'riyadh', 'jeddah'], name: '沙特阿拉伯', utcOffset: 3, flag: '🇸🇦', tzKey: 'saudi' },
+  { keywords: ['卡塔尔', '多哈', 'qatar', 'doha'], name: '卡塔尔·多哈', utcOffset: 3, flag: '🇶🇦', tzKey: 'qatar' },
+  { keywords: ['阿曼', '马斯喀特', 'oman', 'muscat'], name: '阿曼', utcOffset: 4, flag: '🇴🇲', tzKey: 'oman' },
+  { keywords: ['科威特', 'kuwait'], name: '科威特', utcOffset: 3, flag: '🇰🇼', tzKey: 'kuwait' },
+  { keywords: ['巴林', 'bahrain', '麦纳麦'], name: '巴林', utcOffset: 3, flag: '🇧🇭', tzKey: 'bahrain' },
+  { keywords: ['约旦', '安曼', 'jordan', 'amman'], name: '约旦·安曼', utcOffset: 3, flag: '🇯🇴', tzKey: 'jordan' },
+  { keywords: ['黎巴嫩', '贝鲁特', 'lebanon', 'beirut'], name: '黎巴嫩·贝鲁特', utcOffset: 2, flag: '🇱🇧', tzKey: 'lebanon' },
+  { keywords: ['伊拉克', '巴格达', 'iraq', 'baghdad'], name: '伊拉克', utcOffset: 3, flag: '🇮🇶', tzKey: 'iraq' },
+
+  // 4. 北非 / 地南
+  { keywords: ['利比亚', '的黎波里', '班加西', 'libya', 'tripoli', '地南·利比亚'], name: '利比亚', utcOffset: 2, flag: '🇱🇾', tzKey: 'med_south_libya' },
+  { keywords: ['突尼斯', '突尼斯市', 'tunisia', 'tunis', '地南·突尼斯'], name: '突尼斯', utcOffset: 1, flag: '🇹🇳', tzKey: 'med_south_tunis' },
+  { keywords: ['阿尔及利亚', '阿尔及尔', 'algeria', 'algiers'], name: '阿尔及利亚', utcOffset: 1, flag: '🇩🇿', tzKey: 'algeria' },
+  { keywords: ['摩洛哥', '卡萨布兰卡', '拉巴特', 'morocco', 'casablanca', 'rabat'], name: '摩洛哥', utcOffset: 0, flag: '🇲🇦', tzKey: 'morocco' },
+
+  // 5. 中西非 (重点业务区)
+  { keywords: ['喀麦隆', '雅温得', '杜阿拉', 'cameroon', 'yaounde', 'douala'], name: '喀麦隆', utcOffset: 1, flag: '🇨🇲', tzKey: 'cameroon' },
+  { keywords: ['塞内加尔', '达喀尔', 'senegal', 'dakar'], name: '塞内加尔', utcOffset: 0, flag: '🇸🇳', tzKey: 'senegal' },
+  { keywords: ['科特迪瓦', '阿比让', "cote d'ivoire", 'ivory coast', 'abidjan'], name: '科特迪瓦', utcOffset: 0, flag: '🇨🇮', tzKey: 'cote_divoire' },
+  { keywords: ['刚果金', '刚果（金）', '刚果民主共和国', '金沙萨', 'congo drc', 'kinshasa', 'drc'], name: '刚果（金）', utcOffset: 1, flag: '🇨🇩', tzKey: 'congo_drc' },
+  { keywords: ['刚果布', '刚果（布）', '布拉柴维尔', 'brazzaville', 'congo republic'], name: '刚果（布）', utcOffset: 1, flag: '🇨🇬', tzKey: 'congo_rep' },
+  { keywords: ['尼日利亚', '拉各斯', '阿布贾', 'nigeria', 'lagos', 'abuja'], name: '尼日利亚', utcOffset: 1, flag: '🇳🇬', tzKey: 'nigeria' },
+  { keywords: ['加纳', '阿克拉', 'ghana', 'accra'], name: '加纳', utcOffset: 0, flag: '🇬🇭', tzKey: 'ghana' },
+  { keywords: ['安哥拉', '罗安达', 'angola', 'luanda'], name: '安哥拉', utcOffset: 1, flag: '🇦🇴', tzKey: 'angola' },
+  { keywords: ['加蓬', '利伯维尔', 'gabon', 'libreville'], name: '加蓬', utcOffset: 1, flag: '🇬🇦', tzKey: 'gabon' },
+  { keywords: ['几内亚', '科纳克里', 'guinea', 'conakry'], name: '几内亚', utcOffset: 0, flag: '🇬🇳', tzKey: 'guinea' },
+  { keywords: ['马里', '巴马科', 'mali', 'bamako'], name: '马里', utcOffset: 0, flag: '🇲🇱', tzKey: 'mali' },
+  { keywords: ['贝宁', '科托努', 'benin', 'cotonou'], name: '贝宁', utcOffset: 1, flag: '🇧🇯', tzKey: 'benin' },
+  { keywords: ['多哥', '洛美', 'togo', 'lome'], name: '多哥', utcOffset: 0, flag: '🇹🇬', tzKey: 'togo' },
+
+  // 6. 东非与南部非洲
+  { keywords: ['肯尼亚', '内罗毕', 'kenya', 'nairobi'], name: '肯尼亚', utcOffset: 3, flag: '🇰🇪', tzKey: 'kenya' },
+  { keywords: ['埃塞俄比亚', '亚的斯亚贝巴', 'ethiopia', 'addis ababa'], name: '埃塞俄比亚', utcOffset: 3, flag: '🇪🇹', tzKey: 'ethiopia' },
+  { keywords: ['坦桑尼亚', '达累斯萨拉姆', 'tanzania', 'dar es salaam'], name: '坦桑尼亚', utcOffset: 3, flag: '🇹🇿', tzKey: 'tanzania' },
+  { keywords: ['乌干达', '坎帕拉', 'uganda', 'kampala'], name: '乌干达', utcOffset: 3, flag: '🇺🇬', tzKey: 'uganda' },
+  { keywords: ['卢旺达', '基加利', 'rwanda', 'kigali'], name: '卢旺达', utcOffset: 2, flag: '🇷🇼', tzKey: 'rwanda' },
+  { keywords: ['南非', '约翰内斯堡', '开普敦', 'south africa', 'johannesburg', 'cape town'], name: '南非', utcOffset: 2, flag: '🇿🇦', tzKey: 'south_africa' },
+  { keywords: ['赞比亚', '卢萨卡', 'zambia', 'lusaka'], name: '赞比亚', utcOffset: 2, flag: '🇿🇲', tzKey: 'zambia' },
+  { keywords: ['津巴布韦', '哈拉雷', 'zimbabwe', 'harare'], name: '津巴布韦', utcOffset: 2, flag: '🇿🇼', tzKey: 'zimbabwe' },
+
+  // 7. 中国及亚洲
+  { keywords: ['北京', '中国', '上海', '深圳', '广州', '香港', 'china', 'beijing', 'shanghai', 'hong kong'], name: '中国·北京', utcOffset: 8, flag: '🇨🇳', tzKey: 'beijing' },
+  { keywords: ['新加坡', 'singapore'], name: '新加坡', utcOffset: 8, flag: '🇸🇬', tzKey: 'singapore' },
+  { keywords: ['马来西亚', '吉隆坡', 'malaysia', 'kuala lumpur'], name: '马来西亚', utcOffset: 8, flag: '🇲🇾', tzKey: 'malaysia' },
+  { keywords: ['泰国', '曼谷', 'thailand', 'bangkok'], name: '泰国', utcOffset: 7, flag: '🇹🇭', tzKey: 'thailand' },
+  { keywords: ['越南', '河内', '胡志明', 'vietnam', 'hanoi'], name: '越南', utcOffset: 7, flag: '🇻🇳', tzKey: 'vietnam' },
+  { keywords: ['印度', '新德里', '孟买', 'india', 'delhi', 'mumbai'], name: '印度', utcOffset: 5.5, flag: '🇮🇳', tzKey: 'india' },
+  { keywords: ['日本', '东京', 'japan', 'tokyo'], name: '日本·东京', utcOffset: 9, flag: '🇯🇵', tzKey: 'japan' },
+
+  // 8. 欧洲及美洲
+  { keywords: ['英国', '伦敦', 'uk', 'london', 'britain', 'england'], name: '英国·伦敦', utcOffset: 0, flag: '🇬🇧', tzKey: 'uk' },
+  { keywords: ['法国', '巴黎', 'france', 'paris'], name: '法国·巴黎', utcOffset: 1, flag: '🇫🇷', tzKey: 'france' },
+  { keywords: ['德国', '柏林', '法兰克福', 'germany', 'berlin', 'frankfurt'], name: '德国', utcOffset: 1, flag: '🇩🇪', tzKey: 'germany' },
+  { keywords: ['意大利', '罗马', '米兰', 'italy', 'rome', 'milan'], name: '意大利', utcOffset: 1, flag: '🇮🇹', tzKey: 'italy' },
+  { keywords: ['西班牙', '马德里', 'spain', 'madrid'], name: '西班牙', utcOffset: 1, flag: '🇪🇸', tzKey: 'spain' },
+  { keywords: ['瑞士', '苏黎世', '日内瓦', 'switzerland', 'zurich', 'geneva'], name: '瑞士', utcOffset: 1, flag: '🇨🇭', tzKey: 'switzerland' },
+  { keywords: ['俄罗斯', '莫斯科', 'russia', 'moscow'], name: '俄罗斯·莫斯科', utcOffset: 3, flag: '🇷🇺', tzKey: 'russia' },
+  { keywords: ['美国', '纽约', 'us', 'usa', 'new york'], name: '美国·纽约', utcOffset: -5, flag: '🇺🇸', tzKey: 'us_east' },
+  { keywords: ['洛杉矶', '旧金山', '硅谷', 'los angeles', 'san francisco'], name: '美国·加州', utcOffset: -8, flag: '🇺🇸', tzKey: 'us_west' }
+];
+
+function matchLocationToTz(locStr) {
+  if (!locStr) return null;
+  const s = String(locStr).trim().toLowerCase();
+  for (const item of WORLD_LOCATION_TZ_DB) {
+    for (const kw of item.keywords) {
+      if (s === kw.toLowerCase() || s.includes(kw.toLowerCase())) {
+        return item;
+      }
+    }
+  }
+  return null;
+}
+
+function getFlagForLocation(locStr) {
+  if (!locStr) return '✈️';
+  const match = matchLocationToTz(locStr);
+  if (match && match.flag) return match.flag;
+  return '✈️';
+}
+
+function isLocationCairo(city, tz, offset) {
+  if (tz === 'cairo') return true;
+  const s = (String(city || '') + ' ' + String(tz || '')).toLowerCase();
+  return s.includes('开罗') || s.includes('cairo') || s.includes('总部');
+}
+
+function getTzInfo(tzKeyOrLocation) {
+  if (!tzKeyOrLocation) return TRIP_TIMEZONE_MAP.cairo;
+  if (TRIP_TIMEZONE_MAP[tzKeyOrLocation]) return TRIP_TIMEZONE_MAP[tzKeyOrLocation];
+
+  const match = matchLocationToTz(tzKeyOrLocation);
+  if (match) {
+    const diff = match.utcOffset - 2;
+    const diffText = diff === 0 ? '无时差' : (diff > 0 ? `快 ${diff} 小时` : `慢 ${Math.abs(diff)} 小时`);
+    return {
+      id: match.tzKey || tzKeyOrLocation,
+      name: match.name || tzKeyOrLocation,
+      utcOffset: match.utcOffset,
+      flag: match.flag || '✈️',
+      diffText
+    };
+  }
+
+  const num = Number(tzKeyOrLocation);
+  if (!isNaN(num)) {
+    const diff = num - 2;
+    const diffText = diff === 0 ? '无时差' : (diff > 0 ? `快 ${diff} 小时` : `慢 ${Math.abs(diff)} 小时`);
+    return {
+      id: String(num),
+      name: `UTC${num >= 0 ? '+' : ''}${num}`,
+      utcOffset: num,
+      flag: '🌐',
+      diffText
+    };
+  }
+
+  return TRIP_TIMEZONE_MAP.cairo;
+}
 
 function getActiveTripTimezone() {
   return getData(STORAGE_KEYS.TRIP_TIMEZONE, 'cairo');
@@ -7582,8 +7807,8 @@ function getActiveTripTimezone() {
 
 function getTripTimezoneDiffHours(targetTzId) {
   const tzId = targetTzId || getActiveTripTimezone();
-  const tzInfo = TRIP_TIMEZONE_MAP[tzId] || TRIP_TIMEZONE_MAP.cairo;
-  return tzInfo.utcOffset - 2; // 相对开罗冬令时 (UTC+2) 的时差小时数
+  const info = getTzInfo(tzId);
+  return (info.utcOffset !== undefined ? info.utcOffset : 2) - 2;
 }
 
 function shiftTimeStrByHours(timeStr, diffHours) {
@@ -7628,10 +7853,11 @@ function getTransitAutoTrips() {
 
   for (let i = 0; i < sorted.length; i++) {
     const t = sorted[i];
-    const dest = t.arrTz || 'cairo';
+    const arrCity = t.arrCity || t.arrTzName || t.arrTz || 'cairo';
+    const isReturnCairo = isLocationCairo(arrCity, t.arrTz, t.arrUtcOffset);
 
     // 若落地开罗，表明是返回常驻总部，不作为出差目的地产生新的行程
-    if (dest === 'cairo') {
+    if (isReturnCairo) {
       continue;
     }
 
@@ -7642,14 +7868,15 @@ function getTransitAutoTrips() {
     // 寻找下一个改变位置的航班（飞往另一城市或返回开罗）
     for (let j = i + 1; j < sorted.length; j++) {
       const nextT = sorted[j];
+      const nextArrCity = nextT.arrCity || nextT.arrTzName || nextT.arrTz || '';
       const nextDepDate = nextT.depDate || nextT.arrDate;
       if (nextDepDate >= start) {
-        if (nextT.arrTz === 'cairo') {
+        if (isLocationCairo(nextArrCity, nextT.arrTz, nextT.arrUtcOffset)) {
           // 返程飞回开罗：出差在返抵开罗当天结束
           end = nextT.arrDate || nextT.depDate;
           isIndefinite = false;
           break;
-        } else if (nextT.arrTz !== dest) {
+        } else if (nextArrCity && nextArrCity !== arrCity) {
           // 飞往下一出差站：在前一站的出差在该航班起飞当天结束
           end = nextT.depDate || nextT.arrDate;
           isIndefinite = false;
@@ -7658,24 +7885,37 @@ function getTransitAutoTrips() {
       }
     }
 
-    const tzInfo = TRIP_TIMEZONE_MAP[dest] || TRIP_TIMEZONE_MAP.cairo;
-    const diffHours = (tzInfo.utcOffset !== undefined) ? (tzInfo.utcOffset - 2) : 0;
+    const tzInfo = getTzInfo(t.arrTz || arrCity);
+    const effectiveOffset = (t.arrUtcOffset !== undefined && t.arrUtcOffset !== null) ? Number(t.arrUtcOffset) : tzInfo.utcOffset;
+    const diffHours = effectiveOffset - 2;
+    const diffText = diffHours === 0 ? '无时差' : (diffHours > 0 ? `快 ${diffHours} 小时` : `慢 ${Math.abs(diffHours)} 小时`);
+    const cleanCityName = arrCity.replace(/\s*\(UTC[^\)]*\)/i, '').trim();
+    const flag = t.arrFlag || getFlagForLocation(cleanCityName) || tzInfo.flag || '✈️';
+
+    // 动态注册到 TRIP_TIMEZONE_MAP，确保全局无缝识别
+    TRIP_TIMEZONE_MAP[cleanCityName] = {
+      id: cleanCityName,
+      name: cleanCityName,
+      utcOffset: effectiveOffset,
+      flag: flag,
+      diffText: diffText
+    };
 
     autoTrips.push({
       id: 'auto_transit_' + t.id,
       transitId: t.id,
-      destination: dest,
+      destination: cleanCityName,
       startDate: start,
       endDate: end,
       isIndefinite,
       isAutoFromTransit: true,
       flightNo: t.flightNo || '',
       transitTitle: t.title || '',
-      tzInfo,
+      tzInfo: TRIP_TIMEZONE_MAP[cleanCityName],
       diffHours,
-      tzName: tzInfo.name,
-      tzFlag: tzInfo.flag,
-      diffText: tzInfo.diffText,
+      tzName: cleanCityName,
+      tzFlag: flag,
+      diffText,
       remark: t.remark || (isIndefinite ? '根据在途航空自动识别（未登记返回开罗，默认在最后目的地）' : '根据在途航空自动识别')
     });
   }
@@ -8006,16 +8246,17 @@ function getTransitsForDate(dateStr) {
   return transits.filter(t => (t.depDate <= dateStr && dateStr <= t.arrDate) || t.depDate === dateStr || t.arrDate === dateStr);
 }
 
-function parseDateTimeToUtcMs(dateStr, timeStr, tzKey) {
+function parseDateTimeToUtcMs(dateStr, timeStr, tzKeyOrOffset) {
   if (!dateStr || !timeStr) return null;
   const dParts = dateStr.split('-').map(Number);
   const tParts = timeStr.split(':').map(Number);
   if (dParts.length < 3 || tParts.length < 2 || isNaN(dParts[0]) || isNaN(dParts[1]) || isNaN(dParts[2]) || isNaN(tParts[0]) || isNaN(tParts[1])) return null;
   const [year, month, day] = dParts;
   const [hour, min] = tParts;
-  const tz = TRIP_TIMEZONE_MAP[tzKey] || TRIP_TIMEZONE_MAP.cairo;
-  const utcOffset = tz.utcOffset !== undefined ? tz.utcOffset : 2;
-  return Date.UTC(year, month - 1, day, hour - utcOffset, min);
+  const info = getTzInfo(tzKeyOrOffset);
+  const utcOffset = info.utcOffset !== undefined ? info.utcOffset : 2;
+  const baseMs = Date.UTC(year, month - 1, day, hour, min);
+  return baseMs - Math.round(utcOffset * 3600 * 1000);
 }
 
 function calculateTransitDuration(depDate, depTime, depTz, arrDate, arrTime, arrTz) {
@@ -8039,6 +8280,54 @@ function calculateTransitDuration(depDate, depTime, depTz, arrDate, arrTime, arr
   };
 }
 
+function hasSelectOption(selectEl, val) {
+  if (!selectEl || !selectEl.options) return false;
+  for (let i = 0; i < selectEl.options.length; i++) {
+    if (selectEl.options[i].value === String(val)) return true;
+  }
+  return false;
+}
+
+function updateTransitTitlePlaceholder() {
+  const titleInput = document.getElementById('inputTransitTitle');
+  const depCityInput = document.getElementById('inputTransitDepCity');
+  const arrCityInput = document.getElementById('inputTransitArrCity');
+  if (!titleInput) return;
+
+  const dep = (depCityInput && depCityInput.value.trim()) ? depCityInput.value.trim() : '开罗';
+  const arr = (arrCityInput && arrCityInput.value.trim()) ? arrCityInput.value.trim() : '目的地';
+  titleInput.placeholder = `如：${dep} ✈ ${arr}`;
+}
+
+function handleTransitLocationInput(type) {
+  const cityInput = document.getElementById(type === 'dep' ? 'inputTransitDepCity' : 'inputTransitArrCity');
+  const tzSelect = document.getElementById(type === 'dep' ? 'inputTransitDepTz' : 'inputTransitArrTz');
+  if (!cityInput || !tzSelect) return;
+
+  const rawVal = cityInput.value.trim();
+  if (!rawVal) return;
+
+  const match = matchLocationToTz(rawVal);
+  if (match) {
+    if (match.tzKey && hasSelectOption(tzSelect, match.tzKey)) {
+      tzSelect.value = match.tzKey;
+    } else if (hasSelectOption(tzSelect, String(match.utcOffset))) {
+      tzSelect.value = String(match.utcOffset);
+    }
+  }
+
+  updateTransitTitlePlaceholder();
+  handleTransitFormChange();
+}
+
+function handleTransitLocationBlur(type) {
+  handleTransitLocationInput(type);
+}
+
+function handleTransitTzManualChange(type) {
+  handleTransitFormChange();
+}
+
 function handleTransitFormChange() {
   const depDateInput = document.getElementById('inputTransitDepDate');
   const arrDateInput = document.getElementById('inputTransitArrDate');
@@ -8057,12 +8346,14 @@ function openTransitModal(transitId) {
   const titleEl = document.getElementById('transitModalTitle');
   const idInput = document.getElementById('inputTransitId');
   const titleInput = document.getElementById('inputTransitTitle');
+  const depCityInput = document.getElementById('inputTransitDepCity');
+  const depTzSelect = document.getElementById('inputTransitDepTz');
   const depDateInput = document.getElementById('inputTransitDepDate');
   const depTimeInput = document.getElementById('inputTransitDepTime');
-  const depTzSelect = document.getElementById('inputTransitDepTz');
+  const arrCityInput = document.getElementById('inputTransitArrCity');
+  const arrTzSelect = document.getElementById('inputTransitArrTz');
   const arrDateInput = document.getElementById('inputTransitArrDate');
   const arrTimeInput = document.getElementById('inputTransitArrTime');
-  const arrTzSelect = document.getElementById('inputTransitArrTz');
   const flightNoInput = document.getElementById('inputTransitFlightNo');
   const remarkInput = document.getElementById('inputTransitRemark');
   const btnDelete = document.getElementById('btnDeleteTransit');
@@ -8077,12 +8368,30 @@ function openTransitModal(transitId) {
       if (titleEl) titleEl.textContent = '编辑领导在途行程 (跨时区航班)';
       if (idInput) idInput.value = t.id;
       if (titleInput) titleInput.value = t.title || '';
+      if (depCityInput) depCityInput.value = t.depCity || (t.depTzName ? t.depTzName.replace(/\s*\(.*\)/, '') : '开罗');
+      if (depTzSelect) {
+        if (t.depTz && hasSelectOption(depTzSelect, t.depTz)) {
+          depTzSelect.value = t.depTz;
+        } else if (t.depUtcOffset !== undefined && hasSelectOption(depTzSelect, String(t.depUtcOffset))) {
+          depTzSelect.value = String(t.depUtcOffset);
+        } else {
+          depTzSelect.value = 'cairo';
+        }
+      }
       if (depDateInput) depDateInput.value = t.depDate || todayStr;
       if (depTimeInput) depTimeInput.value = t.depTime || '';
-      if (depTzSelect) depTzSelect.value = t.depTz || 'cairo';
+      if (arrCityInput) arrCityInput.value = t.arrCity || (t.arrTzName ? t.arrTzName.replace(/\s*\(.*\)/, '') : '土耳其');
+      if (arrTzSelect) {
+        if (t.arrTz && hasSelectOption(arrTzSelect, t.arrTz)) {
+          arrTzSelect.value = t.arrTz;
+        } else if (t.arrUtcOffset !== undefined && hasSelectOption(arrTzSelect, String(t.arrUtcOffset))) {
+          arrTzSelect.value = String(t.arrUtcOffset);
+        } else {
+          arrTzSelect.value = 'turkey';
+        }
+      }
       if (arrDateInput) arrDateInput.value = t.arrDate || t.depDate || todayStr;
       if (arrTimeInput) arrTimeInput.value = t.arrTime || '';
-      if (arrTzSelect) arrTzSelect.value = t.arrTz || 'cameroon';
       if (flightNoInput) flightNoInput.value = t.flightNo || '';
       if (remarkInput) remarkInput.value = t.remark || '';
       if (btnDelete) btnDelete.style.display = 'inline-block';
@@ -8091,27 +8400,41 @@ function openTransitModal(transitId) {
     if (titleEl) titleEl.textContent = '登记领导在途行程 (跨时区航班)';
     if (idInput) idInput.value = '';
     if (titleInput) titleInput.value = '';
-    if (depDateInput) depDateInput.value = todayStr;
-    if (depTimeInput) depTimeInput.value = ''; // 默认为空，选填
-    if (depTzSelect) {
-      // 智能预选出发地：若当前领导已在出差地，起飞地自动选该出差地；否则默认开罗
-      depTzSelect.value = (activeTrip && activeTrip.destination && activeTrip.destination !== 'cairo') ? activeTrip.destination : 'cairo';
-    }
-    if (arrDateInput) arrDateInput.value = todayStr;
-    if (arrTimeInput) arrTimeInput.value = ''; // 默认为空，选填
-    if (arrTzSelect) {
-      // 智能预选落地地：若起飞地为出差地，落地默认预选开罗（返回总部）；若起飞为开罗，落地预选喀麦隆
-      if (depTzSelect && depTzSelect.value !== 'cairo') {
-        arrTzSelect.value = 'cairo';
-      } else {
-        arrTzSelect.value = 'cameroon';
+
+    // 智能预选出发地与抵达地
+    if (activeTrip && activeTrip.destination && !isLocationCairo(activeTrip.destination)) {
+      // 当前领导正在出差（例如在土耳其），新登记起飞地自动预填出差地，目的地默认预选开罗总部
+      if (depCityInput) depCityInput.value = activeTrip.tzName || activeTrip.destination;
+      if (depTzSelect) {
+        const off = activeTrip.utcOffset !== undefined ? String(activeTrip.utcOffset) : (activeTrip.tzInfo ? String(activeTrip.tzInfo.utcOffset) : '3');
+        if (activeTrip.destination && hasSelectOption(depTzSelect, activeTrip.destination)) {
+          depTzSelect.value = activeTrip.destination;
+        } else if (hasSelectOption(depTzSelect, off)) {
+          depTzSelect.value = off;
+        } else {
+          depTzSelect.value = '3';
+        }
       }
+      if (arrCityInput) arrCityInput.value = '开罗';
+      if (arrTzSelect) arrTzSelect.value = 'cairo';
+    } else {
+      // 领导在开罗总部：出发地默认开罗，抵达地留空（提示如土耳其），落地时区默认土耳其/对应时区
+      if (depCityInput) depCityInput.value = '开罗';
+      if (depTzSelect) depTzSelect.value = 'cairo';
+      if (arrCityInput) arrCityInput.value = '';
+      if (arrTzSelect) arrTzSelect.value = 'turkey';
     }
+
+    if (depDateInput) depDateInput.value = todayStr;
+    if (depTimeInput) depTimeInput.value = '';
+    if (arrDateInput) arrDateInput.value = todayStr;
+    if (arrTimeInput) arrTimeInput.value = '';
     if (flightNoInput) flightNoInput.value = '';
     if (remarkInput) remarkInput.value = '';
     if (btnDelete) btnDelete.style.display = 'none';
   }
 
+  updateTransitTitlePlaceholder();
   handleTransitFormChange();
   renderTransitExistingList();
   openModal('transitModal');
@@ -8120,22 +8443,28 @@ function openTransitModal(transitId) {
 function saveLeaderTransit() {
   const idInput = document.getElementById('inputTransitId');
   const titleInput = document.getElementById('inputTransitTitle');
+  const depCityInput = document.getElementById('inputTransitDepCity');
+  const depTzSelect = document.getElementById('inputTransitDepTz');
   const depDateInput = document.getElementById('inputTransitDepDate');
   const depTimeInput = document.getElementById('inputTransitDepTime');
-  const depTzSelect = document.getElementById('inputTransitDepTz');
+  const arrCityInput = document.getElementById('inputTransitArrCity');
+  const arrTzSelect = document.getElementById('inputTransitArrTz');
   const arrDateInput = document.getElementById('inputTransitArrDate');
   const arrTimeInput = document.getElementById('inputTransitArrTime');
-  const arrTzSelect = document.getElementById('inputTransitArrTz');
   const flightNoInput = document.getElementById('inputTransitFlightNo');
   const remarkInput = document.getElementById('inputTransitRemark');
 
   let title = (titleInput ? titleInput.value : '').trim();
+  let depCity = (depCityInput ? depCityInput.value : '').trim() || '开罗';
   const depDate = depDateInput ? depDateInput.value : '';
   let depTime = (depTimeInput ? depTimeInput.value : '').trim();
-  const depTz = depTzSelect ? depTzSelect.value : 'cairo';
+  const depTzVal = depTzSelect ? depTzSelect.value : 'cairo';
+
+  let arrCity = (arrCityInput ? arrCityInput.value : '').trim() || '目的地';
   let arrDate = (arrDateInput ? arrDateInput.value : '').trim();
   let arrTime = (arrTimeInput ? arrTimeInput.value : '').trim();
-  const arrTz = arrTzSelect ? arrTzSelect.value : 'cameroon';
+  const arrTzVal = arrTzSelect ? arrTzSelect.value : 'turkey';
+
   const flightNo = (flightNoInput ? flightNoInput.value : '').trim();
   const remark = (remarkInput ? remarkInput.value : '').trim();
 
@@ -8153,11 +8482,16 @@ function saveLeaderTransit() {
   const normDep = depTime ? (normalizeTimeStr(depTime) || depTime) : '';
   const normArr = arrTime ? (normalizeTimeStr(arrTime) || arrTime) : '';
 
+  const depInfo = getTzInfo(depTzVal || depCity);
+  const arrInfo = getTzInfo(arrTzVal || arrCity);
+  const depUtcOffset = depInfo.utcOffset !== undefined ? depInfo.utcOffset : 2;
+  const arrUtcOffset = arrInfo.utcOffset !== undefined ? arrInfo.utcOffset : 3;
+
   let durationMins = 0;
   let durationText = '在途';
 
   if (normDep && normArr) {
-    const calc = calculateTransitDuration(depDate, normDep, depTz, arrDate, normArr, arrTz);
+    const calc = calculateTransitDuration(depDate, normDep, depTzVal, arrDate, normArr, arrTzVal);
     if (!calc || !calc.isValid) {
       showToast('⚠️ 落地时间不能早于或等于起飞时间，请核对跨时区时间');
       return;
@@ -8172,15 +8506,14 @@ function saveLeaderTransit() {
     durationText = '全天在途';
   }
 
-  const depInfo = TRIP_TIMEZONE_MAP[depTz] || TRIP_TIMEZONE_MAP.cairo;
-  const arrInfo = TRIP_TIMEZONE_MAP[arrTz] || TRIP_TIMEZONE_MAP.cameroon;
-
-  // 标题留空时自动生成清晰航程，如：开罗 ✈ 喀麦隆
+  // 标题留空时自动生成清晰航程，如：开罗 ✈ 土耳其
   if (!title) {
-    const depCity = (depInfo.name || '开罗').replace(/.*·/, '');
-    const arrCity = (arrInfo.name || '目的地').replace(/.*·/, '');
     title = `${depCity} ✈ ${arrCity}`;
   }
+
+  const depTzName = `${depCity} (UTC${depUtcOffset >= 0 ? '+' : ''}${depUtcOffset})`;
+  const arrTzName = `${arrCity} (UTC${arrUtcOffset >= 0 ? '+' : ''}${arrUtcOffset})`;
+  const arrFlag = getFlagForLocation(arrCity) || arrInfo.flag || '✈️';
 
   const transits = getLeaderTransits();
   const curId = idInput && idInput.value ? parseInt(idInput.value, 10) : null;
@@ -8189,16 +8522,19 @@ function saveLeaderTransit() {
     id: curId || Date.now(),
     title,
     flightNo,
+    depCity,
     depDate,
     depTime: normDep,
-    depTz,
-    depTzName: depInfo.name,
-    depUtcOffset: depInfo.utcOffset,
+    depTz: depTzVal,
+    depTzName,
+    depUtcOffset,
+    arrCity,
     arrDate,
     arrTime: normArr,
-    arrTz,
-    arrTzName: arrInfo.name,
-    arrUtcOffset: arrInfo.utcOffset,
+    arrTz: arrTzVal,
+    arrTzName,
+    arrUtcOffset,
+    arrFlag,
     durationMins,
     durationText,
     remark
@@ -8272,6 +8608,8 @@ function renderTransitExistingList() {
     </div>
     <div style="display:flex; flex-direction:column; gap:5px; max-height:120px; overflow-y:auto;">
       ${transits.map(t => {
+        const depCity = t.depCity || (t.depTzName ? t.depTzName.replace(/\s*\(.*\)/, '') : '开罗');
+        const arrCity = t.arrCity || (t.arrTzName ? t.arrTzName.replace(/\s*\(.*\)/, '') : '目的地');
         const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
         const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
         const durStr = t.durationText ? `(${escapeHtml(t.durationText)})` : '';
@@ -8280,7 +8618,7 @@ function renderTransitExistingList() {
           <div>
             <span style="font-weight:700; color:#0369a1;">🛫 ${escapeHtml(t.title)}</span>
             ${t.flightNo ? `<span style="margin-left:6px; background:#e0f2fe; color:#0369a1; padding:1px 4px; border-radius:3px; font-size:10.5px; font-weight:600;">${escapeHtml(t.flightNo)}</span>` : ''}
-            <span style="margin-left:6px; color:#475569;">${depStr} ➔ ${arrStr}</span>
+            <span style="margin-left:6px; color:#475569;">${depStr} (${depCity}) ➔ ${arrStr} (${arrCity})</span>
             <span style="margin-left:4px; color:#0284c7; font-weight:600;">${durStr}</span>
           </div>
           <div style="display:flex; gap:4px;">
@@ -8295,8 +8633,13 @@ function renderTransitExistingList() {
 }
 
 function renderWeeklyTransitCard(t) {
-  const depTzName = t.depTzName || ((TRIP_TIMEZONE_MAP[t.depTz] || TRIP_TIMEZONE_MAP.cairo).name);
-  const arrTzName = t.arrTzName || ((TRIP_TIMEZONE_MAP[t.arrTz] || TRIP_TIMEZONE_MAP.cameroon).name);
+  const depCity = t.depCity || (t.depTzName ? t.depTzName.replace(/\s*\(.*\)/, '') : '开罗');
+  const arrCity = t.arrCity || (t.arrTzName ? t.arrTzName.replace(/\s*\(.*\)/, '') : '目的地');
+  const depOffset = (t.depUtcOffset !== undefined) ? t.depUtcOffset : 2;
+  const arrOffset = (t.arrUtcOffset !== undefined) ? t.arrUtcOffset : 3;
+  const depTzName = t.depTzName || `${depCity} (UTC${depOffset >= 0 ? '+' : ''}${depOffset})`;
+  const arrTzName = t.arrTzName || `${arrCity} (UTC${arrOffset >= 0 ? '+' : ''}${arrOffset})`;
+
   const durLabel = t.durationText ? (t.durationText.includes('在途') || t.durationText.includes('起飞') || t.durationText.includes('落地') ? t.durationText : ('飞行约 ' + t.durationText)) : '在途';
   const depDisplay = t.depTime ? `${t.depTime} (${depTzName})` : depTzName;
   const arrDisplay = t.arrTime ? `${t.arrTime} (${arrTzName})` : arrTzName;
@@ -8321,8 +8664,13 @@ function renderWeeklyTransitCard(t) {
 }
 
 function renderDayTransitCard(t) {
-  const depTzName = t.depTzName || ((TRIP_TIMEZONE_MAP[t.depTz] || TRIP_TIMEZONE_MAP.cairo).name);
-  const arrTzName = t.arrTzName || ((TRIP_TIMEZONE_MAP[t.arrTz] || TRIP_TIMEZONE_MAP.cameroon).name);
+  const depCity = t.depCity || (t.depTzName ? t.depTzName.replace(/\s*\(.*\)/, '') : '开罗');
+  const arrCity = t.arrCity || (t.arrTzName ? t.arrTzName.replace(/\s*\(.*\)/, '') : '目的地');
+  const depOffset = (t.depUtcOffset !== undefined) ? t.depUtcOffset : 2;
+  const arrOffset = (t.arrUtcOffset !== undefined) ? t.arrUtcOffset : 3;
+  const depTzName = t.depTzName || `${depCity} (UTC${depOffset >= 0 ? '+' : ''}${depOffset})`;
+  const arrTzName = t.arrTzName || `${arrCity} (UTC${arrOffset >= 0 ? '+' : ''}${arrOffset})`;
+
   const durLabel = t.durationText ? (t.durationText.includes('在途') || t.durationText.includes('起飞') || t.durationText.includes('落地') ? t.durationText : ('飞行约 ' + t.durationText)) : '在途';
   const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
   const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
@@ -10235,8 +10583,12 @@ function exportSingleDayScheduleNotice(dateStr) {
 
   if (dayTransits.length > 0) {
     dayTransits.forEach(t => {
-      const depTzName = t.depTzName || ((TRIP_TIMEZONE_MAP[t.depTz] || TRIP_TIMEZONE_MAP.cairo).name);
-      const arrTzName = t.arrTzName || ((TRIP_TIMEZONE_MAP[t.arrTz] || TRIP_TIMEZONE_MAP.cameroon).name);
+      const depCity = t.depCity || (t.depTzName ? t.depTzName.replace(/\s*\(.*\)/, '') : '开罗');
+      const arrCity = t.arrCity || (t.arrTzName ? t.arrTzName.replace(/\s*\(.*\)/, '') : '目的地');
+      const depOffset = (t.depUtcOffset !== undefined) ? t.depUtcOffset : 2;
+      const arrOffset = (t.arrUtcOffset !== undefined) ? t.arrUtcOffset : 3;
+      const depTzName = t.depTzName || `${depCity} (UTC${depOffset >= 0 ? '+' : ''}${depOffset})`;
+      const arrTzName = t.arrTzName || `${arrCity} (UTC${arrOffset >= 0 ? '+' : ''}${arrOffset})`;
       const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
       const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
       const durInfo = t.durationText ? `，${t.durationText}` : '';
