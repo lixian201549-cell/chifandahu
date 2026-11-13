@@ -5868,7 +5868,7 @@
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.5.9</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.6.0</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -9746,13 +9746,50 @@ function renderLeaderTripExistingList() {
 
 // ================= 领导在途行程管理 (Leader In-Transit Flight & Cross-Timezone Engine) =================
 function getLeaderTransits() {
-  return getData(STORAGE_KEYS.LEADER_TRANSITS, []);
+  const list = getData(STORAGE_KEYS.LEADER_TRANSITS, []);
+  if (!Array.isArray(list)) return [];
+  // 全局严格按起飞/落地时间正序排列
+  return list.sort((a, b) => {
+    const dateA = a.depDate || a.arrDate || '';
+    const dateB = b.depDate || b.arrDate || '';
+    if (dateA !== dateB) return dateA.localeCompare(dateB);
+    const timeA = a.depTime || '00:00';
+    const timeB = b.depTime || '00:00';
+    if (timeA !== timeB) return timeA.localeCompare(timeB);
+    const arrTimeA = a.arrTime || '00:00';
+    const arrTimeB = b.arrTime || '00:00';
+    if (arrTimeA !== arrTimeB) return arrTimeA.localeCompare(arrTimeB);
+    return (a.id || 0) - (b.id || 0);
+  });
 }
 
 function getTransitsForDate(dateStr) {
   if (!dateStr) return [];
   const transits = getLeaderTransits();
-  return transits.filter(t => (t.depDate <= dateStr && dateStr <= t.arrDate) || t.depDate === dateStr || t.arrDate === dateStr);
+  const list = transits.filter(t => (t.depDate <= dateStr && dateStr <= t.arrDate) || t.depDate === dateStr || t.arrDate === dateStr);
+
+  // 单日内多段飞行严格按当天起飞/落地先后时间排序
+  return list.sort((a, b) => {
+    // 1. 本日有效起飞/起始分钟数比较
+    const hasDepA = !!a.depTime;
+    const hasDepB = !!b.depTime;
+    const startMinA = (a.depDate === dateStr && a.depTime) ? timeStrToMinutes(a.depTime) : (a.depDate < dateStr ? 0 : (a.depTime ? timeStrToMinutes(a.depTime) : 0));
+    const startMinB = (b.depDate === dateStr && b.depTime) ? timeStrToMinutes(b.depTime) : (b.depDate < dateStr ? 0 : (b.depTime ? timeStrToMinutes(b.depTime) : 0));
+
+    if (hasDepA && hasDepB && startMinA !== startMinB) {
+      return startMinA - startMinB;
+    }
+    if (hasDepA && !hasDepB) return -1;
+    if (!hasDepA && hasDepB) return 1;
+    if (startMinA !== startMinB) return startMinA - startMinB;
+
+    // 2. 起飞时间相同或均未指定，按落地时间排序
+    const arrMinA = a.arrTime ? timeStrToMinutes(a.arrTime) : 1440;
+    const arrMinB = b.arrTime ? timeStrToMinutes(b.arrTime) : 1440;
+    if (arrMinA !== arrMinB) return arrMinA - arrMinB;
+
+    return (a.id || 0) - (b.id || 0);
+  });
 }
 
 function parseDateTimeToUtcMs(dateStr, timeStr, tzKeyOrOffset) {
@@ -10141,7 +10178,7 @@ function renderTransitExistingList() {
   `;
 }
 
-function renderWeeklyTransitCard(t) {
+function renderWeeklyTransitCard(t, segIdx, totalSegs) {
   const depCity = t.depCity || (t.depTzName ? t.depTzName.replace(/\s*\(.*\)/, '') : '开罗');
   const arrCity = t.arrCity || (t.arrTzName ? t.arrTzName.replace(/\s*\(.*\)/, '') : '目的地');
   const depOffset = (t.depUtcOffset !== undefined) ? t.depUtcOffset : 2;
@@ -10149,15 +10186,30 @@ function renderWeeklyTransitCard(t) {
   const depTzName = t.depTzName || `${depCity} (UTC${depOffset >= 0 ? '+' : ''}${depOffset})`;
   const arrTzName = t.arrTzName || `${arrCity} (UTC${arrOffset >= 0 ? '+' : ''}${arrOffset})`;
 
+  let timeRangeStr = '';
+  if (t.depTime && t.arrTime) {
+    timeRangeStr = `${t.depTime} - ${t.arrTime}`;
+  } else if (t.depTime) {
+    timeRangeStr = `${t.depTime} 起飞`;
+  } else if (t.arrTime) {
+    timeRangeStr = `${t.arrTime} 落地`;
+  } else {
+    timeRangeStr = '全天在途';
+  }
+
   const durLabel = t.durationText ? (t.durationText.includes('在途') || t.durationText.includes('起飞') || t.durationText.includes('落地') ? t.durationText : ('飞行约 ' + t.durationText)) : '在途';
   const depDisplay = t.depTime ? `${t.depTime} (${depTzName})` : depTzName;
   const arrDisplay = t.arrTime ? `${t.arrTime} (${arrTzName})` : arrTzName;
+  const segBadge = (totalSegs && totalSegs > 1 && segIdx !== undefined) ? `<span style="font-size:10px; background:#0284c7; color:#fff; padding:0 5px; border-radius:3px; font-weight:700; margin-right:4px;">第${segIdx + 1}段</span>` : '';
   const tooltip = `🛫 领导在途：${escapeHtml(t.title)} (出发：${t.depDate} ${depDisplay} ➔ 到达：${t.arrDate} ${arrDisplay})，${escapeHtml(durLabel)}。点击查看/编辑`;
 
   return `
     <div class="weekly-card weekly-card-transit" onclick="openTransitModal(${t.id})" title="${tooltip}">
       <div class="weekly-card-time" style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:11px; font-weight:700; color:#0284c7;">🛫 在途 · ${escapeHtml(durLabel)}</span>
+        <div style="display:flex; align-items:center;">
+          ${segBadge}
+          <span style="font-size:11px; font-weight:700; color:#0284c7;">🛫 ${escapeHtml(timeRangeStr)}</span>
+        </div>
         ${t.flightNo ? `<span style="font-size:10px; background:#e0f2fe; color:#0369a1; padding:0 4px; border-radius:3px; font-weight:600;">${escapeHtml(t.flightNo)}</span>` : ''}
       </div>
       <div class="weekly-card-title" style="font-size:11.5px; font-weight:700; margin:2px 0; color:#0c4a6e;">
@@ -10172,7 +10224,7 @@ function renderWeeklyTransitCard(t) {
   `;
 }
 
-function renderDayTransitCard(t) {
+function renderDayTransitCard(t, segIdx, totalSegs) {
   const depCity = t.depCity || (t.depTzName ? t.depTzName.replace(/\s*\(.*\)/, '') : '开罗');
   const arrCity = t.arrCity || (t.arrTzName ? t.arrTzName.replace(/\s*\(.*\)/, '') : '目的地');
   const depOffset = (t.depUtcOffset !== undefined) ? t.depUtcOffset : 2;
@@ -10180,20 +10232,33 @@ function renderDayTransitCard(t) {
   const depTzName = t.depTzName || `${depCity} (UTC${depOffset >= 0 ? '+' : ''}${depOffset})`;
   const arrTzName = t.arrTzName || `${arrCity} (UTC${arrOffset >= 0 ? '+' : ''}${arrOffset})`;
 
+  let timeRangeStr = '';
+  if (t.depTime && t.arrTime) {
+    timeRangeStr = `${t.depTime} - ${t.arrTime}`;
+  } else if (t.depTime) {
+    timeRangeStr = `${t.depTime} 起飞`;
+  } else if (t.arrTime) {
+    timeRangeStr = `${t.arrTime} 落地`;
+  } else {
+    timeRangeStr = '全天在途';
+  }
+
   const durLabel = t.durationText ? (t.durationText.includes('在途') || t.durationText.includes('起飞') || t.durationText.includes('落地') ? t.durationText : ('飞行约 ' + t.durationText)) : '在途';
   const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
   const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
+  const segBadge = (totalSegs && totalSegs > 1 && segIdx !== undefined) ? `<span style="background:#0284c7; color:#fff; font-size:11px; padding:1px 6px; border-radius:4px; font-weight:700; margin-right:6px;">第${segIdx + 1}段</span>` : '';
 
   return `
     <div class="day-meeting-card day-transit-card" onclick="openTransitModal(${t.id})" style="cursor:pointer;" title="点击编辑此在途行程">
       <div class="day-meeting-top">
         <div class="day-meeting-time-bar">
-          <span class="day-meeting-time-text" style="color:#0284c7; font-weight:800;">🛫 在途 · ${escapeHtml(durLabel)}</span>
-          ${t.flightNo ? `<span style="background:#0284c7; color:#fff; font-size:11px; padding:1px 6px; border-radius:4px; font-weight:700;">${escapeHtml(t.flightNo)}</span>` : ''}
+          ${segBadge}
+          <span class="day-meeting-time-text" style="color:#0284c7; font-weight:800;">🛫 ${escapeHtml(timeRangeStr)} · ${escapeHtml(durLabel)}</span>
+          ${t.flightNo ? `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:11px; padding:1px 6px; border-radius:4px; font-weight:700;">${escapeHtml(t.flightNo)}</span>` : ''}
           <span class="status-badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;">旅途在途</span>
         </div>
         <div style="font-size:11.5px; color:#0369a1; font-weight:600;">
-          ⏱️ 跨时区在途行程
+          ⏱️ 跨时区在途航班
         </div>
       </div>
       <div class="day-meeting-title" style="color:#0c4a6e;">
@@ -11430,8 +11495,12 @@ function updateChalkboardExecutiveBar() {
   if (tripEl) {
     const todayTransits = typeof getTransitsForDate === 'function' ? getTransitsForDate(todayStr) : [];
     if (todayTransits.length > 0) {
-      const tr = todayTransits[0];
-      tripEl.textContent = `领导动态：🛫 在途 · ${tr.flightNo ? tr.flightNo + ' ' : ''}${tr.title}`;
+      if (todayTransits.length === 1) {
+        const tr = todayTransits[0];
+        tripEl.textContent = `领导动态：🛫 在途 · ${tr.flightNo ? tr.flightNo + ' ' : ''}${tr.title}`;
+      } else {
+        tripEl.textContent = `领导动态：🛫 在途 (${todayTransits.length}段飞行) · ${todayTransits.map((t, idx) => `第${idx + 1}段 ${t.depTime ? t.depTime + ' ' : ''}${t.title}`).join(' ➔ ')}`;
+      }
     } else {
       const trip = getTripForDate(todayStr);
       if (trip) {
@@ -11862,15 +11931,29 @@ function renderSupervisorWeeklyBoard() {
       }
     });
 
+    // 区分并严格按起飞/落地时间排序上午与下午的在途航班
     const morningTransits = dayTransits.filter(t => {
-      const depMins = timeStrToMinutes(t.depTime || '09:30');
+      const depMins = t.depTime ? timeStrToMinutes(t.depTime) : 0;
       return t.depDate === day.dateStr ? depMins < 720 : true;
+    }).sort((a, b) => {
+      const timeA = a.depTime ? timeStrToMinutes(a.depTime) : 0;
+      const timeB = b.depTime ? timeStrToMinutes(b.depTime) : 0;
+      return timeA - timeB;
     });
+
     const afternoonTransits = dayTransits.filter(t => {
-      const arrMins = timeStrToMinutes(t.arrTime || '14:45');
-      const depMins = timeStrToMinutes(t.depTime || '09:30');
-      return t.arrDate === day.dateStr ? arrMins >= 720 : depMins >= 720;
+      const depMins = t.depTime ? timeStrToMinutes(t.depTime) : 720;
+      const arrMins = t.arrTime ? timeStrToMinutes(t.arrTime) : 1080;
+      if (t.depDate === day.dateStr && depMins >= 720) return true;
+      if (t.depDate === day.dateStr && depMins < 720 && arrMins > 840) return true;
+      if (t.arrDate === day.dateStr && t.depDate < day.dateStr && arrMins >= 720) return true;
+      return false;
+    }).sort((a, b) => {
+      const timeA = a.depTime ? timeStrToMinutes(a.depTime) : (a.arrTime ? timeStrToMinutes(a.arrTime) : 720);
+      const timeB = b.depTime ? timeStrToMinutes(b.depTime) : (b.arrTime ? timeStrToMinutes(b.arrTime) : 720);
+      return timeA - timeB;
     });
+
     if (morningTransits.length === 0 && afternoonTransits.length === 0 && dayTransits.length > 0) {
       morningTransits.push(...dayTransits);
     }
@@ -11901,7 +11984,8 @@ function renderSupervisorWeeklyBoard() {
         `;
       } else {
         morningTransits.forEach(t => {
-          html += renderWeeklyTransitCard(t);
+          const segIdx = dayTransits.findIndex(it => it.id === t.id);
+          html += renderWeeklyTransitCard(t, segIdx, dayTransits.length);
         });
         morningMeetings.forEach(m => {
           html += renderWeeklySingleCard(m, false, 'morning');
@@ -11936,7 +12020,8 @@ function renderSupervisorWeeklyBoard() {
         `;
       } else {
         afternoonTransits.forEach(t => {
-          html += renderWeeklyTransitCard(t);
+          const segIdx = dayTransits.findIndex(it => it.id === t.id);
+          html += renderWeeklyTransitCard(t, segIdx, dayTransits.length);
         });
         afternoonMeetings.forEach(m => {
           html += renderWeeklySingleCard(m, false, 'afternoon');
@@ -12091,7 +12176,7 @@ function exportSingleDayScheduleNotice(dateStr) {
   ];
 
   if (dayTransits.length > 0) {
-    dayTransits.forEach(t => {
+    dayTransits.forEach((t, idx) => {
       const depCity = t.depCity || (t.depTzName ? t.depTzName.replace(/\s*\(.*\)/, '') : '开罗');
       const arrCity = t.arrCity || (t.arrTzName ? t.arrTzName.replace(/\s*\(.*\)/, '') : '目的地');
       const depOffset = (t.depUtcOffset !== undefined) ? t.depUtcOffset : 2;
@@ -12101,7 +12186,8 @@ function exportSingleDayScheduleNotice(dateStr) {
       const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
       const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
       const durInfo = t.durationText ? `，${t.durationText}` : '';
-      lines.push(`🛫 【领导在途动态】${t.title} ${t.flightNo ? '(' + t.flightNo + ')' : ''}`);
+      const segPrefix = dayTransits.length > 1 ? `第${idx + 1}段 · ` : '';
+      lines.push(`🛫 【领导在途动态】${segPrefix}${t.title} ${t.flightNo ? '(' + t.flightNo + ')' : ''}`);
       lines.push(`   出发：${depStr} (${depTzName}) ➔ 到达：${arrStr} (${arrTzName})${durInfo}`);
       if (t.remark) lines.push(`   在途备忘：${t.remark}`);
       lines.push('');
@@ -12175,16 +12261,16 @@ function renderSupervisorDayCalendar() {
   const afternoonItems = [];
 
   curDayTransits.forEach(t => {
-    const depMins = timeStrToMinutes(t.depTime || '09:30');
-    const arrMins = timeStrToMinutes(t.arrTime || '14:45');
-    if (t.depDate === curDateStr && depMins < 720) {
-      morningItems.push({ type: 'transit', start: depMins, data: t });
-    } else if (t.arrDate === curDateStr && arrMins >= 720) {
-      afternoonItems.push({ type: 'transit', start: arrMins, data: t });
-    } else if (depMins < 720) {
-      morningItems.push({ type: 'transit', start: depMins, data: t });
-    } else {
-      afternoonItems.push({ type: 'transit', start: depMins, data: t });
+    // 严格以本日实际起飞（或跨夜落地）时间作为日程时间轴的排序依据
+    const depMins = t.depTime ? timeStrToMinutes(t.depTime) : 0;
+    const arrMins = t.arrTime ? timeStrToMinutes(t.arrTime) : 1440;
+    const startMins = (t.depDate === curDateStr && t.depTime) ? depMins : ((t.depDate < curDateStr && t.arrTime) ? arrMins : depMins);
+
+    if (startMins < 720) {
+      morningItems.push({ type: 'transit', start: startMins, data: t });
+    }
+    if (startMins >= 720 || (startMins < 720 && arrMins > 840)) {
+      afternoonItems.push({ type: 'transit', start: Math.max(startMins, 720), data: t });
     }
   });
 
@@ -12370,7 +12456,8 @@ function renderSupervisorDayCalendar() {
       if (item.type === 'meeting') {
         html += renderDayEventCard(item.data, item.period || 'morning');
       } else if (item.type === 'transit') {
-        html += renderDayTransitCard(item.data);
+        const segIdx = curDayTransits.findIndex(it => it.id === item.data.id);
+        html += renderDayTransitCard(item.data, segIdx, curDayTransits.length);
       } else {
         html += renderDaySlotCard(item.data);
       }
@@ -12402,7 +12489,8 @@ function renderSupervisorDayCalendar() {
       if (item.type === 'meeting') {
         html += renderDayEventCard(item.data, item.period || 'afternoon');
       } else if (item.type === 'transit') {
-        html += renderDayTransitCard(item.data);
+        const segIdx = curDayTransits.findIndex(it => it.id === item.data.id);
+        html += renderDayTransitCard(item.data, segIdx, curDayTransits.length);
       } else {
         html += renderDaySlotCard(item.data);
       }
@@ -20312,7 +20400,7 @@ initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
 
-window.APP_VERSION = 'v1.5.9';
+window.APP_VERSION = 'v1.6.0';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
