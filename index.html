@@ -6710,7 +6710,7 @@ body.is-desktop-forced .floating-back-to-mobile {
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.1</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.2</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -6759,25 +6759,10 @@ body.is-desktop-forced .floating-back-to-mobile {
   <div class="modal-overlay" id="importCalendarModal">
     <div class="modal-box" style="max-width: 680px;">
       <div class="modal-header">
-        <div class="modal-title">🪄 文本智能识别加入日历（支持微信通知 / 自然语言 / 表格）</div>
+        <div class="modal-title">🪄 文本识别加入日历</div>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('importCalendarModal')">✕</button>
       </div>
       <div class="modal-body">
-        <!-- Standard Header Box per User Request -->
-        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:12px;">
-          <div style="font-weight:700; color:#15803d; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-            <span>💡 任意大段会议文本直接粘贴，系统智能提取字段一键加入日历：</span>
-            <div style="display:flex; gap:6px;">
-              <button type="button" class="btn btn-sm btn-ghost" onclick="fillSampleCalendarData()" title="填入示例通知数据测试">填入示例数据</button>
-              <button type="button" class="btn btn-sm btn-ghost" onclick="copyStandardExcelHeader()" title="点击复制Excel表头至剪贴板">复制Excel表头</button>
-              <button type="button" class="btn btn-sm btn-ghost" onclick="downloadStandardExcelTemplate()" title="下载预设好列名的标准 Excel CSV 模板">下载CSV模板</button>
-            </div>
-          </div>
-          <div style="color:#166534; font-size:11.5px; line-height:1.5;">
-            支持 <strong>微信/邮件会议通知</strong>、<strong>自然语言聊天记录</strong>（如“明天下午2点在办公室开塞内加尔周会，李工汇报”）、以及 <strong>Excel多行表格或网格</strong>。系统自动解析日期、起止时间、主题、汇报人、地点、参会人及决策要点！
-          </div>
-        </div>
-
         <div class="form-row" style="margin-bottom: 12px;">
           <div class="form-group" style="margin-bottom: 0;">
             <label>默认排期日期（当文本未注明具体日期时使用）：</label>
@@ -6790,8 +6775,8 @@ body.is-desktop-forced .floating-back-to-mobile {
         </div>
 
         <div class="form-group">
-          <label>粘贴大段会议文本 / 微信通知 / 表格内容：</label>
-          <textarea id="inputImportTableText" style="min-height: 130px; font-family: inherit; font-size: 12.5px; line-height:1.5; padding:8px 10px;" placeholder="支持直接粘贴大段文本，例如：&#10;【会议通知】&#10;会议主题：塞内加尔光伏电站交付推进会&#10;时间：2026-11-18 14:00 - 15:30&#10;地点：开罗总部201会议室（支持WeLink）&#10;汇报人：李工（塞内加尔代表处）&#10;参会人员：曦总、张总、交付部王经理、财务李总&#10;纪要人：小刘&#10;议题背景：塞内加尔一期光伏电站设备清关受阻，需协调商务与海外物流。&#10;决策要点：确定备用清关方案及专项预算拨付。&#10;&#10;或者自然语言：&#10;明天下午2点到3点半，在主管办公室开塞内加尔进度汇报会，李工汇报，张总参会，小王做纪要。" oninput="runCalendarLivePreview()"></textarea>
+          <label>粘贴会议文本（自动识别会议主题与时间）：</label>
+          <textarea id="inputImportTableText" style="min-height: 130px; font-family: inherit; font-size: 12.5px; line-height:1.5; padding:8px 10px;" placeholder="例如：&#10;会议主题：塞内加尔光伏电站交付推进会&#10;时间：2026-11-18 14:00 - 15:30&#10;或者：&#10;明天下午2点到3点半，塞内加尔进度汇报会" oninput="runCalendarLivePreview()"></textarea>
         </div>
 
         <!-- Recognition Status & Dual Normalization Live Preview -->
@@ -6849,9 +6834,9 @@ body.is-desktop-forced .floating-back-to-mobile {
               <span style="font-size:12.5px; font-weight:700; color:#15803d; display:flex; align-items:center; gap:5px;">
                 <span>🪄</span> 粘贴文本智能识别填单
               </span>
-              <span style="font-size:11px; color:#166534; opacity:0.85;">粘贴微信/邮件通知或聊天记录，自动拆解回填下方全部输入框</span>
+              <span style="font-size:11px; color:#166534; opacity:0.85;">仅提取会议主题与时间</span>
             </div>
-            <textarea id="smartMeetingInputText" rows="2" style="width:100%; font-size:12px; border:1px solid #bbf7d0; border-radius:6px; padding:6px 10px; resize:vertical; background:#fff; line-height:1.45; font-family:inherit;" placeholder="把整段会议通知或聊天文本直接粘贴到这里，例如：&#10;【会议通知】时间：明天下午2点到3点半，地点：主管办公室，主题：塞内加尔光伏推进会，李工汇报，张总参会，小王做纪要..."></textarea>
+            <textarea id="smartMeetingInputText" rows="2" style="width:100%; font-size:12px; border:1px solid #bbf7d0; border-radius:6px; padding:6px 10px; resize:vertical; background:#fff; line-height:1.45; font-family:inherit;" placeholder="粘贴包含会议主题和时间的文本，例如：明天下午2点到3点半，塞内加尔进度汇报会..."></textarea>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
               <div id="smartFillStatusHint" style="font-size:11.5px; color:#16a34a; font-weight:600; display:none;"></div>
               <div style="display:flex; gap:8px; margin-left:auto;">
@@ -16322,25 +16307,6 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
 
   subject = subject.replace(/^[【\[]?(?:会议通知|通知|日程)[】\]]?\s*/, '').replace(/[:：]/g, '').trim();
 
-  if (reporter) reporter = reporter.replace(/^[是:：\s]+/, '').trim();
-  if (decision) decision = decision.replace(/^[是:：\s]+/, '').trim();
-  if (background) background = background.replace(/^[是:：\s]+/, '').trim();
-  if (attendees) attendees = attendees.replace(/^[是:：\s]+/, '').trim();
-  if (minuter) minuter = minuter.replace(/^[是:：\s]+/, '').trim();
-
-  if (!attendees) {
-    attendees = reporter ? (reporter.includes('主管') ? reporter : `主管、${reporter}`) : '主管、相关参会人';
-  }
-  if (!minuter) {
-    minuter = '秘书处';
-  }
-  if (!location) {
-    location = '主管办公室 / 线上会议';
-  }
-  if (!decision && subject) {
-    decision = `审议《${subject}》关键决策要点，明确推进方案。`;
-  }
-
   return {
     id: Date.now() + Math.floor(Math.random() * 1000000),
     date,
@@ -16350,15 +16316,15 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
     duration,
     durationHours: (duration / 60).toFixed(2),
     subject,
-    reporter,
-    attendees,
-    minuter,
-    location,
-    background,
-    decision,
+    reporter: '',
+    attendees: '',
+    minuter: '',
+    location: '',
+    background: '',
+    decision: '',
     status: 'scheduled',
     priority: 'medium',
-    notes: '由大段文本智能识别导入'
+    notes: ''
   };
 }
 
@@ -16432,36 +16398,6 @@ function applySmartMeetingTextToModal() {
   if (parsed.subject) {
     document.getElementById('inputMeetingSubject').value = parsed.subject;
   }
-  if (parsed.reporter) {
-    document.getElementById('inputMeetingReporter').value = parsed.reporter;
-  }
-
-  let hasFoldableData = false;
-  if (parsed.location) {
-    document.getElementById('inputMeetingLocation').value = parsed.location;
-    hasFoldableData = true;
-  }
-  if (parsed.attendees) {
-    document.getElementById('inputMeetingAttendees').value = parsed.attendees;
-    hasFoldableData = true;
-  }
-  if (parsed.minuter) {
-    document.getElementById('inputMeetingMinuter').value = parsed.minuter;
-    hasFoldableData = true;
-  }
-  if (parsed.background) {
-    document.getElementById('inputMeetingBackground').value = parsed.background;
-    hasFoldableData = true;
-  }
-  if (parsed.decision) {
-    document.getElementById('inputMeetingDecision').value = parsed.decision;
-    hasFoldableData = true;
-  }
-
-  if (hasFoldableData) {
-    const details = document.getElementById('meetingFoldableDetails');
-    if (details) details.open = true;
-  }
 
   handleMeetingModalDateChange();
   updateMeetingDurationBadge();
@@ -16471,7 +16407,7 @@ function applySmartMeetingTextToModal() {
     statusEl.textContent = `✅ 识别成功：${parsed.date} ${parsed.startTime}-${parsed.endTime}「${parsed.subject}」`;
   }
 
-  showToast(`✨ 识别成功：已提取【${parsed.subject}】各字段，请核对后保存！`);
+  showToast(`✨ 识别成功：已填入【${parsed.subject}】及时间（${parsed.date} ${parsed.startTime}-${parsed.endTime}）`);
 }
 
 function clearSmartMeetingInput() {
@@ -17014,6 +16950,8 @@ function runCalendarLivePreview() {
       grouped[m.date].push(m);
     });
 
+    const hasExtraFields = parsedImportMeetings.some(m => m.reporter || m.minuter || m.decision);
+
     wrapCal.innerHTML = Object.entries(grouped).map(([dStr, list]) => `
       <div class="import-cal-group">
         <div class="import-cal-group-header">
@@ -17023,46 +16961,51 @@ function runCalendarLivePreview() {
         <table class="import-preview-table" style="width:100%;">
           <thead>
             <tr>
-              <th style="width:100px;">时间/时长</th>
-              <th>*会议主题（关键任务）</th>
-              <th style="width:100px;">*汇报人</th>
-              <th style="width:90px;">*纪要人</th>
-              <th>*决策要点说明</th>
+              <th style="width:130px;">时间/时长</th>
+              <th>会议主题</th>
+              ${hasExtraFields ? '<th style="width:100px;">汇报人</th><th style="width:90px;">纪要人</th><th>决策要点说明</th>' : ''}
             </tr>
           </thead>
           <tbody>
-            ${list.map(m => `
+            ${list.map(m => {
+              const sT = m.startTime || m.time || '10:00';
+              const eT = m.endTime || calculateEndTime(sT, m.duration || 45);
+              return `
               <tr>
-                <td><strong>${m.time}</strong> (${m.durationHours || (m.duration/60).toFixed(2)}H)</td>
+                <td><strong>${sT} - ${eT}</strong> (${m.durationHours || (m.duration/60).toFixed(2)}H)</td>
                 <td><strong style="color:var(--text-primary);">${escapeHtml(m.subject)}</strong></td>
-                <td>${escapeHtml(m.reporter || '待定')}</td>
-                <td><span style="color:#2563eb;">${escapeHtml(m.minuter || '秘书处')}</span></td>
-                <td style="font-size:11px; color:var(--text-secondary);">${escapeHtml(m.decision)}</td>
+                ${hasExtraFields ? `<td>${escapeHtml(m.reporter || '')}</td><td><span style="color:#2563eb;">${escapeHtml(m.minuter || '')}</span></td><td style="font-size:11px; color:var(--text-secondary);">${escapeHtml(m.decision || '')}</td>` : ''}
               </tr>
-            `).join('')}
+              `;
+            }).join('')}
           </tbody>
         </table>
       </div>
     `).join('');
 
     // 2. Render Cards Preview
-    wrapCard.innerHTML = parsedImportMeetings.map(m => `
+    wrapCard.innerHTML = parsedImportMeetings.map(m => {
+      const sT = m.startTime || m.time || '10:00';
+      const eT = m.endTime || calculateEndTime(sT, m.duration || 45);
+      return `
       <div class="import-card-item">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
           <div style="font-size:13px; font-weight:700; color:var(--text-primary);">【${escapeHtml(m.subject)}】</div>
           <span class="status-badge status-scheduled">${m.durationHours || (m.duration/60).toFixed(2)}H</span>
         </div>
-        <div style="font-size:11.5px; color:var(--text-secondary); display:flex; flex-wrap:wrap; gap:10px; margin-bottom:4px;">
-          <span>📅 ${m.date} ${m.time}</span>
-          <span>👔 汇报人：${escapeHtml(m.reporter || '未注明')}</span>
-          <span>📝 纪要人：${escapeHtml(m.minuter || '秘书处')}</span>
-          <span>👥 参会人：${escapeHtml(m.attendees)}</span>
+        <div style="font-size:11.5px; color:var(--text-secondary); display:flex; flex-wrap:wrap; gap:10px;">
+          <span>📅 ${m.date} ${sT} - ${eT}</span>
+          ${m.reporter ? `<span>👔 汇报人：${escapeHtml(m.reporter)}</span>` : ''}
+          ${m.minuter ? `<span>📝 纪要人：${escapeHtml(m.minuter)}</span>` : ''}
+          ${m.attendees ? `<span>👥 参会人：${escapeHtml(m.attendees)}</span>` : ''}
         </div>
-        <div style="font-size:11px; color:var(--text-muted); background:#f4f4f5; padding:4px 8px; border-radius:4px;">
+        ${m.decision ? `
+        <div style="font-size:11px; color:var(--text-muted); background:#f4f4f5; padding:4px 8px; border-radius:4px; margin-top:4px;">
           <strong>🎯 决策要点：</strong>${escapeHtml(m.decision)}
-        </div>
+        </div>` : ''}
       </div>
-    `).join('');
+      `;
+    }).join('');
   }
 }
 
@@ -17089,15 +17032,15 @@ function confirmImportCalendar() {
       durationHours: m.durationHours || (dur / 60).toFixed(2),
       subject: m.subject,
       reporter: m.reporter || '',
-      location: m.location || '主管办公室',
-      minuter: m.minuter || '秘书处',
-      attendees: m.attendees || (m.reporter ? `主管、${m.reporter}` : '主管、相关参会人'),
+      location: m.location || '',
+      minuter: m.minuter || '',
+      attendees: m.attendees || '',
       background: m.background || '',
-      decision: m.decision || `审议《${m.subject}》关键决策要点，确定推进方案。`,
-      requester: m.reporter || '智能文本导入',
+      decision: m.decision || '',
+      requester: m.reporter || '',
       status: m.status || 'scheduled',
       priority: 'medium',
-      notes: m.notes || '由大段文本智能识别导入',
+      notes: m.notes || '',
       noticeSent: false
     };
   });
@@ -22334,7 +22277,7 @@ initHostDatabaseSync();
 initMobileAppMode();
 window.addEventListener('resize', () => { initMobileAppMode(); });
 
-window.APP_VERSION = 'v1.7.1';
+window.APP_VERSION = 'v1.7.2';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
