@@ -1,0 +1,18 @@
+{
+  "name": "Snoopy's Little Lab",
+  "short_name": "SnoopyLab",
+  "description": "Sanyli. 助理工作台与跨时区日程协同系统",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0284c7",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

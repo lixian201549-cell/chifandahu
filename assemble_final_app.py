@@ -44,7 +44,13 @@ html_template = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SnoopyLab">
+<meta name="theme-color" content="#0284c7">
+<link rel="manifest" href="/manifest.json">
 <title>Snoopy’s Little Lab · Sanyli.</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/favicon.png">
@@ -5245,9 +5251,836 @@ html_template = """<!DOCTYPE html>
   box-shadow: 3px 3px 0 var(--ink, #171717) !important;
 }
 
+/* =====================================================================
+   MOBILE APP NATIVE ENGINE & RESPONSIVE STYLES (手机端自适应 App 模式)
+===================================================================== */
+:root {
+  --mobile-safe-bottom: env(safe-area-inset-bottom, 12px);
+  --mobile-primary: #0284c7;
+  --mobile-primary-hover: #0369a1;
+  --mobile-surface: #ffffff;
+  --mobile-bg: #f8fafc;
+  --mobile-border: #e2e8f0;
+}
+
+/* 手机模式下完全隐藏电脑端外壳元素 */
+body.is-mobile-app {
+  background: var(--mobile-bg) !important;
+  padding-bottom: calc(65px + var(--mobile-safe-bottom)) !important;
+  overflow-x: hidden !important;
+}
+
+body.is-mobile-app .app-header,
+body.is-mobile-app .nav-bar,
+body.is-mobile-app .main-wrapper,
+body.is-mobile-app #appFooter,
+body.is-mobile-app .chalkboard-stage-wrap,
+body.is-mobile-app .floating-back-to-mobile {
+  display: none !important;
+}
+
+/* 手机端外壳容器 */
+#mobileAppShell {
+  display: none;
+}
+body.is-mobile-app #mobileAppShell {
+  display: flex !important;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* 1. 移动端吸顶顶栏 */
+.mobile-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--mobile-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+}
+.mobile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mobile-snoopy-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.mobile-title-wrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.mobile-app-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+.mobile-header-tz-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #0284c7;
+}
+.mobile-header-center {
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.2px;
+}
+.mobile-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mobile-btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 1px solid var(--mobile-border);
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+.mobile-btn-icon:active {
+  background: #e2e8f0;
+}
+
+/* 2. 移动端内容容器 */
+.mobile-main-container {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mobile-pane {
+  display: none;
+}
+.mobile-pane.active {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: mobileFadeIn 0.2s ease-out;
+}
+@keyframes mobileFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 3. Hero Date Card & Status */
+.mobile-hero-card {
+  background: #ffffff;
+  border: 1px solid var(--mobile-border);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mobile-date-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mobile-date-arrow-btn {
+  background: #f8fafc;
+  border: 1px solid var(--mobile-border);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  color: #475569;
+}
+.mobile-date-arrow-btn:active {
+  background: #e2e8f0;
+}
+.mobile-date-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+}
+.mobile-date-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.mobile-today-pill {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+/* 领导状态横幅 */
+.mobile-leader-status-card {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mobile-leader-status-card:active {
+  transform: scale(0.99);
+}
+.m-status-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.m-status-desc {
+  font-size: 11px;
+  color: #0284c7;
+  margin-top: 2px;
+}
+
+/* 快捷操作胶囊 */
+.mobile-quick-actions {
+  display: flex;
+  gap: 8px;
+}
+.mobile-action-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.mobile-action-btn.primary {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+.mobile-action-btn.outline {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid var(--mobile-border);
+}
+.mobile-action-btn:active {
+  opacity: 0.85;
+}
+
+/* 过滤 Chips */
+.mobile-filter-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.mobile-filter-bar::-webkit-scrollbar {
+  display: none;
+}
+.m-filter-chip, .m-task-filter-chip {
+  background: #ffffff;
+  border: 1px solid var(--mobile-border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.m-filter-chip.active, .m-task-filter-chip.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+/* 时间流容器 */
+.mobile-timeline-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 移动端飞行卡片 */
+.m-card-transit {
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  border-left: 4px solid #0284c7;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+}
+.m-transit-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.m-transit-time-pill {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0369a1;
+}
+.m-transit-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.m-transit-route {
+  font-size: 12px;
+  color: #475569;
+  background: #f8fafc;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* 移动端会议卡片 */
+.m-card-meeting {
+  background: #ffffff;
+  border: 1px solid var(--mobile-border);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.15s;
+}
+.m-card-meeting.is-shifted {
+  border-left: 4px solid #16a34a;
+}
+.m-card-meeting.is-pending {
+  border-left: 4px solid #f59e0b;
+}
+.m-meeting-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.m-meeting-time {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0284c7;
+}
+.m-card-meeting.is-shifted .m-meeting-time {
+  color: #15803d;
+}
+.m-meeting-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+  cursor: pointer;
+}
+.m-meeting-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #475569;
+}
+.m-meeting-cairo-ref {
+  font-size: 10.5px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+.m-meeting-decision {
+  font-size: 11.5px;
+  color: #0f172a;
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+  padding: 5px 8px;
+  border-radius: 4px;
+}
+.m-card-actions {
+  display: flex;
+  gap: 6px;
+  border-top: 1px dashed var(--mobile-border);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+.m-btn-mini {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid var(--mobile-border);
+  background: #f8fafc;
+  color: #334155;
+  cursor: pointer;
+}
+.m-btn-mini:active {
+  background: #e2e8f0;
+}
+.m-btn-mini.complete {
+  color: #16a34a;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+/* 可用空档卡片 */
+.m-card-slot {
+  background: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.m-slot-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #15803d;
+}
+.m-slot-btn {
+  background: #16a34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 4. 移动端悬浮底部导航栏 */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--mobile-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: var(--mobile-safe-bottom);
+}
+.m-nav-item {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+}
+.m-nav-icon {
+  font-size: 18px;
+}
+.m-nav-label {
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.m-nav-item.active {
+  color: #0284c7;
+}
+.m-nav-item.active .m-nav-label {
+  font-weight: 800;
+}
+.m-nav-badge {
+  position: absolute;
+  top: 4px;
+  right: 22%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 5px;
+}
+
+/* 移动端子页面通用标题栏 */
+.mobile-tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--mobile-border);
+}
+.mobile-tab-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* 更多功能九宫格 */
+.mobile-more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.mobile-more-card {
+  background: #ffffff;
+  border: 1px solid var(--mobile-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+.mobile-more-card:active {
+  background: #f8fafc;
+}
+.m-more-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+.m-more-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.m-more-desc {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* 5. 模态框底部抽屉化 (Bottom Sheet for Mobile) */
+body.is-mobile-app .modal,
+@media (max-width: 768px) {
+  .modal-content {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 86vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    margin: 0 !important;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 16px 16px calc(16px + var(--mobile-safe-bottom)) 16px !important;
+    animation: mobileSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .modal-content input,
+  .modal-content select,
+  .modal-content textarea {
+    font-size: 16px !important; /* 彻底杜绝 iOS Safari 聚焦输入框时页面强制放大 */
+  }
+}
+@keyframes mobileSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* 快捷新建底部弹层 */
+.mobile-quick-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 10001;
+  display: flex;
+  align-items: flex-end;
+  animation: mobileFadeIn 0.2s ease-out;
+}
+.mobile-quick-sheet-body {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 20px 20px 0 0;
+  padding: 18px 16px calc(18px + var(--mobile-safe-bottom)) 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: mobileSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.m-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--mobile-border);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+}
+.m-sheet-item:active {
+  background: #e2e8f0;
+}
+.m-sheet-cancel {
+  text-align: center;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid var(--mobile-border);
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+}
+
+/* 浮动切回手机版按钮 */
+.floating-back-to-mobile {
+  display: none;
+}
+body.is-desktop-forced .floating-back-to-mobile {
+  display: flex !important;
+  position: fixed;
+  bottom: 24px;
+  right: 18px;
+  z-index: 9999;
+  background: #0284c7;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
+  cursor: pointer;
+  align-items: center;
+  gap: 6px;
+}
+
+
 </style>
 </head>
 <body>
+
+  <!-- ================= MOBILE APP SHELL (手机端专属容器) ================= -->
+  <div id="mobileAppShell" class="mobile-app-shell">
+    <!-- 1. 移动端专属吸顶顶栏 -->
+    <header id="mobileAppHeader" class="mobile-header">
+      <div class="mobile-header-left">
+        <img src="__IMG_ORDINARY_DOGHOUSE__" class="mobile-snoopy-avatar" alt="Snoopy" />
+        <div class="mobile-title-wrap">
+          <span class="mobile-app-title">Snoopy Lab</span>
+          <span class="mobile-header-tz-badge" id="mobileHeaderTzBadge">🇪🇬 开罗 UTC+2</span>
+        </div>
+      </div>
+      <div class="mobile-header-center" id="mobileHeaderClockWrap">
+        <span class="mobile-clock-time" id="mobileHeaderClockText">16:17</span>
+      </div>
+      <div class="mobile-header-right">
+        <button class="mobile-btn-icon" onclick="openMobileQuickAddSheet()" title="快捷新建" aria-label="快捷新建">＋</button>
+        <button class="mobile-btn-icon" onclick="setViewModePreference('desktop')" title="切换为电脑完整版" aria-label="切换为电脑完整版">💻</button>
+      </div>
+    </header>
+
+    <!-- 2. 移动端主内容区域 -->
+    <main id="mobileAppContainer" class="mobile-main-container">
+      <!-- Tab 1: 今日日程 (Today Stream) -->
+      <div id="mPaneToday" class="mobile-pane active">
+        <!-- Hero Date & Leader Status Card -->
+        <div class="mobile-hero-card">
+          <div class="mobile-date-bar">
+            <button class="mobile-date-arrow-btn" onclick="stepMobileDate(-1)" title="前一天">◀</button>
+            <div class="mobile-date-display" onclick="openMobileDatePicker()">
+              <span id="mobileDateTitleText" class="mobile-date-text">11月16日 周一</span>
+              <span id="mobileTodayPill" class="mobile-today-pill" style="display:none;" onclick="jumpMobileToday(event)">今日</span>
+              <input type="date" id="mobileDatePickerInput" onchange="onMobileDatePicked(this.value)" style="opacity:0; position:absolute; pointer-events:none; width:1px; height:1px;" />
+            </div>
+            <button class="mobile-date-arrow-btn" onclick="stepMobileDate(1)" title="后一天">▶</button>
+          </div>
+
+          <!-- 领导当前差旅/在途状态横幅 -->
+          <div id="mobileLeaderStatusCard" class="mobile-leader-status-card" onclick="openTransitModal()">
+            <div class="m-status-title">
+              <span id="mStatusTitleText">🏛️ 开罗总部常驻</span>
+              <span style="font-size:10px; color:#0284c7;">在途登记 ▶</span>
+            </div>
+            <div class="m-status-desc" id="mStatusDescText">本日日程均按开罗总部时间安排</div>
+          </div>
+
+          <!-- 快捷操作胶囊栏 -->
+          <div class="mobile-quick-actions">
+            <button class="mobile-action-btn primary" onclick="exportSingleDayScheduleNotice(currentMobileDate)">
+              📋 复制今日通报
+            </button>
+            <button class="mobile-action-btn outline" onclick="openAddMeetingModalWithSlot(currentMobileDate, '10:00', 45)">
+              ＋ 预约
+            </button>
+            <button class="mobile-action-btn outline" onclick="openTransitModal()">
+              🛫 在途
+            </button>
+          </div>
+        </div>
+
+        <!-- 今日筛选过滤栏 -->
+        <div class="mobile-filter-bar">
+          <button class="m-filter-chip active" data-filter="all" onclick="setMobileDayFilter('all')">全部排期</button>
+          <button class="m-filter-chip" data-filter="meeting" onclick="setMobileDayFilter('meeting')">仅看会议</button>
+          <button class="m-filter-chip" data-filter="transit" onclick="setMobileDayFilter('transit')">仅看在途</button>
+        </div>
+
+        <!-- 时间流列表 (Timeline Stream) -->
+        <div id="mobileTimelineStream" class="mobile-timeline-stream">
+          <!-- Dynamic items: Flights, Meetings, Free slots -->
+        </div>
+      </div>
+
+      <!-- Tab 2: 领导在途 (Transit Trips) -->
+      <div id="mPaneTransit" class="mobile-pane">
+        <div class="mobile-tab-header">
+          <div class="mobile-tab-title">🛫 领导在途与差旅管理</div>
+          <button class="btn btn-sm btn-primary" onclick="openTransitModal()" style="border-radius:20px; padding:6px 14px; font-weight:700;">＋ 登记在途</button>
+        </div>
+        <div id="mobileTransitContent" style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Dynamic transit cards -->
+        </div>
+      </div>
+
+      <!-- Tab 3: 遗留督办 (Legacy Tasks) -->
+      <div id="mPaneTasks" class="mobile-pane">
+        <div class="mobile-tab-header">
+          <div class="mobile-tab-title">📋 遗留任务与督办</div>
+          <button class="btn btn-sm btn-outline" onclick="openLegacyModal()" style="border-radius:20px; padding:5px 12px; font-size:12px;">＋ 新建任务</button>
+        </div>
+        <div class="mobile-filter-bar" style="margin-bottom:8px;">
+          <button class="m-task-filter-chip active" data-filter="all" onclick="setMobileTaskFilter('all')">全部</button>
+          <button class="m-task-filter-chip" data-filter="active" onclick="setMobileTaskFilter('active')">待办攻坚</button>
+          <button class="m-task-filter-chip" data-filter="completed" onclick="setMobileTaskFilter('completed')">已完成</button>
+        </div>
+        <div id="mobileLegacyTasksList" style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Dynamic task cards -->
+        </div>
+      </div>
+
+      <!-- Tab 4: 月度闯关 (Milestones) -->
+      <div id="mPaneMilestones" class="mobile-pane">
+        <div class="mobile-tab-header">
+          <div class="mobile-tab-title">🎯 技术运营月度闯关</div>
+        </div>
+        <div id="mobileMilestonesContainer" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Dynamic milestones timeline -->
+        </div>
+      </div>
+
+      <!-- Tab 5: 更多功能 (More Tools) -->
+      <div id="mPaneMore" class="mobile-pane">
+        <div class="mobile-tab-header">
+          <div class="mobile-tab-title">⚙️ 更多工作台工具</div>
+        </div>
+        <div class="mobile-more-grid">
+          <div class="mobile-more-card" onclick="openDesktopTabFromMobile('todo')">
+            <div class="m-more-icon">📝</div>
+            <div class="m-more-title">今日待办</div>
+            <div class="m-more-desc">Q1-Q4 四象限要务</div>
+          </div>
+          <div class="mobile-more-card" onclick="openDesktopTabFromMobile('timezone')">
+            <div class="m-more-icon">🌍</div>
+            <div class="m-more-title">时区协同</div>
+            <div class="m-more-desc">跨国时钟与换算标尺</div>
+          </div>
+          <div class="mobile-more-card" onclick="openDesktopTabFromMobile('notes')">
+            <div class="m-more-icon">✍️</div>
+            <div class="m-more-title">每日小记</div>
+            <div class="m-more-desc">灵感备忘便签</div>
+          </div>
+          <div class="mobile-more-card" onclick="openDesktopTabFromMobile('english')">
+            <div class="m-more-icon">📖</div>
+            <div class="m-more-title">每日英语</div>
+            <div class="m-more-desc">词汇与句型打卡</div>
+          </div>
+        </div>
+
+        <div class="mobile-more-section" style="margin-top:20px;">
+          <button class="btn btn-outline" style="width:100%; padding:12px; border-radius:12px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="setViewModePreference('desktop')">
+            <span>💻</span> 切换为电脑完整版
+          </button>
+          <button class="btn btn-ghost" style="width:100%; padding:10px; color:#dc2626; border-radius:12px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="logoutFromLab()">
+            <span>🚪</span> 退出当前登录
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 3. 移动端专属悬浮底部导航栏 -->
+    <nav id="mobileAppBottomNav" class="mobile-bottom-nav">
+      <button class="m-nav-item active" data-tab="today" onclick="switchMobileTab('today')">
+        <span class="m-nav-icon">📅</span>
+        <span class="m-nav-label">今日</span>
+        <span class="m-nav-badge" id="mBadgeToday" style="display:none;"></span>
+      </button>
+      <button class="m-nav-item" data-tab="transit" onclick="switchMobileTab('transit')">
+        <span class="m-nav-icon">🛫</span>
+        <span class="m-nav-label">在途</span>
+        <span class="m-nav-badge" id="mBadgeTransit" style="display:none;"></span>
+      </button>
+      <button class="m-nav-item" data-tab="tasks" onclick="switchMobileTab('tasks')">
+        <span class="m-nav-icon">📋</span>
+        <span class="m-nav-label">督办</span>
+        <span class="m-nav-badge" id="mBadgeTasks" style="display:none;"></span>
+      </button>
+      <button class="m-nav-item" data-tab="milestones" onclick="switchMobileTab('milestones')">
+        <span class="m-nav-icon">🎯</span>
+        <span class="m-nav-label">闯关</span>
+      </button>
+      <button class="m-nav-item" data-tab="more" onclick="switchMobileTab('more')">
+        <span class="m-nav-icon">⚙️</span>
+        <span class="m-nav-label">更多</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- 电脑版悬浮回到手机版小按钮 (仅当在手机屏幕强行看电脑版时显示) -->
+  <button id="floatingBackToMobileBtn" class="floating-back-to-mobile" onclick="setViewModePreference('mobile')">
+    📱 切换为手机版
+  </button>
 
   <!-- App Header -->
   <header class="app-header">
@@ -10626,6 +11459,9 @@ function renderSupervisorWeeklyBoard() {
   `;
 
   boardContainer.innerHTML = html;
+  if (typeof renderMobileApp === 'function' && typeof isMobileScreen === 'function' && isMobileScreen()) {
+    renderMobileApp();
+  }
 }
 
 function timeStrToMinutes(timeStr) {
@@ -18847,6 +19683,610 @@ function initSeeds() {
   ]);
 }
 
+// ================= MOBILE APP NATIVE ENGINE (手机端自适应 App 模式引擎) =================
+let currentMobileDate = getTodayDateStr();
+let currentMobileTab = 'today';
+let mobileDayFilter = 'all';
+let mobileTaskFilter = 'all';
+
+function isMobileScreen() {
+  const pref = localStorage.getItem('snoopy_view_mode_pref');
+  if (pref === 'desktop') return false;
+  if (pref === 'mobile') return true;
+  return window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
+function initMobileAppMode() {
+  const isMob = isMobileScreen();
+  if (isMob) {
+    document.body.classList.add('is-mobile-app');
+    document.body.classList.remove('is-desktop-forced');
+    renderMobileApp();
+  } else {
+    document.body.classList.remove('is-mobile-app');
+    const isPhoneScreen = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    if (localStorage.getItem('snoopy_view_mode_pref') === 'desktop' && isPhoneScreen) {
+      document.body.classList.add('is-desktop-forced');
+    } else {
+      document.body.classList.remove('is-desktop-forced');
+    }
+  }
+}
+
+function setViewModePreference(mode) {
+  localStorage.setItem('snoopy_view_mode_pref', mode);
+  initMobileAppMode();
+  if (mode === 'desktop') {
+    showToast('💻 已切换为电脑完整版');
+  } else if (mode === 'mobile') {
+    showToast('📱 已切换为手机移动版');
+  } else {
+    showToast('🔄 已恢复为自适应识别模式');
+  }
+}
+
+function switchMobileTab(tabKey) {
+  currentMobileTab = tabKey;
+  document.querySelectorAll('.m-nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === tabKey);
+  });
+  document.querySelectorAll('.mobile-pane').forEach(p => {
+    p.classList.remove('active');
+  });
+  const targetPaneMap = {
+    today: 'mPaneToday',
+    transit: 'mPaneTransit',
+    tasks: 'mPaneTasks',
+    milestones: 'mPaneMilestones',
+    more: 'mPaneMore'
+  };
+  const targetId = targetPaneMap[tabKey] || 'mPaneToday';
+  const targetEl = document.getElementById(targetId);
+  if (targetEl) targetEl.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderMobileApp();
+}
+
+function openDesktopTabFromMobile(desktopTabId) {
+  switchTab(desktopTabId);
+  setViewModePreference('desktop');
+}
+
+function stepMobileDate(deltaDays) {
+  const parts = currentMobileDate.split('-').map(Number);
+  const d = new Date(parts[0], parts[1] - 1, parts[2] + deltaDays);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  currentMobileDate = `${y}-${m}-${day}`;
+  renderMobileTodayPane();
+}
+
+function jumpMobileToday(e) {
+  if (e) e.stopPropagation();
+  currentMobileDate = getTodayDateStr();
+  renderMobileTodayPane();
+}
+
+function openMobileDatePicker() {
+  const inp = document.getElementById('mobileDatePickerInput');
+  if (inp) {
+    inp.value = currentMobileDate;
+    if (typeof inp.showPicker === 'function') {
+      inp.showPicker();
+    } else {
+      inp.focus();
+    }
+  }
+}
+
+function onMobileDatePicked(val) {
+  if (!val) return;
+  currentMobileDate = val;
+  renderMobileTodayPane();
+}
+
+function setMobileDayFilter(filterKey) {
+  mobileDayFilter = filterKey;
+  document.querySelectorAll('.m-filter-chip').forEach(c => {
+    c.classList.toggle('active', c.getAttribute('data-filter') === filterKey);
+  });
+  renderMobileTodayTimeline();
+}
+
+function setMobileTaskFilter(filterKey) {
+  mobileTaskFilter = filterKey;
+  document.querySelectorAll('.m-task-filter-chip').forEach(c => {
+    c.classList.toggle('active', c.getAttribute('data-filter') === filterKey);
+  });
+  renderMobileTasksPane();
+}
+
+function openMobileQuickAddSheet() {
+  const existing = document.getElementById('mobileQuickSheet');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'mobileQuickSheet';
+  overlay.className = 'mobile-quick-sheet-overlay';
+  overlay.onclick = (e) => {
+    if (e.target === overlay) overlay.remove();
+  };
+
+  overlay.innerHTML = `
+    <div class="mobile-quick-sheet-body">
+      <div style="font-size:12.5px; font-weight:700; color:#64748b; text-align:center; margin-bottom:4px;">✨ 快捷新建</div>
+      <div class="m-sheet-item" onclick="openAddMeetingModalWithSlot('${currentMobileDate}', '10:00', 45); document.getElementById('mobileQuickSheet').remove();">
+        <span style="font-size:20px;">📅</span>
+        <div>
+          <div>预约新会议</div>
+          <div style="font-size:11px; color:#64748b; font-weight:normal;">排期至 ${currentMobileDate}</div>
+        </div>
+      </div>
+      <div class="m-sheet-item" onclick="openTransitModal(); document.getElementById('mobileQuickSheet').remove();">
+        <span style="font-size:20px;">🛫</span>
+        <div>
+          <div>登记在途行程</div>
+          <div style="font-size:11px; color:#64748b; font-weight:normal;">跨时区航班与自动出差联动</div>
+        </div>
+      </div>
+      <div class="m-sheet-item" onclick="openLegacyModal(); document.getElementById('mobileQuickSheet').remove();">
+        <span style="font-size:20px;">📋</span>
+        <div>
+          <div>新建遗留待办</div>
+          <div style="font-size:11px; color:#64748b; font-weight:normal;">技术运营与主管督办攻坚项</div>
+        </div>
+      </div>
+      <div class="m-sheet-cancel" onclick="document.getElementById('mobileQuickSheet').remove();">取消</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function renderMobileApp() {
+  if (!isMobileScreen()) return;
+
+  // 1. 顶栏时区微徽标与时钟
+  const tzBadgeEl = document.getElementById('mobileHeaderTzBadge');
+  const clockTextEl = document.getElementById('mobileHeaderClockText');
+  const todayStr = getTodayDateStr();
+  const trip = getTripForDate(todayStr);
+
+  const now = new Date();
+  const cairoH = String((now.getUTCHours() + 2 + 24) % 24).padStart(2, '0');
+  const cairoM = String(now.getUTCMinutes()).padStart(2, '0');
+
+  if (tzBadgeEl) {
+    if (trip && trip.destination && !isLocationCairo(trip.destination)) {
+      tzBadgeEl.textContent = `${trip.tzFlag || '✈️'} ${trip.tzName || trip.destination}`;
+    } else {
+      tzBadgeEl.textContent = '🇪🇬 开罗 UTC+2';
+    }
+  }
+
+  if (clockTextEl) {
+    if (trip && trip.destination && !isLocationCairo(trip.destination) && trip.utcOffset !== undefined) {
+      const tripH = String((now.getUTCHours() + trip.utcOffset + 24) % 24).padStart(2, '0');
+      clockTextEl.textContent = `${tripH}:${cairoM} (当地) · ${cairoH}:${cairoM} (开罗)`;
+    } else {
+      clockTextEl.textContent = `${cairoH}:${cairoM} 开罗`;
+    }
+  }
+
+  // 2. 底部栏徽标数字
+  const badgeTodayEl = document.getElementById('mBadgeToday');
+  const badgeTasksEl = document.getElementById('mBadgeTasks');
+  const badgeTransitEl = document.getElementById('mBadgeTransit');
+
+  if (badgeTodayEl) {
+    const todayMeetings = getData(STORAGE_KEYS.MEETINGS, []).filter(m => m.date === todayStr && m.status === 'scheduled');
+    badgeTodayEl.textContent = todayMeetings.length;
+    badgeTodayEl.style.display = todayMeetings.length > 0 ? 'inline-block' : 'none';
+  }
+
+  if (badgeTasksEl) {
+    const legacyTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+    const activeTasks = legacyTasks.filter(t => !t.isClosed && t.status !== 'completed');
+    badgeTasksEl.textContent = activeTasks.length;
+    badgeTasksEl.style.display = activeTasks.length > 0 ? 'inline-block' : 'none';
+  }
+
+  if (badgeTransitEl) {
+    const todayTransits = typeof getTransitsForDate === 'function' ? getTransitsForDate(todayStr) : [];
+    if (todayTransits.length > 0) {
+      badgeTransitEl.textContent = todayTransits.length;
+      badgeTransitEl.style.display = 'inline-block';
+    } else {
+      badgeTransitEl.style.display = 'none';
+    }
+  }
+
+  // 3. 渲染当前活动的子面板
+  if (currentMobileTab === 'today') {
+    renderMobileTodayPane();
+  } else if (currentMobileTab === 'transit') {
+    renderMobileTransitPane();
+  } else if (currentMobileTab === 'tasks') {
+    renderMobileTasksPane();
+  } else if (currentMobileTab === 'milestones') {
+    renderMobileMilestonesPane();
+  }
+}
+
+function renderMobileTodayPane() {
+  // 1. 日期显示
+  const dateTitleEl = document.getElementById('mobileDateTitleText');
+  const todayPillEl = document.getElementById('mobileTodayPill');
+  const todayStr = getTodayDateStr();
+
+  const parts = currentMobileDate.split('-').map(Number);
+  const d = new Date(parts[0], parts[1] - 1, parts[2]);
+  const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const weekName = weekdayNames[d.getDay()];
+
+  if (dateTitleEl) {
+    dateTitleEl.textContent = `${parts[1]}月${parts[2]}日 ${weekName}`;
+  }
+  if (todayPillEl) {
+    todayPillEl.style.display = (currentMobileDate === todayStr) ? 'none' : 'inline-block';
+  }
+
+  // 2. 领导在途与差旅横幅
+  const statusTitleEl = document.getElementById('mStatusTitleText');
+  const statusDescEl = document.getElementById('mStatusDescText');
+  const statusCardEl = document.getElementById('mobileLeaderStatusCard');
+
+  const dayTransits = typeof getTransitsForDate === 'function' ? getTransitsForDate(currentMobileDate) : [];
+  const dayTrip = typeof getTripForDate === 'function' ? getTripForDate(currentMobileDate) : null;
+
+  if (statusTitleEl && statusDescEl) {
+    if (dayTransits.length > 0) {
+      if (dayTransits.length === 1) {
+        statusTitleEl.textContent = `🛫 领导今日在途飞行 · ${dayTransits[0].title}`;
+        statusDescEl.textContent = `航程：${dayTransits[0].depCity} ➔ ${dayTransits[0].arrCity} (${dayTransits[0].durationText || '在途'})`;
+      } else {
+        statusTitleEl.textContent = `🛫 领导今日在途 (${dayTransits.length}段飞行)`;
+        statusDescEl.textContent = dayTransits.map(t => `${t.depCity} ➔ ${t.arrCity}`).join(' ➔ ');
+      }
+      if (statusCardEl) {
+        statusCardEl.style.background = '#f0f9ff';
+        statusCardEl.style.borderColor = '#bae6fd';
+      }
+    } else if (dayTrip && dayTrip.destination && !isLocationCairo(dayTrip.destination)) {
+      statusTitleEl.textContent = `✈️ 领导出差中 · ${dayTrip.tzFlag || '📍'} ${dayTrip.tzName || dayTrip.destination}`;
+      statusDescEl.textContent = `当地时差比开罗${dayTrip.diffText} · 本日会议已自动折算当地时间`;
+      if (statusCardEl) {
+        statusCardEl.style.background = '#f0fdf4';
+        statusCardEl.style.borderColor = '#bbf7d0';
+      }
+    } else {
+      statusTitleEl.textContent = `🏛️ 埃及·开罗总部常驻`;
+      statusDescEl.textContent = `基准时区 UTC+2 · 日程全按总部时间安排`;
+      if (statusCardEl) {
+        statusCardEl.style.background = '#f8fafc';
+        statusCardEl.style.borderColor = '#e2e8f0';
+      }
+    }
+  }
+
+  // 3. 时间流列表
+  renderMobileTodayTimeline();
+}
+
+function renderMobileTodayTimeline() {
+  const container = document.getElementById('mobileTimelineStream');
+  if (!container) return;
+
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []).filter(m => m.date === currentMobileDate && m.status !== 'cancelled');
+  const transits = typeof getTransitsForDate === 'function' ? getTransitsForDate(currentMobileDate) : [];
+  const { freeSlots } = typeof calculateDayFreeSlots === 'function' ? calculateDayFreeSlots(meetings, currentMobileDate) : { freeSlots: [] };
+
+  const timelineItems = [];
+
+  // 插入在途航班
+  if (mobileDayFilter === 'all' || mobileDayFilter === 'transit') {
+    transits.forEach((t, idx) => {
+      const depMins = t.depTime ? timeStrToMinutes(t.depTime) : 0;
+      timelineItems.push({
+        type: 'transit',
+        start: depMins,
+        data: t,
+        segIdx: idx,
+        totalSegs: transits.length
+      });
+    });
+  }
+
+  // 插入会议
+  if (mobileDayFilter === 'all' || mobileDayFilter === 'meeting') {
+    meetings.forEach(m => {
+      const dt = getMeetingDisplayTime(m);
+      const sMins = timeStrToMinutes(dt.start || '10:00');
+      timelineItems.push({
+        type: 'meeting',
+        start: sMins,
+        data: m,
+        dt
+      });
+    });
+  }
+
+  // 插入可用空档
+  if (mobileDayFilter === 'all' && freeSlots && freeSlots.length > 0) {
+    freeSlots.forEach(s => {
+      if (s.duration >= 30) {
+        timelineItems.push({
+          type: 'slot',
+          start: s.start,
+          data: s
+        });
+      }
+    });
+  }
+
+  // 严格按时间先后正序排列
+  timelineItems.sort((a, b) => a.start - b.start);
+
+  if (timelineItems.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:36px 16px; background:#fff; border:1px dashed var(--mobile-border); border-radius:16px; margin-top:8px;">
+        <div style="font-size:24px; margin-bottom:8px;">☕</div>
+        <div style="font-size:14px; font-weight:700; color:#0f172a;">本日暂无排期安排</div>
+        <div style="font-size:12px; color:#64748b; margin-top:4px; margin-bottom:14px;">时间充裕，随时点击下方按钮安排新预约</div>
+        <button class="mobile-action-btn primary" style="max-width:200px; margin:0 auto;" onclick="openAddMeetingModalWithSlot('${currentMobileDate}', '10:00', 45)">
+          ＋ 安排新会议预约
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  timelineItems.forEach(item => {
+    if (item.type === 'transit') {
+      const t = item.data;
+      const depCity = t.depCity || '开罗';
+      const arrCity = t.arrCity || '目的地';
+      const depTzName = t.depTzName || depCity;
+      const arrTzName = t.arrTzName || arrCity;
+      const depStr = t.depTime ? `${t.depTime}` : '时间待定';
+      const arrStr = t.arrTime ? `${t.arrTime}` : '';
+      const durStr = t.durationText ? `(${t.durationText})` : '';
+      const segText = item.totalSegs > 1 ? `第${item.segIdx + 1}段 · ` : '';
+
+      html += `
+        <div class="m-card-transit" onclick="openTransitModal(${t.id})" title="点击编辑在途航班">
+          <div class="m-transit-top">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="m-transit-time-pill">🛫 ${segText}${depStr}${arrStr ? ' ➔ ' + arrStr : ''}</span>
+              ${t.flightNo ? `<span style="font-size:10px; background:#e0f2fe; color:#0369a1; padding:1px 5px; border-radius:4px; font-weight:700;">${escapeHtml(t.flightNo)}</span>` : ''}
+            </div>
+            <span style="font-size:11px; font-weight:600; color:#0284c7;">${escapeHtml(durStr)}</span>
+          </div>
+          <div class="m-transit-title">${escapeHtml(t.title)}</div>
+          <div class="m-transit-route">
+            <div>🛫 <strong>起飞：</strong>${depCity} (${depStr}) · <span style="color:#64748b;">${escapeHtml(depTzName)}</span></div>
+            <div>🛬 <strong>落地：</strong>${arrCity} (${arrStr}) · <span style="color:#64748b;">${escapeHtml(arrTzName)}</span></div>
+            ${t.remark ? `<div style="margin-top:2px; color:#0369a1;">📝 备忘：${escapeHtml(t.remark)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    } else if (item.type === 'meeting') {
+      const m = item.data;
+      const dt = item.dt;
+      const dur = m.duration || 45;
+      const isShifted = dt.isShifted;
+      const isCompleted = (m.status === 'completed');
+      const isPending = (m.status === 'pending');
+
+      html += `
+        <div class="m-card-meeting ${isShifted ? 'is-shifted' : ''} ${isPending ? 'is-pending' : ''}">
+          <div class="m-meeting-top">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="m-meeting-time">🕒 ${dt.start} - ${dt.end}</span>
+              <span style="font-size:11px; color:#64748b;">(${dur}m)</span>
+            </div>
+            <div>
+              ${isCompleted ? '<span style="font-size:10.5px; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:4px; font-weight:700;">已完成</span>' : (isPending ? '<span style="font-size:10.5px; background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-weight:700;">待确认</span>' : '<span style="font-size:10.5px; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:700;">已排期</span>')}
+            </div>
+          </div>
+
+          <div class="m-meeting-title" onclick="editMeeting(${m.id})">
+            ${isPending ? '<span style="color:#f59e0b;">●</span> ' : ''}${escapeHtml(m.subject)}
+          </div>
+
+          ${isShifted ? `
+            <div class="m-meeting-cairo-ref">
+              <span>🌍 ${dt.trip ? dt.trip.tzName : ''}当地时间 (对应开罗 ${dt.cairoStart} - ${dt.cairoEnd})</span>
+            </div>
+          ` : ''}
+
+          <div class="m-meeting-meta-row">
+            ${m.reporter ? `<div>👤 汇报：<strong>${escapeHtml(m.reporter)}</strong></div>` : ''}
+            ${m.attendees ? `<div>👥 参会：${escapeHtml(m.attendees)}</div>` : ''}
+            ${m.location ? `<div>📍 ${escapeHtml(m.location)}</div>` : ''}
+          </div>
+
+          ${m.decision ? `
+            <div class="m-meeting-decision">
+              <strong>📌 决策：</strong>${escapeHtml(m.decision)}
+            </div>
+          ` : ''}
+
+          <div class="m-card-actions">
+            <button class="m-btn-mini" onclick="copySingleMeetingNotice(${m.id})">📋 复制通知</button>
+            ${!isCompleted ? `<button class="m-btn-mini complete" onclick="updateMeetingStatus(${m.id}, 'completed'); renderMobileApp();">✅ 标记完成</button>` : ''}
+            <button class="m-btn-mini" onclick="editMeeting(${m.id})">✏️ 编辑</button>
+          </div>
+        </div>
+      `;
+    } else if (item.type === 'slot') {
+      const slot = item.data;
+      html += `
+        <div class="m-card-slot">
+          <span class="m-slot-text">🕒 可用空档 ${slot.startStr} - ${slot.endStr} (${slot.duration}分钟)</span>
+          <button class="m-slot-btn" onclick="openAddMeetingModalWithSlot('${currentMobileDate}', '${slot.startStr}', ${Math.min(slot.duration, 60)})">
+            ＋ 预约
+          </button>
+        </div>
+      `;
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+function renderMobileTransitPane() {
+  const container = document.getElementById('mobileTransitContent');
+  if (!container) return;
+
+  const transits = typeof getLeaderTransits === 'function' ? getLeaderTransits() : [];
+  if (transits.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:32px 16px; background:#fff; border:1px dashed var(--mobile-border); border-radius:14px;">
+        <div style="font-size:24px; margin-bottom:6px;">🛫</div>
+        <div style="font-size:13.5px; font-weight:700; color:#0f172a;">暂无登记的跨时区在途行程</div>
+        <div style="font-size:12px; color:#64748b; margin-top:4px; margin-bottom:12px;">登记在途航班后，系统将自动识别领导出差地与当地时区</div>
+        <button class="btn btn-sm btn-primary" style="border-radius:20px; padding:6px 16px;" onclick="openTransitModal()">＋ 立即登记第一条在途航班</button>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  transits.forEach(t => {
+    const depCity = t.depCity || '开罗';
+    const arrCity = t.arrCity || '目的地';
+    const depStr = t.depTime ? `${t.depDate} ${t.depTime}` : t.depDate;
+    const arrStr = t.arrTime ? `${t.arrDate} ${t.arrTime}` : t.arrDate;
+    const durStr = t.durationText ? `(${t.durationText})` : '';
+
+    html += `
+      <div class="m-card-transit" style="cursor:default;">
+        <div class="m-transit-top">
+          <span class="m-transit-time-pill" style="font-size:13px;">🛫 ${escapeHtml(t.title)}</span>
+          ${t.flightNo ? `<span style="font-size:10px; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:700;">${escapeHtml(t.flightNo)}</span>` : ''}
+        </div>
+        <div class="m-transit-route" style="margin:4px 0;">
+          <div>起飞：<strong>${escapeHtml(depCity)}</strong> · ${depStr}</div>
+          <div>落地：<strong>${escapeHtml(arrCity)}</strong> · ${arrStr} <span style="color:#0284c7; font-weight:700;">${escapeHtml(durStr)}</span></div>
+          ${t.remark ? `<div style="color:#64748b; margin-top:2px;">📝 备忘：${escapeHtml(t.remark)}</div>` : ''}
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px dashed var(--mobile-border); padding-top:8px;">
+          <button class="btn btn-sm btn-outline" style="font-size:11px; padding:3px 10px;" onclick="openTransitModal(${t.id})">✏️ 编辑</button>
+          <button class="btn btn-sm btn-ghost" style="color:#dc2626; font-size:11px; padding:3px 8px;" onclick="deleteLeaderTransit(${t.id}); renderMobileApp();">🗑️ 删除</button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderMobileTasksPane() {
+  const container = document.getElementById('mobileLegacyTasksList');
+  if (!container) return;
+
+  const tasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  let filtered = tasks;
+  if (mobileTaskFilter === 'active') {
+    filtered = tasks.filter(t => !t.isClosed && t.status !== 'completed');
+  } else if (mobileTaskFilter === 'completed') {
+    filtered = tasks.filter(t => t.isClosed || t.status === 'completed');
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:32px 16px; background:#fff; border:1px dashed var(--mobile-border); border-radius:14px; color:#64748b; font-size:12.5px;">
+        暂无符合筛选的遗留督办任务
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(t => {
+    const isClosed = t.isClosed || (t.status === 'completed');
+    html += `
+      <div style="background:#fff; border:1px solid var(--mobile-border); border-radius:14px; padding:12px; box-shadow:0 1px 4px rgba(0,0,0,0.03); display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-size:11px; color:#64748b; font-weight:700;">#${t.id || ''} ${escapeHtml(t.category || '技术运营')}</span>
+          ${isClosed ? '<span style="font-size:10px; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:4px; font-weight:700;">已闭环</span>' : '<span style="font-size:10px; background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-weight:700;">攻坚待办</span>'}
+        </div>
+        <div style="font-size:13.5px; font-weight:800; color:#0f172a; line-height:1.4;">
+          ${escapeHtml(t.subject || t.title || '遗留任务')}
+        </div>
+        <div style="font-size:11.5px; color:#475569; display:flex; flex-wrap:wrap; gap:8px;">
+          ${t.owner ? `<div>👤 责任人：<strong>${escapeHtml(t.owner)}</strong></div>` : ''}
+          ${t.targetDate || t.closeDeadline ? `<div>📅 截止：${escapeHtml(t.targetDate || t.closeDeadline)}</div>` : ''}
+        </div>
+        ${t.supervisorReviewNotes ? `
+          <div style="font-size:11.5px; background:#f0fdf4; border-left:3px solid #16a34a; padding:4px 8px; border-radius:4px; color:#14532d;">
+            <strong>主管评审意见：</strong>${escapeHtml(t.supervisorReviewNotes)}
+          </div>
+        ` : ''}
+        <div style="display:flex; justify-content:flex-end; gap:6px; border-top:1px dashed var(--mobile-border); padding-top:6px; margin-top:2px;">
+          ${!isClosed ? `<button class="btn btn-sm btn-ghost" style="color:#15803d; font-size:11px; padding:3px 8px;" onclick="closeLegacyTask(${t.id}); renderMobileApp();">✅ 标记闭环</button>` : `<button class="btn btn-sm btn-ghost" style="color:#64748b; font-size:11px; padding:3px 8px;" onclick="reopenLegacyTask(${t.id}); renderMobileApp();">↩️ 重开</button>`}
+          <button class="btn btn-sm btn-ghost" style="font-size:11px; padding:3px 8px;" onclick="openLegacyMinutesModal(${t.id})">✍️ 意见</button>
+          <button class="btn btn-sm btn-ghost" style="font-size:11px; padding:3px 8px;" onclick="openEditLegacyTaskModal(${t.id})">✏️ 编辑</button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderMobileMilestonesPane() {
+  const container = document.getElementById('mobileMilestonesContainer');
+  if (!container) return;
+
+  const milestones = getData(STORAGE_KEYS.MONTHLY_ROUTINES, DEFAULT_MONTHLY_ROUTINES);
+  if (!milestones || milestones.length === 0) {
+    container.innerHTML = '<div style="color:#64748b; font-size:12.5px; text-align:center; padding:20px;">暂无设置的月度攻坚节点</div>';
+    return;
+  }
+
+  // 检查已完成状态
+  initCurrentRoutineYearMonth();
+  const allChecklists = getData(STORAGE_KEYS.MONTHLY_CHECKLIST, {});
+  const monthChecklist = allChecklists[currentRoutineYearMonth] || {};
+
+  const upcoming = milestones.find(m => {
+    const chk = monthChecklist[String(m.id)];
+    return !(chk && chk.completed);
+  }) || milestones[0];
+
+  let html = `
+    <div style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff; border-radius:14px; padding:14px; box-shadow:0 4px 12px rgba(2,132,199,0.25);">
+      <div style="font-size:11px; opacity:0.9; font-weight:700;">📍 下一个攻坚里程碑</div>
+      <div style="font-size:16px; font-weight:800; margin-top:4px;">${escapeHtml(upcoming.title || '技术运营要务')}</div>
+      <div style="font-size:12px; opacity:0.9; margin-top:2px;">预计时间：${escapeHtml(upcoming.actualDate || (upcoming.value ? upcoming.value + '日' : '本月'))}</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+  `;
+
+  milestones.forEach(m => {
+    const chk = monthChecklist[String(m.id)];
+    const isDone = chk && chk.completed;
+    html += `
+      <div style="background:#fff; border:1px solid var(--mobile-border); border-radius:12px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleMonthlyRoutineComplete(${m.id}); renderMobileMilestonesPane();" style="width:18px; height:18px; accent-color:#0284c7; cursor:pointer;" />
+          <div>
+            <div style="font-size:13.5px; font-weight:700; ${isDone ? 'text-decoration:line-through; color:#94a3b8;' : 'color:#0f172a;'}">${escapeHtml(m.title)}</div>
+            <div style="font-size:11px; color:#64748b;">${escapeHtml(m.actualDate || (m.value ? m.value + '日' : ''))}</div>
+          </div>
+        </div>
+        <span style="font-size:11px; font-weight:700; ${isDone ? 'color:#16a34a;' : 'color:#0284c7;'}">${isDone ? '已达成' : '推进中'}</span>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
 // Initialize Application
 initSeeds();
 initDailyQuote();
@@ -18886,6 +20326,8 @@ renderHomeDashboard();
 initBlackboardInputListeners();
 initBlackboardFontSettings();
 initHostDatabaseSync();
+initMobileAppMode();
+window.addEventListener('resize', () => { initMobileAppMode(); });
 
 window.APP_VERSION = '__APP_VERSION__';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
@@ -18898,7 +20340,13 @@ login_template = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SnoopyLab">
+<meta name="theme-color" content="#0284c7">
+<link rel="manifest" href="/manifest.json">
 <meta name="robots" content="noindex,nofollow">
 <title>回到 Snoopy’s Little Lab</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -19364,6 +20812,8 @@ shutil.copy2(output_path, os.path.join(dist_dir, 'index.html'))
 shutil.copy2('login.html', os.path.join(dist_dir, 'login.html'))
 shutil.copy2('favicon.ico', os.path.join(dist_dir, 'favicon.ico'))
 shutil.copy2('favicon.png', os.path.join(dist_dir, 'favicon.png'))
+if os.path.exists('manifest.json'):
+    shutil.copy2('manifest.json', os.path.join(dist_dir, 'manifest.json'))
 
 file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
 print(f"Step 2: Compiled standalone {output_path} & login.html successfully! (Version: {app_version}, Size: {file_size_mb:.2f} MB)")

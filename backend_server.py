@@ -536,7 +536,7 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
             super().do_GET()
             return
 
-        if path in ("/favicon.ico", "/favicon.png"):
+        if path in ("/favicon.ico", "/favicon.png", "/manifest.json"):
             self.path = path
             super().do_GET()
             return
