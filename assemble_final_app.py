@@ -5957,6 +5957,9 @@ body.is-desktop-forced .floating-back-to-mobile {
             <button class="mobile-action-btn outline" onclick="openTransitModal()">
               🛫 在途
             </button>
+            <button class="mobile-action-btn outline" onclick="openImportCalendarModal()" style="color:#15803d; border-color:#86efac; background:#f0fdf4;">
+              🪄 识别排期
+            </button>
           </div>
         </div>
 
@@ -6446,6 +6449,12 @@ body.is-desktop-forced .floating-back-to-mobile {
         </div>
 
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <button class="btn btn-primary" onclick="openAddMeetingModal()" style="font-weight:700;" title="手动登记新会议预约">
+            ＋ 登记预约
+          </button>
+          <button class="btn" id="btnSmartTextImport" onclick="openImportCalendarModal()" style="font-weight:700; color:#15803d; border:1.5px solid #86efac; background:#f0fdf4;" title="粘贴大段会议文本或微信通知，智能识别并一键加入日历">
+            🪄 文本识别排期
+          </button>
           <div style="display:flex; align-items:center; gap:6px;">
             <label style="font-size:12px; color:#0369a1; font-weight:700;">跳转日期：</label>
             <input type="date" id="timelineDateSelector" style="width:125px; padding:4px 8px; font-size:12px; font-weight:700; color:#0369a1; border:1px solid #7dd3fc; background:#f0f9ff; border-radius:6px;" onchange="handleTimelineDateChange()" />
@@ -6792,42 +6801,39 @@ body.is-desktop-forced .floating-back-to-mobile {
   <div class="modal-overlay" id="importCalendarModal">
     <div class="modal-box" style="max-width: 680px;">
       <div class="modal-header">
-        <div class="modal-title">智能导入会议日程（支持固定表头 / 自由格式）</div>
+        <div class="modal-title">🪄 文本智能识别加入日历（支持微信通知 / 自然语言 / 表格）</div>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('importCalendarModal')">✕</button>
       </div>
       <div class="modal-body">
         <!-- Standard Header Box per User Request -->
-        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:12px;">
-          <div style="font-weight:700; color:#0369a1; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-            <span>推荐标准 Excel 导入表头（支持自动对齐）：</span>
+        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:12px;">
+          <div style="font-weight:700; color:#15803d; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <span>💡 任意大段会议文本直接粘贴，系统智能提取字段一键加入日历：</span>
             <div style="display:flex; gap:6px;">
-              <button type="button" class="btn btn-sm btn-ghost" onclick="copyStandardExcelHeader()" title="点击复制整行表头至剪贴板，可直接粘贴到您的Excel第一行">复制标准表头</button>
-              <button type="button" class="btn btn-sm btn-ghost" onclick="downloadStandardExcelTemplate()" title="下载预设好列名的标准 Excel CSV 模板">下载示例模板</button>
+              <button type="button" class="btn btn-sm btn-ghost" onclick="fillSampleCalendarData()" title="填入示例通知数据测试">填入示例数据</button>
+              <button type="button" class="btn btn-sm btn-ghost" onclick="copyStandardExcelHeader()" title="点击复制Excel表头至剪贴板">复制Excel表头</button>
+              <button type="button" class="btn btn-sm btn-ghost" onclick="downloadStandardExcelTemplate()" title="下载预设好列名的标准 Excel CSV 模板">下载CSV模板</button>
             </div>
           </div>
-          <code style="display:block; background:#fff; padding:6px 10px; border-radius:4px; border:1px solid #e0f2fe; color:#0c4a6e; font-size:11.5px; overflow-x:auto; white-space:nowrap; font-family:var(--font-mono);">
-            *会议主题（关键任务）	*议题背景/决策要点说明	*汇报人	*参会人	*纪要人	*预约时长（H）
-          </code>
-          <div style="color:#0284c7; font-size:11px; margin-top:5px; line-height:1.45;">
-            说明：非强制填满所有列，核心信息仅需<strong>【会议主题】、【汇报人】、【预约时长（H）】</strong>即可排期！“星期一到星期五”等字样将自动识别为排期日期，绝不误认为会议主题。
+          <div style="color:#166534; font-size:11.5px; line-height:1.5;">
+            支持 <strong>微信/邮件会议通知</strong>、<strong>自然语言聊天记录</strong>（如“明天下午2点在办公室开塞内加尔周会，李工汇报”）、以及 <strong>Excel多行表格或网格</strong>。系统自动解析日期、起止时间、主题、汇报人、地点、参会人及决策要点！
           </div>
         </div>
 
         <div class="form-row" style="margin-bottom: 12px;">
           <div class="form-group" style="margin-bottom: 0;">
-            <label>默认排期日期：</label>
+            <label>默认排期日期（当文本未注明具体日期时使用）：</label>
             <input type="date" id="importTargetDate" onchange="runCalendarLivePreview()" />
           </div>
           <div style="display:flex; align-items:flex-end; gap:8px;">
             <button class="btn btn-sm" onclick="document.getElementById('calendarFileInput').click()">选择电脑文档导入...</button>
             <input type="file" id="calendarFileInput" accept="*" style="display:none;" onchange="handleCalendarFileUpload(event)" />
-            <button class="btn btn-sm btn-ghost" onclick="fillSampleCalendarData()">填入示例数据</button>
           </div>
         </div>
 
         <div class="form-group">
-          <label>粘贴自由文本 / 表格内容：</label>
-          <textarea id="inputImportTableText" style="min-height: 120px; font-family: var(--font-mono); font-size: 12px;" placeholder="支持自由输入任何格式，例如：&#10;1. 表格复制：10:00 - 10:45&#9;中东北非区域Q3预算评审&#9;张总(地南代)&#10;2. 自然语言：9月25日下午2点半至3点15分 刚果金代表处业务对齐 汇报人：陈部长 决策点：审批工程预算&#10;3. 会议通知：明天上午10点在1号会议室召开非洲8代表处协同例会，请李总汇报业务进展，预计时长60分钟" oninput="runCalendarLivePreview()"></textarea>
+          <label>粘贴大段会议文本 / 微信通知 / 表格内容：</label>
+          <textarea id="inputImportTableText" style="min-height: 130px; font-family: inherit; font-size: 12.5px; line-height:1.5; padding:8px 10px;" placeholder="支持直接粘贴大段文本，例如：&#10;【会议通知】&#10;会议主题：塞内加尔光伏电站交付推进会&#10;时间：2026-11-18 14:00 - 15:30&#10;地点：开罗总部201会议室（支持WeLink）&#10;汇报人：李工（塞内加尔代表处）&#10;参会人员：曦总、张总、交付部王经理、财务李总&#10;纪要人：小刘&#10;议题背景：塞内加尔一期光伏电站设备清关受阻，需协调商务与海外物流。&#10;决策要点：确定备用清关方案及专项预算拨付。&#10;&#10;或者自然语言：&#10;明天下午2点到3点半，在主管办公室开塞内加尔进度汇报会，李工汇报，张总参会，小王做纪要。" oninput="runCalendarLivePreview()"></textarea>
         </div>
 
         <!-- Recognition Status & Dual Normalization Live Preview -->
@@ -6841,20 +6847,20 @@ body.is-desktop-forced .floating-back-to-mobile {
           </div>
 
           <!-- Calendar Formatted Version Wrap -->
-          <div id="importCalPreviewWrap" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: #fafafa;">
+          <div id="importCalPreviewWrap" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: #fafafa;">
             <!-- Rendered by runCalendarLivePreview() -->
           </div>
 
           <!-- Card Formatted Version Wrap -->
-          <div id="importCardPreviewWrap" style="display:none; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: #fafafa;">
+          <div id="importCardPreviewWrap" style="display:none; max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: #fafafa;">
             <!-- Rendered by runCalendarLivePreview() -->
           </div>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn" onclick="closeModal('importCalendarModal')">取消</button>
-        <button type="button" class="btn btn-primary" id="btnConfirmImport" onclick="confirmImportCalendar()" disabled>
-          确认导入至主管日程
+        <button type="button" class="btn btn-primary" id="btnConfirmImport" onclick="confirmImportCalendar()" disabled style="background:#16a34a; border-color:#16a34a; font-weight:700;">
+          ✨ 确认导入至主管日历
         </button>
       </div>
     </div>
@@ -6878,6 +6884,26 @@ body.is-desktop-forced .floating-back-to-mobile {
       <div class="modal-body">
         <form id="meetingForm" onsubmit="event.preventDefault(); saveMeeting();">
           <input type="hidden" id="inputMeetingId" value="" />
+
+          <!-- 智能文本识别一键填单卡片 -->
+          <div class="smart-text-fill-box" style="margin-bottom: 14px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #86efac; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(22,163,74,0.06);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:12.5px; font-weight:700; color:#15803d; display:flex; align-items:center; gap:5px;">
+                <span>🪄</span> 粘贴文本智能识别填单
+              </span>
+              <span style="font-size:11px; color:#166534; opacity:0.85;">粘贴微信/邮件通知或聊天记录，自动拆解回填下方全部输入框</span>
+            </div>
+            <textarea id="smartMeetingInputText" rows="2" style="width:100%; font-size:12px; border:1px solid #bbf7d0; border-radius:6px; padding:6px 10px; resize:vertical; background:#fff; line-height:1.45; font-family:inherit;" placeholder="把整段会议通知或聊天文本直接粘贴到这里，例如：&#10;【会议通知】时间：明天下午2点到3点半，地点：主管办公室，主题：塞内加尔光伏推进会，李工汇报，张总参会，小王做纪要..."></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+              <div id="smartFillStatusHint" style="font-size:11.5px; color:#16a34a; font-weight:600; display:none;"></div>
+              <div style="display:flex; gap:8px; margin-left:auto;">
+                <button type="button" class="btn btn-sm btn-ghost" onclick="clearSmartMeetingInput()" style="font-size:11.5px; color:#64748b; padding:2px 8px;">清空</button>
+                <button type="button" class="btn btn-sm" onclick="applySmartMeetingTextToModal()" style="font-size:12px; font-weight:700; background:#16a34a; color:#fff; border:none; padding:4px 14px; border-radius:6px; box-shadow:0 1px 3px rgba(22,163,74,0.25); cursor:pointer;">
+                  ✨ 一键智能识别填单
+                </button>
+              </div>
+            </div>
+          </div>
 
           <!-- 会议时区基准选择 (支持开罗时间或出差地当地时间录入) -->
           <div id="modalTripBanner" style="display:none !important;"></div>
@@ -14529,16 +14555,421 @@ async function handleCalendarFileUpload(event) {
 }
 
 function fillSampleCalendarData() {
-  const sample = [
-    "*会议主题（关键任务）\\t*议题背景/决策要点说明\\t*汇报人\\t*参会人\\t*纪要人\\t*预约时长（H）",
-    "中东北非区域Q3交付资源评审\\t审批重点交付架构师驻场与预算特批\\t张总(地南代)\\t主管、李总、财务BP\\t王秘书\\t0.75",
-    "阿尔及利亚代表处外汇与回款复盘\\t特批客户付款账期与汇率对冲\\t王总\\t主管、法务部、商务部\\t李秘书\\t1.0",
-    "刚果金代表处工程进展对齐\\t审批新安保防护与施工里程碑\\t陈部长\\t主管、交付部\\t赵秘书\\t0.5",
-    "8代表处跨区协同机制新规范汇报\\t固定跨时区会议窗口为开罗11:00-17:00\\t区域综合秘书处\\t主管、各代综合主管\\t王秘书\\t0.75"
-  ].join('\\n');
+  const sample = `【会议通知】
+会议主题：塞内加尔光伏电站交付推进会
+时间：2026-11-18 14:00 - 15:30
+地点：开罗总部201会议室（支持WeLink线上接入）
+汇报人：李工（塞内加尔代表处）
+参会人员：曦总、张总、交付部王经理、财务李总
+纪要人：小刘
+议题背景：塞内加尔一期光伏电站设备清关受阻，需协调商务与海外物流。
+决策要点：确定备用清关方案及专项预算拨付。`;
 
   document.getElementById('inputImportTableText').value = sample;
   runCalendarLivePreview();
+}
+
+// ================= NATURAL LANGUAGE & WECHAT NOTICE PARSER ENGINE =================
+function parseMeetingFromSingleText(rawText, referenceDate) {
+  if (!rawText || !rawText.trim()) return null;
+  let text = rawText.trim();
+
+  const ref = referenceDate ? new Date(referenceDate) : new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const formatDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const todayStr = formatDate(ref);
+
+  const tomorrow = new Date(ref);
+  tomorrow.setDate(ref.getDate() + 1);
+  const tomorrowStr = formatDate(tomorrow);
+
+  const afterTomorrow = new Date(ref);
+  afterTomorrow.setDate(ref.getDate() + 2);
+  const afterTomorrowStr = formatDate(afterTomorrow);
+
+  let date = '';
+  let startTime = '';
+  let endTime = '';
+  let duration = 45;
+  let subject = '';
+  let reporter = '';
+  let attendees = '';
+  let minuter = '';
+  let location = '';
+  let background = '';
+  let decision = '';
+
+  function extractDate(str) {
+    if (!str) return '';
+    if (/大后天/.test(str)) {
+      const d = new Date(ref); d.setDate(ref.getDate() + 3); return formatDate(d);
+    }
+    if (/后天/.test(str)) return afterTomorrowStr;
+    if (/明天|次日/.test(str)) return tomorrowStr;
+    if (/今天|今日/.test(str)) return todayStr;
+    const ymMatch = str.match(/(\\d{4})[-/.年](\\d{1,2})[-/.月](\\d{1,2})[日号]?/);
+    if (ymMatch) return `${ymMatch[1]}-${pad(ymMatch[2])}-${pad(ymMatch[3])}`;
+    const mdMatch = str.match(/(\\d{1,2})[-/.月](\\d{1,2})[日号]?/);
+    if (mdMatch) return `${ref.getFullYear()}-${pad(mdMatch[1])}-${pad(mdMatch[2])}`;
+    return '';
+  }
+
+  function timeToMin(t) {
+    if (!t) return 0;
+    const [h, m] = t.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  }
+  function minToTime(min) {
+    const h = Math.floor(min / 60) % 24;
+    const m = min % 60;
+    return `${pad(h)}:${pad(m)}`;
+  }
+  function normalizeTime(t) {
+    if (!t) return '';
+    const parts = t.split(':');
+    return `${pad(parts[0])}:${pad(parts[1])}`;
+  }
+
+  function extractTimes(str) {
+    let s = '', e = '';
+    const trMatch = str.match(/(\\d{1,2}:\\d{2})\\s*[-~至到与/]\\s*(\\d{1,2}:\\d{2})/);
+    if (trMatch) {
+      s = normalizeTime(trMatch[1]);
+      e = normalizeTime(trMatch[2]);
+      return { start: s, end: e };
+    }
+    const cnRange = str.match(/(上午|下午|晚上)?\\s*(\\d{1,2})(?:点|时)(?:(\\d{1,2})分|半)?\\s*[-~至到与]\\s*(上午|下午|晚上)?\\s*(\\d{1,2})(?:点|时)(?:(\\d{1,2})分|半)?/);
+    if (cnRange) {
+      const p1 = cnRange[1];
+      let h1 = parseInt(cnRange[2], 10);
+      const m1 = cnRange[3] ? parseInt(cnRange[3], 10) : (str.includes(cnRange[2] + '点半') ? 30 : 0);
+      if ((p1 === '下午' || p1 === '晚上') && h1 < 12) h1 += 12;
+
+      const p2 = cnRange[4] || p1;
+      let h2 = parseInt(cnRange[5], 10);
+      const m2 = cnRange[6] ? parseInt(cnRange[6], 10) : (str.includes(cnRange[5] + '点半') ? 30 : 0);
+      if ((p2 === '下午' || p2 === '晚上') && h2 < 12) h2 += 12;
+
+      s = `${pad(h1)}:${pad(m1)}`;
+      e = `${pad(h2)}:${pad(m2)}`;
+      return { start: s, end: e };
+    }
+
+    const stMatch = str.match(/(?:(上午|下午|晚上)\\s*)?(\\d{1,2}:\\d{2})/);
+    if (stMatch) {
+      let [h, m] = stMatch[2].split(':').map(Number);
+      if ((stMatch[1] === '下午' || stMatch[1] === '晚上') && h < 12) h += 12;
+      s = `${pad(h)}:${pad(m)}`;
+      return { start: s, end: '' };
+    }
+    const cnSingle = str.match(/(上午|下午|晚上)\\s*(\\d{1,2})(?:点|时)(?:(\\d{1,2})分|半)?/);
+    if (cnSingle) {
+      let h = parseInt(cnSingle[2], 10);
+      const m = cnSingle[3] ? parseInt(cnSingle[3], 10) : (str.includes(cnSingle[2] + '点半') ? 30 : 0);
+      if ((cnSingle[1] === '下午' || cnSingle[1] === '晚上') && h < 12) h += 12;
+      s = `${pad(h)}:${pad(m)}`;
+      return { start: s, end: '' };
+    }
+    return { start: '', end: '' };
+  }
+
+  const explicitColonKeys = [
+    '会议主题', '会议议题', '会议名称', '会议时间', '开会时间', '会议地点', '开会地点',
+    '腾讯会议号', '腾讯会议', '核心决策点', '决策要点', '决议事项', '待决策', '核心决策',
+    '议题背景', '会议背景', '背景说明', '参会人员', '与会人员', '出席人员', '会议纪要',
+    '纪要人', '记录人', '汇报人', '主讲人', '报告人', '发言人', '参会人', '主讲', '汇报',
+    '参会', '纪要', '记录', '背景', '内容', '决策点', '决策', '决议', '主题', '议题',
+    '名称', '题目', '时间', '日期', '地点', 'WeLink', '会议室'
+  ].join('|');
+
+  const roleKeysCanOmitColon = [
+    '汇报人', '主讲人', '报告人', '发言人', '参会人员', '与会人员', '出席人员', '参会人',
+    '纪要人', '记录人', '核心决策点', '决策要点', '核心决策', '议题背景', '会议主题', '会议地点'
+  ].join('|');
+
+  const kvRegex = new RegExp(
+    '(?:^|[\\u000a\\u000d，,。；;★#•\\d.【\\[-]\\s*)(?:((' + explicitColonKeys + ')\\s*[:：是])|((' + roleKeysCanOmitColon + ')\\s*))\\s*([^\\u000a\\u000d]+?)(?=(?:[\\u000a\\u000d]|(?:[，,。；;\\s]+(?:(?:' + explicitColonKeys + ')[：:是\\s]|(?:' + roleKeysCanOmitColon + ')))|$))',
+    'gi'
+  );
+
+  let match;
+  while ((match = kvRegex.exec(text)) !== null) {
+    const k = (match[2] || match[4] || '').trim();
+    let val = match[5].trim().replace(/[】\]]$/, '').trim();
+    if (!k || !val) continue;
+
+    if (/^(?:会议主题|主题|会议议题|议题|会议名称|名称|题目)$/.test(k) && !subject) {
+      subject = val;
+    } else if (/^(?:时间|会议时间|日期|开会时间)$/.test(k)) {
+      if (!date) date = extractDate(val);
+      const times = extractTimes(val);
+      if (times.start && !startTime) startTime = times.start;
+      if (times.end && !endTime) endTime = times.end;
+    } else if (/^(?:地点|会议地点|开会地点|腾讯会议|腾讯会议号|WeLink|会议室)$/.test(k) && !location) {
+      location = val;
+    } else if (/^(?:汇报人|主讲人|报告人|主讲|发言人|汇报)$/.test(k) && !reporter) {
+      reporter = val;
+    } else if (/^(?:参会人员|与会人员|出席人员|参会人|参会)$/.test(k) && !attendees) {
+      attendees = val;
+    } else if (/^(?:纪要人|记录人|会议纪要|纪要|记录)$/.test(k) && !minuter) {
+      minuter = val;
+    } else if (/^(?:议题背景|会议背景|背景说明|背景|内容)$/.test(k) && !background) {
+      background = val;
+    } else if (/^(?:决策要点|核心决策点|决策点|决议事项|待决策|核心决策|决策)$/.test(k) && !decision) {
+      decision = val;
+    }
+  }
+
+  if (!date) date = extractDate(text);
+  if (!startTime) {
+    const times = extractTimes(text);
+    if (times.start) startTime = times.start;
+    if (times.end && !endTime) endTime = times.end;
+  }
+
+  if (!date) date = referenceDate || todayStr;
+
+  if (startTime && endTime) {
+    const diff = timeToMin(endTime) - timeToMin(startTime);
+    if (diff > 0 && diff <= 480) {
+      duration = diff;
+    } else {
+      duration = 45;
+      endTime = minToTime(timeToMin(startTime) + 45);
+    }
+  } else if (startTime && !endTime) {
+    const durM = text.match(/(\\d+(?:\\.\\d+)?)\\s*(?:小时|h)/i);
+    const minM = text.match(/(\\d{1,3})\\s*(?:分钟|min|m)/i);
+    if (durM) {
+      duration = Math.round(parseFloat(durM[1]) * 60);
+    } else if (minM) {
+      duration = parseInt(minM[1], 10);
+    } else {
+      duration = 45;
+    }
+    endTime = minToTime(timeToMin(startTime) + duration);
+  } else {
+    startTime = '10:00';
+    endTime = '10:45';
+    duration = 45;
+  }
+
+  if (!location) {
+    const atM = text.match(/在\\s*([0-9a-zA-Z\\u4e00-\\u9fa5]{2,16}?(?:会议室|办公室|总部|大厦|中心|WeLink|腾讯会议))/);
+    if (atM) {
+      location = atM[1].trim();
+    }
+  }
+
+  if (!minuter) {
+    const minActionM = text.match(/([^，,。\\n；; \\t]{2,6}?)(?:做纪要|负责纪要|记录|整理纪要|输出纪要)/);
+    if (minActionM && !/请|会议|通知/.test(minActionM[1])) {
+      minuter = minActionM[1].replace(/^(由|请)/, '').trim();
+    }
+  }
+
+  if (!reporter) {
+    const repActionM = text.match(/([^，,。\\n；; \\t]{2,8}?)(?:汇报|发言|主讲)(?!会|事项|材料|文件|内容)/);
+    if (repActionM && !/请|会议|通知|关于|安排/.test(repActionM[1])) {
+      reporter = repActionM[1].replace(/^(由|请|由是|是)/, '').trim();
+    }
+  }
+
+  if (!attendees) {
+    const attActionM = text.match(/([^，,。\\n；; \\t]{2,30}?)(?:参会|出席|与会)/);
+    if (attActionM && !/请|会议|通知/.test(attActionM[1])) {
+      attendees = attActionM[1].replace(/^(由|请|待)/, '').trim();
+    }
+  }
+
+  if (!subject) {
+    const bookM = text.match(/《([^》]+)》/);
+    if (bookM) {
+      subject = bookM[1].trim();
+    } else {
+      const bracketM = text.match(/【([^】]+)】/);
+      if (bracketM && !/会议通知|通知|日程|重要/.test(bracketM[1])) {
+        subject = bracketM[1].trim();
+      } else {
+        const holdM = text.match(/(?:开|召开|举行|组织|开展)\\s*([0-9a-zA-Z\\u4e00-\\u9fa5]{4,25}?(?:推进会|评审会|研讨会|对齐会|协调会|例会|汇报会|总结会|沟通会|周会|月会|会议|评审|审批|对齐))/);
+        if (holdM) {
+          subject = holdM[1].trim();
+        } else {
+          const topicM = text.match(/([0-9a-zA-Z\\u4e00-\\u9fa5]{4,25}?(?:推进会|评审会|研讨会|对齐会|协调会|例会|汇报会|总结会|沟通会|周会|月会|会议|评审|审批))/);
+          if (topicM) {
+            subject = topicM[1].trim();
+          } else {
+            const lines = text.split(/\\r?\\n/).map(l => l.trim()).filter(Boolean);
+            const cleanFirst = (lines[0] || '').replace(/【[^】]+】/g, '').replace(/^[0-9一二三四五六七八九十]+[、.\\s]+/, '').trim();
+            subject = cleanFirst.substring(0, 30);
+          }
+        }
+      }
+    }
+  }
+
+  subject = subject.replace(/^[【\\[]?(?:会议通知|通知|日程)[】\\]]?\\s*/, '').replace(/[:：]/g, '').trim();
+
+  if (reporter) reporter = reporter.replace(/^[是:：\\s]+/, '').trim();
+  if (decision) decision = decision.replace(/^[是:：\\s]+/, '').trim();
+  if (background) background = background.replace(/^[是:：\\s]+/, '').trim();
+  if (attendees) attendees = attendees.replace(/^[是:：\\s]+/, '').trim();
+  if (minuter) minuter = minuter.replace(/^[是:：\\s]+/, '').trim();
+
+  if (!attendees) {
+    attendees = reporter ? (reporter.includes('主管') ? reporter : `主管、${reporter}`) : '主管、相关参会人';
+  }
+  if (!minuter) {
+    minuter = '秘书处';
+  }
+  if (!location) {
+    location = '主管办公室 / 线上会议';
+  }
+  if (!decision && subject) {
+    decision = `审议《${subject}》关键决策要点，明确推进方案。`;
+  }
+
+  return {
+    id: Date.now() + Math.floor(Math.random() * 1000000),
+    date,
+    time: startTime,
+    startTime,
+    endTime,
+    duration,
+    durationHours: (duration / 60).toFixed(2),
+    subject,
+    reporter,
+    attendees,
+    minuter,
+    location,
+    background,
+    decision,
+    status: 'scheduled',
+    priority: 'medium',
+    notes: '由大段文本智能识别导入'
+  };
+}
+
+function parseMeetingsFromAnyText(rawText, referenceDate) {
+  if (!rawText || !rawText.trim()) return [];
+  const text = rawText.trim();
+
+  const lines = text.split(/\\r?\\n/).map(l => l.trim()).filter(Boolean);
+  const kvHeaderLines = lines.filter(l => /^[\\*#•\\d.【\\[-]?\\s*(?:会议主题|主题|时间|会议时间|地点|汇报人|参会人|纪要人|议题背景|决策要点)[:：是]/i.test(l));
+  const subjectHeaders = lines.filter(l => /^[\\*#•\\d.【\\[-]?\\s*(?:会议主题|主题|议题|会议名称)[:：是]/i.test(l));
+  const timeHeaders = lines.filter(l => /^[\\*#•\\d.【\\[-]?\\s*(?:时间|会议时间|日期)[:：是]/i.test(l));
+
+  if (kvHeaderLines.length >= 2 && subjectHeaders.length <= 1 && timeHeaders.length <= 1) {
+    const single = parseMeetingFromSingleText(text, referenceDate);
+    return single ? [single] : [];
+  }
+
+  const noticeBlocks = text.split(/(?=(?:【(?:会议通知|会议日程|会议|通知)[】\\]]))/);
+  if (noticeBlocks.length > 1 && noticeBlocks.filter(b => b.trim().length > 10).length >= 2) {
+    return noticeBlocks.map(b => parseMeetingFromSingleText(b.trim(), referenceDate)).filter(Boolean);
+  }
+
+  const numberedBlocks = text.split(/(?:^|\\n)(?=\\d+[.、\\s])/);
+  if (numberedBlocks.length > 1 && numberedBlocks.filter(b => b.trim().length > 10).length >= 2) {
+    return numberedBlocks.map(b => parseMeetingFromSingleText(b.trim(), referenceDate)).filter(Boolean);
+  }
+
+  const doubleNewlineBlocks = text.split(/\\n\\s*\\n+/);
+  if (doubleNewlineBlocks.length > 1 && doubleNewlineBlocks.filter(b => b.trim().length > 15).length >= 2) {
+    return doubleNewlineBlocks.map(b => parseMeetingFromSingleText(b.trim(), referenceDate)).filter(Boolean);
+  }
+
+  if (lines.length > 1) {
+    const linesWithTimes = lines.filter(l => /\\d{1,2}:\\d{2}/.test(l));
+    if (linesWithTimes.length >= 2) {
+      return lines.map(l => parseMeetingFromSingleText(l, referenceDate)).filter(Boolean);
+    }
+  }
+
+  const single = parseMeetingFromSingleText(text, referenceDate);
+  return single ? [single] : [];
+}
+
+function applySmartMeetingTextToModal() {
+  const inputEl = document.getElementById('smartMeetingInputText');
+  const statusEl = document.getElementById('smartFillStatusHint');
+  if (!inputEl) return;
+  const rawText = inputEl.value.trim();
+  if (!rawText) {
+    showToast('请先粘贴或输入会议文本内容');
+    inputEl.focus();
+    return;
+  }
+
+  const defaultDate = document.getElementById('inputMeetingDate').value || selectedTimelineDate || getTodayDateStr();
+  const parsed = parseMeetingFromSingleText(rawText, defaultDate);
+  if (!parsed || !parsed.subject) {
+    showToast('⚠️ 未能识别出会议主题，请检查粘贴文本');
+    return;
+  }
+
+  if (parsed.date) {
+    document.getElementById('inputMeetingDate').value = parsed.date;
+  }
+  if (parsed.startTime) {
+    document.getElementById('inputMeetingStartTime').value = parsed.startTime;
+  }
+  if (parsed.endTime) {
+    document.getElementById('inputMeetingEndTime').value = parsed.endTime;
+  }
+  if (parsed.subject) {
+    document.getElementById('inputMeetingSubject').value = parsed.subject;
+  }
+  if (parsed.reporter) {
+    document.getElementById('inputMeetingReporter').value = parsed.reporter;
+  }
+
+  let hasFoldableData = false;
+  if (parsed.location) {
+    document.getElementById('inputMeetingLocation').value = parsed.location;
+    hasFoldableData = true;
+  }
+  if (parsed.attendees) {
+    document.getElementById('inputMeetingAttendees').value = parsed.attendees;
+    hasFoldableData = true;
+  }
+  if (parsed.minuter) {
+    document.getElementById('inputMeetingMinuter').value = parsed.minuter;
+    hasFoldableData = true;
+  }
+  if (parsed.background) {
+    document.getElementById('inputMeetingBackground').value = parsed.background;
+    hasFoldableData = true;
+  }
+  if (parsed.decision) {
+    document.getElementById('inputMeetingDecision').value = parsed.decision;
+    hasFoldableData = true;
+  }
+
+  if (hasFoldableData) {
+    const details = document.getElementById('meetingFoldableDetails');
+    if (details) details.open = true;
+  }
+
+  handleMeetingModalDateChange();
+  updateMeetingDurationBadge();
+
+  if (statusEl) {
+    statusEl.style.display = 'inline-block';
+    statusEl.textContent = `✅ 识别成功：${parsed.date} ${parsed.startTime}-${parsed.endTime}「${parsed.subject}」`;
+  }
+
+  showToast(`✨ 识别成功：已提取【${parsed.subject}】各字段，请核对后保存！`);
+}
+
+function clearSmartMeetingInput() {
+  const inputEl = document.getElementById('smartMeetingInputText');
+  if (inputEl) inputEl.value = '';
+  const statusEl = document.getElementById('smartFillStatusHint');
+  if (statusEl) {
+    statusEl.style.display = 'none';
+    statusEl.textContent = '';
+  }
 }
 
 function padTime(t) {
@@ -14594,7 +15025,18 @@ function splitRowCells(line) {
 // Universal Schedule Text Parser with Fixed Header Alignment & Weekday Row Filter
 function parseUniversalScheduleText(rawText, defaultDate) {
   if (!rawText || !rawText.trim()) return [];
-  const lines = rawText.trim().split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
+  const text = rawText.trim();
+
+  // If text is natural language or notice format (not a tab/pipe/CSV multi-column table)
+  const isTabular = text.includes('\t') || text.includes('|') || (/^\\s*[*（(]?(?:会议主题|时间|日期|主题)/i.test(text) && text.includes(','));
+  if (!isTabular) {
+    const nlResults = parseMeetingsFromAnyText(text, defaultDate);
+    if (nlResults && nlResults.length > 0) {
+      return nlResults;
+    }
+  }
+
+  const lines = text.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
   const results = [];
 
   let baseDate;
@@ -15013,6 +15455,9 @@ function parseUniversalScheduleText(rawText, defaultDate) {
     });
   }
 
+  if (results.length === 0) {
+    return parseMeetingsFromAnyText(rawText, defaultDate);
+  }
   return results;
 }
 
@@ -15113,11 +15558,43 @@ function confirmImportCalendar() {
   if (parsedImportMeetings.length === 0) return;
 
   let existing = getData(STORAGE_KEYS.MEETINGS);
-  const updated = [...parsedImportMeetings, ...existing];
+  const newMeetings = parsedImportMeetings.map(m => {
+    const sTime = m.startTime || m.time || '10:00';
+    const dur = m.duration || 45;
+    const eTime = m.endTime || calculateEndTime(sTime, dur);
+    return {
+      id: m.id || (Date.now() + Math.floor(Math.random() * 1000000)),
+      date: m.date,
+      time: sTime,
+      startTime: sTime,
+      endTime: eTime,
+      tzBase: 'cairo',
+      inputStartTime: sTime,
+      inputEndTime: eTime,
+      localStartTime: sTime,
+      localEndTime: eTime,
+      duration: dur,
+      durationHours: m.durationHours || (dur / 60).toFixed(2),
+      subject: m.subject,
+      reporter: m.reporter || '',
+      location: m.location || '主管办公室',
+      minuter: m.minuter || '秘书处',
+      attendees: m.attendees || (m.reporter ? `主管、${m.reporter}` : '主管、相关参会人'),
+      background: m.background || '',
+      decision: m.decision || `审议《${m.subject}》关键决策要点，确定推进方案。`,
+      requester: m.reporter || '智能文本导入',
+      status: m.status || 'scheduled',
+      priority: 'medium',
+      notes: m.notes || '由大段文本智能识别导入',
+      noticeSent: false
+    };
+  });
+
+  const updated = [...newMeetings, ...existing];
   setData(STORAGE_KEYS.MEETINGS, updated);
 
-  if (parsedImportMeetings[0] && parsedImportMeetings[0].date) {
-    selectedTimelineDate = parsedImportMeetings[0].date;
+  if (newMeetings[0] && newMeetings[0].date) {
+    selectedTimelineDate = newMeetings[0].date;
     const parts = selectedTimelineDate.split('-').map(Number);
     if (parts.length === 3) {
       currentCalendarYearMonth.year = parts[0];
@@ -15127,7 +15604,7 @@ function confirmImportCalendar() {
 
   closeModal('importCalendarModal');
   renderMeetings();
-  showToast(`成功导入并规整 ${parsedImportMeetings.length} 场会议！周历看板已更新。`);
+  showToast(`🎉 成功识别并导入 ${newMeetings.length} 场会议至日历！`);
 }
 
 function exportExecutiveScheduleBriefing() {
@@ -15819,6 +16296,10 @@ function checkMeetingConflicts() {
 
 function openAddMeetingModal() {
   closeAllTimePickers();
+  const smartInput = document.getElementById('smartMeetingInputText');
+  if (smartInput) smartInput.value = '';
+  const smartHint = document.getElementById('smartFillStatusHint');
+  if (smartHint) { smartHint.style.display = 'none'; smartHint.textContent = ''; }
   document.getElementById('meetingModalTitle').textContent = '登记主管会议预约';
   document.getElementById('inputMeetingId').value = '';
   const initialDate = selectedTimelineDate || getTodayDateStr();
@@ -16223,6 +16704,10 @@ function deleteCurrentEditRequest() {
 
 function editMeeting(id) {
   closeAllTimePickers();
+  const smartInput = document.getElementById('smartMeetingInputText');
+  if (smartInput) smartInput.value = '';
+  const smartHint = document.getElementById('smartFillStatusHint');
+  if (smartHint) { smartHint.style.display = 'none'; smartHint.textContent = ''; }
   const meetings = getData(STORAGE_KEYS.MEETINGS);
   const m = meetings.find(x => x.id === id);
   if (!m) return;
@@ -19821,6 +20306,13 @@ function openMobileQuickAddSheet() {
         <div>
           <div>预约新会议</div>
           <div style="font-size:11px; color:#64748b; font-weight:normal;">排期至 ${currentMobileDate}</div>
+        </div>
+      </div>
+      <div class="m-sheet-item" onclick="openImportCalendarModal(); document.getElementById('mobileQuickSheet').remove();">
+        <span style="font-size:20px;">🪄</span>
+        <div>
+          <div>大段文本识别排期</div>
+          <div style="font-size:11px; color:#64748b; font-weight:normal;">粘贴会议通知一键提取加入日历</div>
         </div>
       </div>
       <div class="m-sheet-item" onclick="openTransitModal(); document.getElementById('mobileQuickSheet').remove();">
