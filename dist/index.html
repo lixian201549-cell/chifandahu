@@ -6707,7 +6707,7 @@ body.is-desktop-forced .floating-back-to-mobile {
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.4</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.5</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -16582,6 +16582,9 @@ function applySmartMeetingTextToModal() {
   if (parsed.subject) {
     document.getElementById('inputMeetingSubject').value = parsed.subject;
   }
+  if (typeof setMeetingNoticeState === 'function') {
+    setMeetingNoticeState(true);
+  }
 
   handleMeetingModalDateChange();
   updateMeetingDurationBadge();
@@ -16713,14 +16716,11 @@ function runCalendarLivePreview() {
             const sT = m.startTime || m.time || '10:00';
             const eT = m.endTime || calculateEndTime(sT, m.duration || 45);
             return `
-            <div class="weekly-card notice-unsent" style="margin:0; cursor:default;">
+            <div class="weekly-card" style="margin:0; cursor:default;">
               <div class="weekly-card-time">
                 <span class="weekly-card-time-text" style="white-space:nowrap !important; flex-shrink:0; font-size:11px; font-weight:700; color:var(--blue-accent);">
                   <span>${sT} - ${eT}</span>
                 </span>
-                <div class="weekly-card-time-badges">
-                  <span class="weekly-notice-tag" title="尚未发送会议通知">待发通知</span>
-                </div>
               </div>
               <div class="weekly-card-title">${escapeHtml(m.subject)}</div>
             </div>
@@ -16783,7 +16783,7 @@ function confirmImportCalendar() {
       priority: 'medium',
       notes: '',
       requestId: null,
-      noticeSent: false,
+      noticeSent: true,
       legacyTaskId: '',
       hasMinutes: 'no',
       nextPlan: ''
@@ -22037,7 +22037,7 @@ initHostDatabaseSync();
 initMobileAppMode();
 window.addEventListener('resize', () => { initMobileAppMode(); });
 
-window.APP_VERSION = 'v1.7.4';
+window.APP_VERSION = 'v1.7.5';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>

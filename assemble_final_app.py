@@ -15070,6 +15070,9 @@ function applySmartMeetingTextToModal() {
   if (parsed.subject) {
     document.getElementById('inputMeetingSubject').value = parsed.subject;
   }
+  if (typeof setMeetingNoticeState === 'function') {
+    setMeetingNoticeState(true);
+  }
 
   handleMeetingModalDateChange();
   updateMeetingDurationBadge();
@@ -15201,14 +15204,11 @@ function runCalendarLivePreview() {
             const sT = m.startTime || m.time || '10:00';
             const eT = m.endTime || calculateEndTime(sT, m.duration || 45);
             return `
-            <div class="weekly-card notice-unsent" style="margin:0; cursor:default;">
+            <div class="weekly-card" style="margin:0; cursor:default;">
               <div class="weekly-card-time">
                 <span class="weekly-card-time-text" style="white-space:nowrap !important; flex-shrink:0; font-size:11px; font-weight:700; color:var(--blue-accent);">
                   <span>${sT} - ${eT}</span>
                 </span>
-                <div class="weekly-card-time-badges">
-                  <span class="weekly-notice-tag" title="尚未发送会议通知">待发通知</span>
-                </div>
               </div>
               <div class="weekly-card-title">${escapeHtml(m.subject)}</div>
             </div>
@@ -15271,7 +15271,7 @@ function confirmImportCalendar() {
       priority: 'medium',
       notes: '',
       requestId: null,
-      noticeSent: false,
+      noticeSent: true,
       legacyTaskId: '',
       hasMinutes: 'no',
       nextPlan: ''
