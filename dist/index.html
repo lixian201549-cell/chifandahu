@@ -6407,9 +6407,6 @@ body.is-desktop-forced .floating-back-to-mobile {
         </div>
 
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-          <button class="btn btn-primary" onclick="openAddMeetingModal()" style="font-weight:700;" title="手动登记新会议预约">
-            ＋ 登记预约
-          </button>
           <button class="btn" id="btnSmartTextImport" onclick="openImportCalendarModal()" style="font-weight:700; color:#15803d; border:1.5px solid #86efac; background:#f0fdf4;" title="粘贴大段会议文本或微信通知，智能识别并一键加入日历">
             🪄 文本识别排期
           </button>
@@ -6710,7 +6707,7 @@ body.is-desktop-forced .floating-back-to-mobile {
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.2</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.3</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -6763,20 +6760,9 @@ body.is-desktop-forced .floating-back-to-mobile {
         <button class="btn btn-sm btn-ghost" onclick="closeModal('importCalendarModal')">✕</button>
       </div>
       <div class="modal-body">
-        <div class="form-row" style="margin-bottom: 12px;">
-          <div class="form-group" style="margin-bottom: 0;">
-            <label>默认排期日期（当文本未注明具体日期时使用）：</label>
-            <input type="date" id="importTargetDate" onchange="runCalendarLivePreview()" />
-          </div>
-          <div style="display:flex; align-items:flex-end; gap:8px;">
-            <button class="btn btn-sm" onclick="document.getElementById('calendarFileInput').click()">选择电脑文档导入...</button>
-            <input type="file" id="calendarFileInput" accept="*" style="display:none;" onchange="handleCalendarFileUpload(event)" />
-          </div>
-        </div>
-
         <div class="form-group">
-          <label>粘贴会议文本（自动识别会议主题与时间）：</label>
-          <textarea id="inputImportTableText" style="min-height: 130px; font-family: inherit; font-size: 12.5px; line-height:1.5; padding:8px 10px;" placeholder="例如：&#10;会议主题：塞内加尔光伏电站交付推进会&#10;时间：2026-11-18 14:00 - 15:30&#10;或者：&#10;明天下午2点到3点半，塞内加尔进度汇报会" oninput="runCalendarLivePreview()"></textarea>
+          <label>粘贴会议文本（自动识别多日期、时间与会议主题并按时间规整）：</label>
+          <textarea id="inputImportTableText" style="min-height: 150px; font-family: inherit; font-size: 12.5px; line-height:1.5; padding:8px 10px;" placeholder="支持直接粘贴任意大段或多日期会议文本，系统将自动识别各场会议日期、时间与主题并按先后顺序规整，例如：&#10;11月18日 09:30-10:30 塞内加尔光伏电站交付推进会&#10;11月18日 下午2点到3点 刚果金工程周例会&#10;11月19日 10:00-11:00 摩洛哥业务对齐会" oninput="runCalendarLivePreview()"></textarea>
         </div>
 
         <!-- Recognition Status & Dual Normalization Live Preview -->
@@ -15731,7 +15717,8 @@ let parsedImportMeetings = [];
 
 function openImportCalendarModal() {
   const todayStr = getTodayDateStr();
-  document.getElementById('importTargetDate').value = selectedTimelineDate || todayStr;
+  const targetDateEl = document.getElementById('importTargetDate');
+  if (targetDateEl) targetDateEl.value = selectedTimelineDate || todayStr;
   document.getElementById('inputImportTableText').value = '';
   document.getElementById('importLivePreviewArea').style.display = 'none';
   document.getElementById('btnConfirmImport').disabled = true;
@@ -16071,7 +16058,13 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
   if (!rawText || !rawText.trim()) return null;
   let text = rawText.trim();
 
-  const ref = referenceDate ? new Date(referenceDate) : new Date();
+  let ref;
+  if (referenceDate && /^\d{4}-\d{2}-\d{2}$/.test(referenceDate)) {
+    const p = referenceDate.split('-').map(Number);
+    ref = new Date(p[0], p[1] - 1, p[2]);
+  } else {
+    ref = new Date();
+  }
   const pad = n => String(n).padStart(2, '0');
   const formatDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const todayStr = formatDate(ref);
@@ -16084,17 +16077,13 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
   afterTomorrow.setDate(ref.getDate() + 2);
   const afterTomorrowStr = formatDate(afterTomorrow);
 
+  const weekdayMap = { '日': 0, '天': 0, '7': 0, '一': 1, '1': 1, '二': 2, '2': 2, '三': 3, '3': 3, '四': 4, '4': 4, '五': 5, '5': 5, '六': 6, '6': 6 };
+
   let date = '';
   let startTime = '';
   let endTime = '';
   let duration = 45;
   let subject = '';
-  let reporter = '';
-  let attendees = '';
-  let minuter = '';
-  let location = '';
-  let background = '';
-  let decision = '';
 
   function extractDate(str) {
     if (!str) return '';
@@ -16102,12 +16091,29 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
       const d = new Date(ref); d.setDate(ref.getDate() + 3); return formatDate(d);
     }
     if (/后天/.test(str)) return afterTomorrowStr;
-    if (/明天|次日/.test(str)) return tomorrowStr;
-    if (/今天|今日/.test(str)) return todayStr;
-    const ymMatch = str.match(/(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})[日号]?/);
+    if (/明天|次日|明日/.test(str)) return tomorrowStr;
+    if (/今天|今日|本日/.test(str)) return todayStr;
+    const ymMatch = str.match(/(\d{4})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})\s*[日号]?/);
     if (ymMatch) return `${ymMatch[1]}-${pad(ymMatch[2])}-${pad(ymMatch[3])}`;
-    const mdMatch = str.match(/(\d{1,2})[-/.月](\d{1,2})[日号]?/);
+    const mdMatch = str.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]?/);
     if (mdMatch) return `${ref.getFullYear()}-${pad(mdMatch[1])}-${pad(mdMatch[2])}`;
+    const slashMd = str.match(/(?:^|[^\d:])(\d{1,2})\s*[/-]\s*(\d{1,2})(?![\d:])/);
+    if (slashMd) {
+      const m = parseInt(slashMd[1], 10), d = parseInt(slashMd[2], 10);
+      if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return `${ref.getFullYear()}-${pad(m)}-${pad(d)}`;
+    }
+    const wkMatch = str.match(/(下周|本周|这周|周|星期|礼拜)([一二三四五六日天1-7])/);
+    if (wkMatch) {
+      const prefix = wkMatch[1];
+      const targetDay = weekdayMap[wkMatch[2]];
+      if (targetDay !== undefined) {
+        const sun = new Date(ref);
+        sun.setDate(ref.getDate() - ref.getDay() + (prefix === '下周' ? 7 : 0));
+        const target = new Date(sun);
+        target.setDate(sun.getDate() + targetDay);
+        return formatDate(target);
+      }
+    }
     return '';
   }
 
@@ -16121,31 +16127,33 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
     const m = min % 60;
     return `${pad(h)}:${pad(m)}`;
   }
-  function normalizeTime(t) {
-    if (!t) return '';
-    const parts = t.split(':');
-    return `${pad(parts[0])}:${pad(parts[1])}`;
-  }
 
   function extractTimes(str) {
     let s = '', e = '';
-    const trMatch = str.match(/(\d{1,2}:\d{2})\s*[-~至到与/]\s*(\d{1,2}:\d{2})/);
+    const trMatch = str.match(/(上午|下午|晚上)?\s*(\d{1,2}:\d{2})\s*[-~至到与/]\s*(上午|下午|晚上)?\s*(\d{1,2}:\d{2})/);
     if (trMatch) {
-      s = normalizeTime(trMatch[1]);
-      e = normalizeTime(trMatch[2]);
+      let [h1, m1] = trMatch[2].split(':').map(Number);
+      let [h2, m2] = trMatch[4].split(':').map(Number);
+      const p1 = trMatch[1], p2 = trMatch[3] || p1;
+      if ((p1 === '下午' || p1 === '晚上') && h1 < 12) h1 += 12;
+      if ((p2 === '下午' || p2 === '晚上') && h2 < 12) h2 += 12;
+      if (!p2 && h2 < h1 && h2 <= 12) h2 += 12;
+      s = `${pad(h1)}:${pad(m1)}`;
+      e = `${pad(h2)}:${pad(m2)}`;
       return { start: s, end: e };
     }
     const cnRange = str.match(/(上午|下午|晚上)?\s*(\d{1,2})(?:点|时)(?:(\d{1,2})分|半)?\s*[-~至到与]\s*(上午|下午|晚上)?\s*(\d{1,2})(?:点|时)(?:(\d{1,2})分|半)?/);
     if (cnRange) {
       const p1 = cnRange[1];
       let h1 = parseInt(cnRange[2], 10);
-      const m1 = cnRange[3] ? parseInt(cnRange[3], 10) : (str.includes(cnRange[2] + '点半') ? 30 : 0);
+      const m1 = cnRange[3] ? parseInt(cnRange[3], 10) : (cnRange[0].split(/[-~至到与]/)[0].includes('半') ? 30 : 0);
       if ((p1 === '下午' || p1 === '晚上') && h1 < 12) h1 += 12;
 
       const p2 = cnRange[4] || p1;
       let h2 = parseInt(cnRange[5], 10);
-      const m2 = cnRange[6] ? parseInt(cnRange[6], 10) : (str.includes(cnRange[5] + '点半') ? 30 : 0);
+      const m2 = cnRange[6] ? parseInt(cnRange[6], 10) : (cnRange[0].split(/[-~至到与]/)[1].includes('半') ? 30 : 0);
       if ((p2 === '下午' || p2 === '晚上') && h2 < 12) h2 += 12;
+      if (!p2 && h2 < h1 && h2 <= 12) h2 += 12;
 
       s = `${pad(h1)}:${pad(m1)}`;
       e = `${pad(h2)}:${pad(m2)}`;
@@ -16159,13 +16167,15 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
       s = `${pad(h)}:${pad(m)}`;
       return { start: s, end: '' };
     }
-    const cnSingle = str.match(/(上午|下午|晚上)\s*(\d{1,2})(?:点|时)(?:(\d{1,2})分|半)?/);
-    if (cnSingle) {
+    const cnSingle = str.match(/(上午|下午|晚上)?\s*(\d{1,2})(?:点|时)(?:(\d{1,2})分|(半))?/);
+    if (cnSingle && (cnSingle[1] || str.includes('点') || str.includes('时'))) {
       let h = parseInt(cnSingle[2], 10);
-      const m = cnSingle[3] ? parseInt(cnSingle[3], 10) : (str.includes(cnSingle[2] + '点半') ? 30 : 0);
+      const m = cnSingle[3] ? parseInt(cnSingle[3], 10) : (cnSingle[4] ? 30 : 0);
       if ((cnSingle[1] === '下午' || cnSingle[1] === '晚上') && h < 12) h += 12;
-      s = `${pad(h)}:${pad(m)}`;
-      return { start: s, end: '' };
+      if (h >= 0 && h <= 23) {
+        s = `${pad(h)}:${pad(m)}`;
+        return { start: s, end: '' };
+      }
     }
     return { start: '', end: '' };
   }
@@ -16202,18 +16212,6 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
       const times = extractTimes(val);
       if (times.start && !startTime) startTime = times.start;
       if (times.end && !endTime) endTime = times.end;
-    } else if (/^(?:地点|会议地点|开会地点|腾讯会议|腾讯会议号|WeLink|会议室)$/.test(k) && !location) {
-      location = val;
-    } else if (/^(?:汇报人|主讲人|报告人|主讲|发言人|汇报)$/.test(k) && !reporter) {
-      reporter = val;
-    } else if (/^(?:参会人员|与会人员|出席人员|参会人|参会)$/.test(k) && !attendees) {
-      attendees = val;
-    } else if (/^(?:纪要人|记录人|会议纪要|纪要|记录)$/.test(k) && !minuter) {
-      minuter = val;
-    } else if (/^(?:议题背景|会议背景|背景说明|背景|内容)$/.test(k) && !background) {
-      background = val;
-    } else if (/^(?:决策要点|核心决策点|决策点|决议事项|待决策|核心决策|决策)$/.test(k) && !decision) {
-      decision = val;
     }
   }
 
@@ -16251,54 +16249,47 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
     duration = 45;
   }
 
-  if (!location) {
-    const atM = text.match(/在\s*([0-9a-zA-Z\u4e00-\u9fa5]{2,16}?(?:会议室|办公室|总部|大厦|中心|WeLink|腾讯会议))/);
-    if (atM) {
-      location = atM[1].trim();
-    }
-  }
-
-  if (!minuter) {
-    const minActionM = text.match(/([^，,。\n；; \t]{2,6}?)(?:做纪要|负责纪要|记录|整理纪要|输出纪要)/);
-    if (minActionM && !/请|会议|通知/.test(minActionM[1])) {
-      minuter = minActionM[1].replace(/^(由|请)/, '').trim();
-    }
-  }
-
-  if (!reporter) {
-    const repActionM = text.match(/([^，,。\n；; \t]{2,8}?)(?:汇报|发言|主讲)(?!会|事项|材料|文件|内容)/);
-    if (repActionM && !/请|会议|通知|关于|安排/.test(repActionM[1])) {
-      reporter = repActionM[1].replace(/^(由|请|由是|是)/, '').trim();
-    }
-  }
-
-  if (!attendees) {
-    const attActionM = text.match(/([^，,。\n；; \t]{2,30}?)(?:参会|出席|与会)/);
-    if (attActionM && !/请|会议|通知/.test(attActionM[1])) {
-      attendees = attActionM[1].replace(/^(由|请|待)/, '').trim();
-    }
-  }
-
   if (!subject) {
     const bookM = text.match(/《([^》]+)》/);
     if (bookM) {
       subject = bookM[1].trim();
     } else {
       const bracketM = text.match(/【([^】]+)】/);
-      if (bracketM && !/会议通知|通知|日程|重要/.test(bracketM[1])) {
+      if (bracketM && !/会议通知|通知|日程|重要|周[一二三四五六日天]|星期[一二三四五六日天]/.test(bracketM[1])) {
         subject = bracketM[1].trim();
       } else {
-        const holdM = text.match(/(?:开|召开|举行|组织|开展)\s*([0-9a-zA-Z\u4e00-\u9fa5]{4,25}?(?:推进会|评审会|研讨会|对齐会|协调会|例会|汇报会|总结会|沟通会|周会|月会|会议|评审|审批|对齐))/);
+        const holdM = text.match(/(?:开|召开|举行|组织|开展)\s*([0-9a-zA-Z\u4e00-\u9fa5]{3,28}?(?:推进会|评审会|研讨会|对齐会|协调会|例会|汇报会|总结会|沟通会|周会|月会|会议|评审|审批|对齐|复盘))/);
         if (holdM) {
           subject = holdM[1].trim();
         } else {
-          const topicM = text.match(/([0-9a-zA-Z\u4e00-\u9fa5]{4,25}?(?:推进会|评审会|研讨会|对齐会|协调会|例会|汇报会|总结会|沟通会|周会|月会|会议|评审|审批))/);
-          if (topicM) {
-            subject = topicM[1].trim();
+          let cleaned = text.split(/\r?\n/)[0] || text;
+          cleaned = cleaned
+            .replace(/【[^】]*】/g, ' ')
+            .replace(/^[0-9一二三四五六七八九十]+[、.)）]\s*/, ' ')
+            .replace(/(\d{4}\s*[-/.年]\s*\d{1,2}\s*[-/.月]\s*\d{1,2}\s*[日号]?)/g, ' ')
+            .replace(/(\d{1,2}\s*月\s*\d{1,2}\s*[日号]?)/g, ' ')
+            .replace(/(?:大后天|后天|明天|次日|明日|今天|今日|本日|同一天|当天)/g, ' ')
+            .replace(/(?:（|\()?\s*(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7]\s*(?:）|\))?/g, ' ')
+            .replace(/(?:上午|下午|晚上)?\s*\d{1,2}:\d{2}\s*(?:[-~至到与/]\s*(?:上午|下午|晚上)?\s*\d{1,2}:\d{2})?/g, ' ')
+            .replace(/(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?(?:\s*[-~至到与]\s*(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?)?/g, ' ')
+            .replace(/(?:在\s*[0-9a-zA-Z\u4e00-\u9fa5]{2,16}?(?:会议室|办公室|总部|大厦|中心|WeLink|腾讯会议))/g, ' ')
+            .replace(/(?:地点|汇报人|参会人|参会人员|纪要人|记录人|议题背景|决策要点|核心决策)\s*[:：是]?\s*[^，,。；;\n]+/g, ' ')
+            .replace(/[^，,。；;\s]{2,8}(?:汇报|参会|做纪要|记录)/g, ' ')
+            .replace(/^(?:另外|此外|还有|接着|然后|并|及|开|召开|举行|组织|安排)\s*/g, ' ')
+            .replace(/^[，,。；;:\s\-~]+|[，,。；;:\s\-~]+$/g, '')
+            .trim();
+          const firstClause = cleaned.split(/[，,。；;]/).map(s => s.trim()).filter(Boolean)[0] || '';
+          if (firstClause.length >= 2) {
+            subject = firstClause.replace(/^(?:开|召开|举行|组织|安排)\s*/, '').trim();
           } else {
-            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            const cleanFirst = (lines[0] || '').replace(/【[^】]+】/g, '').replace(/^[0-9一二三四五六七八九十]+[、.\s]+/, '').trim();
-            subject = cleanFirst.substring(0, 30);
+            const topicM = text.match(/([0-9a-zA-Z\u4e00-\u9fa5]{3,28}?(?:推进会|评审会|研讨会|对齐会|协调会|例会|汇报会|总结会|沟通会|周会|月会|会议|评审|审批|对齐|复盘))/);
+            if (topicM) {
+              subject = topicM[1].trim();
+            } else {
+              const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+              const cleanFirst = (lines[0] || '').replace(/【[^】]+】/g, '').replace(/^[0-9一二三四五六七八九十]+[、.)）]\s*/, '').trim();
+              subject = cleanFirst.substring(0, 30);
+            }
           }
         }
       }
@@ -16306,6 +16297,7 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
   }
 
   subject = subject.replace(/^[【\[]?(?:会议通知|通知|日程)[】\]]?\s*/, '').replace(/[:：]/g, '').trim();
+  if (!subject) return null;
 
   return {
     id: Date.now() + Math.floor(Math.random() * 1000000),
@@ -16331,6 +16323,23 @@ function parseMeetingFromSingleText(rawText, referenceDate) {
 function parseMeetingsFromAnyText(rawText, referenceDate) {
   if (!rawText || !rawText.trim()) return [];
   const text = rawText.trim();
+  const baseRef = referenceDate || getTodayDateStr();
+
+  function extractPureDateHeader(line, curRef) {
+    const cleaned = line
+      .replace(/^\d+[.、)）]\s*/, '')
+      .replace(/^[#*•\-\s【\[（(]+|[】\]）)\s:：]+$/g, '')
+      .replace(/(?:\d{4}\s*[-/.年]\s*)?\d{1,2}\s*[-/.月]\s*\d{1,2}\s*[日号]?/g, '')
+      .replace(/(?:大后天|后天|明天|次日|明日|今天|今日|本日)/g, '')
+      .replace(/(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7]/g, '')
+      .replace(/(?:日程|安排|会议|排期|汇总|[（()）【\[\]】\s:：，,、])/g, '')
+      .trim();
+    if (cleaned.length === 0) {
+      const m = parseMeetingFromSingleText(line + ' 占位主题', curRef);
+      return m ? m.date : '';
+    }
+    return '';
+  }
 
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   const kvHeaderLines = lines.filter(l => /^[\*#•\d.【\[-]?\s*(?:会议主题|主题|时间|会议时间|地点|汇报人|参会人|纪要人|议题背景|决策要点)[:：是]/i.test(l));
@@ -16338,33 +16347,53 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
   const timeHeaders = lines.filter(l => /^[\*#•\d.【\[-]?\s*(?:时间|会议时间|日期)[:：是]/i.test(l));
 
   if (kvHeaderLines.length >= 2 && subjectHeaders.length <= 1 && timeHeaders.length <= 1) {
-    const single = parseMeetingFromSingleText(text, referenceDate);
+    const single = parseMeetingFromSingleText(text, baseRef);
     return single ? [single] : [];
   }
 
   const noticeBlocks = text.split(/(?=(?:【(?:会议通知|会议日程|会议|通知)[】\]]))/);
   if (noticeBlocks.length > 1 && noticeBlocks.filter(b => b.trim().length > 10).length >= 2) {
-    return noticeBlocks.map(b => parseMeetingFromSingleText(b.trim(), referenceDate)).filter(Boolean);
+    const list = noticeBlocks.map(b => parseMeetingFromSingleText(b.trim(), baseRef)).filter(Boolean);
+    return list.sort((a, b) => (a.date + ' ' + a.startTime).localeCompare(b.date + ' ' + b.startTime));
   }
 
-  const numberedBlocks = text.split(/(?:^|\n)(?=\d+[.、\s])/);
-  if (numberedBlocks.length > 1 && numberedBlocks.filter(b => b.trim().length > 10).length >= 2) {
-    return numberedBlocks.map(b => parseMeetingFromSingleText(b.trim(), referenceDate)).filter(Boolean);
+  const segments = [];
+  for (const line of lines) {
+    const timeMatches = line.match(/(?:\d{1,2}:\d{2}|\d{1,2}(?:点|时))/g);
+    if (timeMatches && timeMatches.length >= 2) {
+      const subParts = line
+        .split(/(?:[；;。]|\s+(?=(?:\d{4}[-/.年])?\d{1,2}[-/.月]\d{1,2}[日号]?|(?:明天|后天|周[一二三四五六日天]|星期[一二三四五六日天])|(?:上午|下午|晚上)?\d{1,2}(?::\d{2}|点|时))|[，,]\s*(?=(?:同一天|当天|另外|此外)?\s*(?:(?:\d{4}[-/.年])?\d{1,2}[-/.月]\d{1,2}[日号]?|明天|后天|周[一二三四五六日天]|星期[一二三四五六日天]|(?:上午|下午|晚上)\s*\d{1,2}(?::\d{2}|点|时)|\d{1,2}:\d{2})))/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      if (subParts.length >= 2) {
+        segments.push(...subParts);
+        continue;
+      }
+    }
+    segments.push(line);
   }
 
-  const doubleNewlineBlocks = text.split(/\n\s*\n+/);
-  if (doubleNewlineBlocks.length > 1 && doubleNewlineBlocks.filter(b => b.trim().length > 15).length >= 2) {
-    return doubleNewlineBlocks.map(b => parseMeetingFromSingleText(b.trim(), referenceDate)).filter(Boolean);
-  }
-
-  if (lines.length > 1) {
-    const linesWithTimes = lines.filter(l => /\d{1,2}:\d{2}/.test(l));
-    if (linesWithTimes.length >= 2) {
-      return lines.map(l => parseMeetingFromSingleText(l, referenceDate)).filter(Boolean);
+  if (segments.length > 1) {
+    let activeDate = baseRef;
+    const results = [];
+    for (const seg of segments) {
+      const headerDate = extractPureDateHeader(seg, baseRef);
+      if (headerDate) {
+        activeDate = headerDate;
+        continue;
+      }
+      const parsed = parseMeetingFromSingleText(seg, activeDate);
+      if (parsed && parsed.subject) {
+        activeDate = parsed.date;
+        results.push(parsed);
+      }
+    }
+    if (results.length > 0) {
+      return results.sort((a, b) => (a.date + ' ' + a.startTime).localeCompare(b.date + ' ' + b.startTime));
     }
   }
 
-  const single = parseMeetingFromSingleText(text, referenceDate);
+  const single = parseMeetingFromSingleText(text, baseRef);
   return single ? [single] : [];
 }
 
@@ -16924,7 +16953,8 @@ function switchImportPreviewTab(tab) {
 
 function runCalendarLivePreview() {
   const text = document.getElementById('inputImportTableText').value;
-  const targetDate = document.getElementById('importTargetDate').value || getTodayDateStr();
+  const targetDateEl = document.getElementById('importTargetDate');
+  const targetDate = (targetDateEl && targetDateEl.value) || selectedTimelineDate || getTodayDateStr();
   const previewArea = document.getElementById('importLivePreviewArea');
   const wrapCal = document.getElementById('importCalPreviewWrap');
   const wrapCard = document.getElementById('importCardPreviewWrap');
@@ -22277,7 +22307,7 @@ initHostDatabaseSync();
 initMobileAppMode();
 window.addEventListener('resize', () => { initMobileAppMode(); });
 
-window.APP_VERSION = 'v1.7.2';
+window.APP_VERSION = 'v1.7.3';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
