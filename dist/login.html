@@ -144,9 +144,14 @@
     background: #fff;
     color: var(--ink);
     font: inherit;
-    font-size: 16px;
+    font-size: 13.5px;
     outline: none;
     transition: box-shadow .18s, transform .18s;
+  }
+  input::placeholder {
+    font-size: 12.5px;
+    color: #8c857b;
+    font-weight: 500;
   }
   input:focus { box-shadow: 4px 4px 0 var(--yellow); transform: translate(-1px, -1px); }
   input.masked {
@@ -279,7 +284,7 @@
       </div>
       <form id="loginForm" autocomplete="off" novalidate>
         <div class="password-wrap">
-          <input id="password" class="masked" name="snoopy_secret_code" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="只有你和 Snoopy 知道的那一句。" required autofocus aria-label="只有你和 Snoopy 知道的那一句。" aria-describedby="loginError">
+          <input id="password" class="masked" name="snoopy_secret_code" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="只有你和 Snoopy 知道的那一句" required autofocus aria-label="只有你和 Snoopy 知道的那一句" aria-describedby="loginError">
           <button class="peek" id="peekButton" type="button" aria-label="显示密码" title="显示或隐藏密码">👀</button>
         </div>
         <button class="submit" id="submitButton" type="submit">🐾 打开我的小实验室</button>
@@ -288,17 +293,17 @@
       <div class="privacy-note">
         <div class="login-card-version">
           <span>当前发布版本</span>
-          <span class="login-version-pill" id="loginCardVersionBadge">🏷️ v1.7.8</span>
+          <span class="login-version-pill" id="loginCardVersionBadge">🏷️ v1.7.9</span>
         </div>
       </div>
     </section>
   </main>
   <footer class="login-footer">
     <span>Snoopy’s Little Lab · Sanyli.</span>
-    <span class="login-version-badge" id="loginFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.8</span>
+    <span class="login-version-badge" id="loginFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.9</span>
   </footer>
 <script>
-  window.APP_VERSION = 'v1.7.8';
+  window.APP_VERSION = 'v1.7.9';
   const form = document.getElementById('loginForm');
   const passwordInput = document.getElementById('password');
   const submitButton = document.getElementById('submitButton');

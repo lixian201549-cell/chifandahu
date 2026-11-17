@@ -21566,9 +21566,14 @@ login_template = """<!DOCTYPE html>
     background: #fff;
     color: var(--ink);
     font: inherit;
-    font-size: 16px;
+    font-size: 13.5px;
     outline: none;
     transition: box-shadow .18s, transform .18s;
+  }
+  input::placeholder {
+    font-size: 12.5px;
+    color: #8c857b;
+    font-weight: 500;
   }
   input:focus { box-shadow: 4px 4px 0 var(--yellow); transform: translate(-1px, -1px); }
   input.masked {
@@ -21701,7 +21706,7 @@ login_template = """<!DOCTYPE html>
       </div>
       <form id="loginForm" autocomplete="off" novalidate>
         <div class="password-wrap">
-          <input id="password" class="masked" name="snoopy_secret_code" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="只有你和 Snoopy 知道的那一句。" required autofocus aria-label="只有你和 Snoopy 知道的那一句。" aria-describedby="loginError">
+          <input id="password" class="masked" name="snoopy_secret_code" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="只有你和 Snoopy 知道的那一句" required autofocus aria-label="只有你和 Snoopy 知道的那一句" aria-describedby="loginError">
           <button class="peek" id="peekButton" type="button" aria-label="显示密码" title="显示或隐藏密码">👀</button>
         </div>
         <button class="submit" id="submitButton" type="submit">🐾 打开我的小实验室</button>
