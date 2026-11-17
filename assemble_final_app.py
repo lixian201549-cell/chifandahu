@@ -20599,11 +20599,12 @@ login_template = """<!DOCTYPE html>
     position: relative;
   }
   .illustration {
-    min-height: 570px;
-    padding: 42px 42px 32px;
+    min-height: 520px;
+    padding: 36px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
     position: relative;
     overflow: hidden;
     background:
@@ -20613,36 +20614,12 @@ login_template = """<!DOCTYPE html>
     background-size: 26px 26px;
     border-right: 2px solid var(--ink);
   }
-  .eyebrow {
-    width: fit-content;
-    padding: 7px 12px;
-    border: 2px solid var(--ink);
-    border-radius: 999px;
-    background: var(--paper);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: .12em;
-  }
-  .illustration h1 {
-    margin: 16px 0 8px;
-    max-width: 410px;
-    font-family: Georgia, "Songti SC", serif;
-    font-size: clamp(38px, 5vw, 64px);
-    line-height: 1.02;
-    letter-spacing: -.045em;
-  }
-  .illustration p {
-    margin: 0;
-    max-width: 380px;
-    color: #38342e;
-    font-size: 15px;
-    font-weight: 650;
-  }
   .snoopy-stage {
-    height: 285px;
+    width: 100%;
+    height: 320px;
     position: relative;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
   }
   .snoopy-stage::before {
@@ -20713,35 +20690,6 @@ login_template = """<!DOCTYPE html>
     -webkit-text-security: none;
     text-security: none;
   }
-  .snoopy-quip-bubble {
-    margin-top: 10px;
-    padding: 9px 12px;
-    background: #fffbeb;
-    border: 1.5px solid var(--ink);
-    border-radius: 12px;
-    box-shadow: 3px 3px 0 rgba(23,23,23,.12);
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #3f3a32;
-    line-height: 1.45;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform .15s, background .15s;
-  }
-  .snoopy-quip-bubble:hover {
-    background: #fef3c7;
-    transform: translateY(-1px);
-  }
-  .snoopy-quip-refresh {
-    font-size: 11px;
-    color: var(--muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
   .peek {
     position: absolute;
     right: 8px;
@@ -20781,14 +20729,13 @@ login_template = """<!DOCTYPE html>
   }
   .privacy-note {
     margin-top: 18px;
-    padding-top: 18px;
+    padding-top: 14px;
     border-top: 1px dashed #c9c2b7;
     color: var(--muted);
     font-size: 11.5px;
     line-height: 1.6;
   }
   .login-card-version {
-    margin-top: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -20842,24 +20789,17 @@ login_template = """<!DOCTYPE html>
   @media (max-width: 760px) {
     body { padding: 16px 0 28px; justify-content: flex-start; }
     .login-shell { grid-template-columns: 1fr; box-shadow: 7px 7px 0 var(--ink); }
-    .illustration { min-height: 310px; padding: 28px 28px 12px; border-right: 0; border-bottom: 2px solid var(--ink); }
-    .illustration h1 { font-size: 40px; max-width: 330px; }
-    .illustration p { font-size: 13px; }
-    .snoopy-stage { position: absolute; right: 14px; bottom: 4px; width: 220px; height: 180px; opacity: .96; }
+    .illustration { min-height: 220px; padding: 20px; border-right: 0; border-bottom: 2px solid var(--ink); }
+    .snoopy-stage { position: relative; width: 220px; height: 180px; opacity: .96; margin: 0 auto; }
     .snoopy-stage::before, .woodstock { display: none; }
     .login-panel { padding: 34px 28px 30px; }
-    .mini-brand { margin-bottom: 24px; }
+    .mini-brand { margin-bottom: 20px; }
   }
 </style>
 </head>
 <body>
   <main class="login-shell">
     <section class="illustration" aria-label="Snoopy 欢迎插画">
-      <div>
-        <div class="eyebrow">PRIVATE LITTLE LAB</div>
-        <h1>欢迎回到<br>Snoopy 的小实验室</h1>
-        <p>任务、会议、灵感和旅行计划，都安静地等你回来。</p>
-      </div>
       <div class="snoopy-stage" aria-hidden="true">
         <img src="__IMG_ORDINARY_DOGHOUSE__" alt="">
         <img class="woodstock" src="__IMG_WOODSTOCK__" alt="">
@@ -20870,23 +20810,15 @@ login_template = """<!DOCTYPE html>
         <img src="__IMG_CANONICAL__" alt="Snoopy">
         <span>Snoopy’s Little Lab · Sanyli.</span>
       </div>
-      <h2>输入秘密口令</h2>
-      <p class="welcome" id="welcomeSubtext">只有你和 Snoopy 知道的那一句。</p>
       <form id="loginForm" autocomplete="off" novalidate>
-        <label for="password">秘密口令</label>
         <div class="password-wrap">
-          <input id="password" class="masked" name="snoopy_secret_code" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="敲入暗号，芝麻开门…" required autofocus aria-describedby="loginError">
+          <input id="password" class="masked" name="snoopy_secret_code" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="只有你和 Snoopy 知道的那一句。" required autofocus aria-label="只有你和 Snoopy 知道的那一句。" aria-describedby="loginError">
           <button class="peek" id="peekButton" type="button" aria-label="显示密码" title="显示或隐藏密码">👀</button>
-        </div>
-        <div class="snoopy-quip-bubble" id="snoopyQuipBubble" title="点击换一句俏皮话">
-          <span id="snoopyQuipText">🐶 汪！这里不问用户名，因为整个小实验室只认你这一位主理人～</span>
-          <span class="snoopy-quip-refresh">🎲 换一句</span>
         </div>
         <button class="submit" id="submitButton" type="submit">🐾 打开我的小实验室</button>
         <div class="error" id="loginError" role="alert" aria-live="polite"></div>
       </form>
       <div class="privacy-note">
-        <div>🔐 密码只发送给你的主机验证；登录会话使用安全 Cookie，页面不会保存密码。</div>
         <div class="login-card-version">
           <span>当前发布版本</span>
           <span class="login-version-pill" id="loginCardVersionBadge">🏷️ __APP_VERSION__</span>
@@ -20904,51 +20836,6 @@ login_template = """<!DOCTYPE html>
   const passwordInput = document.getElementById('password');
   const submitButton = document.getElementById('submitButton');
   const loginError = document.getElementById('loginError');
-  const quipBubble = document.getElementById('snoopyQuipBubble');
-  const quipText = document.getElementById('snoopyQuipText');
-
-  const idleQuips = [
-    '🐶 汪！这里不问用户名，因为整个小实验室只认你这一位主理人～',
-    '🐾 嘘——这里不查户口本，只对暗号！小狗爪印准备就绪～',
-    '☕ 报告！咖啡已温好，日程已排整齐，就等你喊「芝麻开门」啦！',
-    '🦴 答对口令有奖：奖励 Snoopy 隔空疯狂摇尾巴一百下！',
-    '🕶️ Joe Cool 温馨提示：今天也是颜值与效率双双拉满的一天！',
-    '✨ 别管什么用户名啦，快进来，Woodstock 都在门口替你放哨半天咯！',
-    '🍪 叮咚！检测到主理人靠近，请投喂神秘口令解锁今日份好运～',
-    '🎈 把烦恼留在门外，把奇思妙想带进 Snoopy 的小实验室吧！'
-  ];
-
-  const typingQuips = [
-    '👀 嘘…Woodstock 已经捂住眼睛绝不偷看，你放心输～',
-    '🐾 哒哒哒…Snoopy 正竖起大耳朵认真核对你的爪印暗号！',
-    '✨ 听见钥匙转动的声音啦，小实验室的大门正在悄悄打开一条缝～',
-    '🦴 暗号接收中…小狗尾巴已经开始控制不住地摇晃啦！'
-  ];
-
-  let quipIdx = Math.floor(Math.random() * idleQuips.length);
-  if (quipText) {
-    quipText.textContent = idleQuips[quipIdx];
-  }
-
-  function rotateSnoopyQuip() {
-    quipIdx = (quipIdx + 1) % idleQuips.length;
-    if (quipText) {
-      quipText.textContent = idleQuips[quipIdx];
-    }
-  }
-
-  if (quipBubble) {
-    quipBubble.addEventListener('click', function() {
-      rotateSnoopyQuip();
-      passwordInput.focus();
-    });
-  }
-
-  passwordInput.addEventListener('focus', function() {
-    if (!passwordInput.value.trim()) {
-      rotateSnoopyQuip();
-    }
-  });
 
   document.getElementById('peekButton').addEventListener('click', function() {
     const isMasked = passwordInput.classList.contains('masked');
@@ -20985,7 +20872,6 @@ login_template = """<!DOCTYPE html>
     submitButton.disabled = true;
     submitButton.textContent = '正在核对小狗爪印…';
     loginError.textContent = '';
-    if (quipText) quipText.textContent = '🚀 暗号确认中，芝麻开门——！';
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -20995,7 +20881,6 @@ login_template = """<!DOCTYPE html>
       const result = await response.json();
       if (response.ok && result.success) {
         submitButton.textContent = '欢迎回家！🐾';
-        if (quipText) quipText.textContent = '🎉 暗号满分通过！欢迎回到小实验室！';
         window.location.replace('/');
         return;
       }
@@ -21003,7 +20888,6 @@ login_template = """<!DOCTYPE html>
         loginError.textContent = '尝试次数有点多，Snoopy 需要趴在狗屋顶上休息 15 分钟。';
       } else {
         loginError.textContent = '🙊 哎呀，这句暗号差一点点，再想想看？';
-        if (quipText) quipText.textContent = '🐶 歪头疑惑：是不是手滑按错一个键啦？再试一次吧～';
       }
       passwordInput.select();
     } catch (error) {
@@ -21027,12 +20911,7 @@ login_template = """<!DOCTYPE html>
     const val = passwordInput.value.trim();
     if (!val) {
       lastAttemptedPassword = '';
-      rotateSnoopyQuip();
       return;
-    }
-
-    if (quipText && val.length < 6) {
-      quipText.textContent = typingQuips[val.length % typingQuips.length];
     }
 
     // 1. 若为 6 位纯数字口令，输完第 6 位瞬间立即自动验证登录
