@@ -5854,6 +5854,205 @@ body.is-desktop-forced .floating-back-to-mobile {
   gap: 6px;
 }
 
+/* ================= 会议日历拖拽改期 / 改时间 & 快速调时样式 ================= */
+.weekly-card[draggable="true"],
+.day-meeting-card[draggable="true"],
+.cal-event-pill[draggable="true"],
+.weekly-request-card[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.weekly-card[draggable="true"]:active,
+.day-meeting-card[draggable="true"]:active,
+.cal-event-pill[draggable="true"]:active,
+.weekly-request-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+.weekly-card.is-dragging,
+.day-meeting-card.is-dragging,
+.cal-event-pill.is-dragging,
+.weekly-request-card.is-dragging {
+  opacity: 0.42 !important;
+  transform: scale(0.97) !important;
+  border: 1.5px dashed #2563eb !important;
+  box-shadow: none !important;
+}
+.weekly-col.drag-over-col {
+  background: rgba(239, 246, 255, 0.75) !important;
+  outline: 2px dashed #3b82f6;
+  outline-offset: -2px;
+  transition: background 0.12s ease;
+}
+.cal-day-cell.drag-over-cell {
+  background: #eff6ff !important;
+  outline: 2px dashed #2563eb;
+  outline-offset: -2px;
+}
+.weekly-period-block.drag-over-period {
+  background: rgba(37, 99, 235, 0.06);
+  border-radius: 6px;
+  outline: 1.5px dashed #60a5fa;
+  outline-offset: 1px;
+}
+.weekly-free-slot.drag-over-slot,
+.day-free-slot-card.drag-over-slot,
+.weekly-empty-period-slot.drag-over-slot {
+  background: #dbeafe !important;
+  border: 1.5px solid #2563eb !important;
+  color: #1e40af !important;
+  transform: scale(1.015);
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.18) !important;
+}
+.weekly-card.drag-over-top,
+.day-meeting-card.drag-over-top {
+  box-shadow: 0 -3px 0 0 #2563eb, 0 4px 12px rgba(37, 99, 235, 0.16) !important;
+  position: relative;
+}
+.weekly-card.drag-over-bottom,
+.day-meeting-card.drag-over-bottom {
+  box-shadow: 0 3px 0 0 #2563eb, 0 4px 12px rgba(37, 99, 235, 0.16) !important;
+  position: relative;
+}
+.weekly-card-time-text {
+  border-radius: 3px;
+  padding: 0 2px;
+  margin-left: -2px;
+  transition: background 0.12s ease, color 0.12s ease;
+  cursor: pointer;
+}
+.weekly-card-time-text:hover,
+.day-meeting-time-text:hover {
+  background: #dbeafe;
+  color: #1d4ed8 !important;
+  text-decoration: underline;
+}
+#calendarDragLiveBadge {
+  position: fixed;
+  z-index: 100000;
+  pointer-events: none;
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.28);
+  border: 1px solid #3b82f6;
+  white-space: nowrap;
+  display: none;
+  align-items: center;
+  gap: 5px;
+}
+.quick-time-popover {
+  position: fixed;
+  z-index: 99995;
+  width: 286px;
+  background: #ffffff;
+  border: 1.5px solid #0f172a;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22), 3px 3px 0 #0f172a;
+  padding: 12px;
+  font-size: 12px;
+  color: #0f172a;
+  animation: qtpFadeIn 0.12s ease-out;
+}
+@keyframes qtpFadeIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.qtp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 7px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #cbd5e1;
+}
+.qtp-title {
+  font-weight: 800;
+  font-size: 12.5px;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qtp-close {
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.qtp-close:hover { background: #e2e8f0; color: #0f172a; }
+.qtp-section-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  margin: 6px 0 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.qtp-btn-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.qtp-grid-times {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.qtp-grid-durs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.qtp-chip {
+  padding: 4px 2px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.qtp-chip:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+.qtp-chip.active {
+  background: #2563eb;
+  border-color: #1d4ed8;
+  color: #ffffff;
+  font-weight: 700;
+}
+.toast-undo-btn {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.toast-undo-btn:hover {
+  background: rgba(255,255,255,0.32);
+}
 
 </style>
 </head>
@@ -6707,7 +6906,7 @@ body.is-desktop-forced .floating-back-to-mobile {
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.7</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.7.8</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -12661,7 +12860,7 @@ function renderSupervisorWeeklyBoard() {
     const dayTransits = typeof getTransitsForDate === 'function' ? getTransitsForDate(day.dateStr) : [];
 
     html += `
-      <div class="weekly-col ${day.isToday ? 'is-today' : ''} ${day.isWeekend ? 'is-weekend' : ''} ${dayTrip ? 'is-trip-day' : ''}">
+      <div class="weekly-col ${day.isToday ? 'is-today' : ''} ${day.isWeekend ? 'is-weekend' : ''} ${dayTrip ? 'is-trip-day' : ''}" data-date="${day.dateStr}" ondragover="onWeeklyColDragOver(event, '${day.dateStr}')" ondragleave="onWeeklyColDragLeave(event)" ondrop="onWeeklyColDrop(event, '${day.dateStr}')">
         <div class="weekly-col-header">
           <div class="weekly-col-header-main" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <span class="weekly-col-day">${day.name}</span>
@@ -12699,9 +12898,9 @@ function renderSupervisorWeeklyBoard() {
       const conflictTooltip = hasConflict ? `【⚠️时间冲突警告：与${mConflicts.map(c => '【' + c.otherSubject + '】').join('、')}在 ${mConflicts.map(c => c.overlapRangeStr).join('、')} 存在重叠，点击查看详情】` : '';
 
       return `
-        <div class="${cardCls}" onclick="editMeeting(${m.id})" title="${conflictTooltip}${isPending ? '【待领导确认】点击核准或调整排期' : (isNoticeUnsent ? '【尚未发送会议通知】点击可编辑并更新通知状态' : '点击查看/编辑详情')}">
+        <div class="${cardCls}" draggable="true" data-meeting-id="${m.id}" data-date="${day.dateStr}" data-start="${dt.start}" data-end="${dt.end}" ondragstart="onMeetingCardDragStart(event, ${m.id})" ondragend="onMeetingCardDragEnd(event)" ondragover="onMeetingCardDragOver(event, ${m.id}, '${day.dateStr}')" ondragleave="onMeetingCardDragLeave(event)" ondrop="onMeetingCardDrop(event, ${m.id}, '${day.dateStr}')" onclick="editMeeting(${m.id})" title="${conflictTooltip}${isPending ? '【待领导确认】点击核准或调整排期 · 按住卡片可拖拽改期/改时间' : (isNoticeUnsent ? '【尚未发送会议通知】点击编辑详情 · 按住可拖拽改期/改时间' : '点击查看/编辑详情 · 按住卡片可拖拽改期/改时间')}">
           <div class="weekly-card-time">
-            <span class="weekly-card-time-text" style="white-space:nowrap !important; flex-shrink:0; font-size:11px; font-weight:700; ${dt.isShifted ? 'color:#15803d;' : 'color:var(--blue-accent);'}">
+            <span class="weekly-card-time-text" onclick="openQuickTimePopover(event, ${m.id})" title="点击快速改时间/日期 · 按住卡片可拖拽改期" style="white-space:nowrap !important; flex-shrink:0; font-size:11px; font-weight:700; ${dt.isShifted ? 'color:#15803d;' : 'color:var(--blue-accent);'}">
               <span>${dt.start}${dt.end ? ' - ' + dt.end : ''}</span>
             </span>
             <div class="weekly-card-time-badges">
@@ -12793,7 +12992,7 @@ function renderSupervisorWeeklyBoard() {
 
     if (dayMeetings.length === 0 && dayTransits.length === 0) {
       html += `
-        <div style="text-align:center; padding: 22px 8px; color:var(--text-muted); font-size:12px; background:#fff; border:1px dashed var(--border); border-radius:var(--radius-sm);">
+        <div class="weekly-empty-day-box" ondragover="onWeeklyColDragOver(event, '${day.dateStr}')" ondragleave="onWeeklyColDragLeave(event)" ondrop="onWeeklyColDrop(event, '${day.dateStr}')" style="text-align:center; padding: 22px 8px; color:var(--text-muted); font-size:12px; background:#fff; border:1px dashed var(--border); border-radius:var(--radius-sm);">
           <div style="margin-bottom:4px;">全天暂无会议</div>
           <button class="btn btn-sm btn-ghost" style="margin-top:4px; font-size:11px;" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '09:00', 60)">＋ 安排预约</button>
         </div>
@@ -12801,14 +13000,14 @@ function renderSupervisorWeeklyBoard() {
     } else {
       // --- 1. 上午时段 (无emoji，不标具体时间) ---
       html += `
-        <div class="weekly-period-block morning-block">
+        <div class="weekly-period-block morning-block" data-date="${day.dateStr}" data-period="morning" ondragover="onWeeklyPeriodDragOver(event, '${day.dateStr}', 'morning')" ondragleave="onWeeklyPeriodDragLeave(event)" ondrop="onWeeklyPeriodDrop(event, '${day.dateStr}', 'morning')">
           <div class="weekly-period-divider">
             <span>上午</span>
           </div>
       `;
       if (morningMeetings.length === 0 && morningTransits.length === 0) {
         html += `
-          <div class="weekly-empty-period-slot" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '09:00', 60)" title="点击安排预约">
+          <div class="weekly-empty-period-slot" data-date="${day.dateStr}" data-slot-start="09:00" data-slot-end="12:00" ondragover="onCalendarSlotDragOver(event, '${day.dateStr}', '09:00', '12:00')" ondragleave="onCalendarSlotDragLeave(event)" ondrop="onCalendarSlotDrop(event, '${day.dateStr}', '09:00', '12:00')" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '09:00', 60)" title="点击安排预约 · 也可将会议拖拽至此">
             <div class="empty-slot-text">暂无排期</div>
           </div>
         `;
@@ -12824,7 +13023,7 @@ function renderSupervisorWeeklyBoard() {
           html += `<div class="weekly-period-free-slots">`;
           morningFreeSlots.forEach(slot => {
             html += `
-              <div class="weekly-free-slot" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '${slot.startStr}', ${Math.min(slot.duration, 60)})" title="上午空档 ${slot.startStr} - ${slot.endStr} (${slot.duration}m)">
+              <div class="weekly-free-slot" data-date="${day.dateStr}" data-slot-start="${slot.startStr}" data-slot-end="${slot.endStr}" ondragover="onCalendarSlotDragOver(event, '${day.dateStr}', '${slot.startStr}', '${slot.endStr}')" ondragleave="onCalendarSlotDragLeave(event)" ondrop="onCalendarSlotDrop(event, '${day.dateStr}', '${slot.startStr}', '${slot.endStr}')" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '${slot.startStr}', ${Math.min(slot.duration, 60)})" title="上午空档 ${slot.startStr} - ${slot.endStr} (${slot.duration}m) · 可直接拖拽会议至此空档">
                 <span class="slot-time">${slot.startStr} - ${slot.endStr}</span>
                 <span class="slot-dur-tag">${slot.duration}m ＋</span>
               </div>
@@ -12837,14 +13036,14 @@ function renderSupervisorWeeklyBoard() {
 
       // --- 2. 下午时段 ---
       html += `
-        <div class="weekly-period-block afternoon-block">
+        <div class="weekly-period-block afternoon-block" data-date="${day.dateStr}" data-period="afternoon" ondragover="onWeeklyPeriodDragOver(event, '${day.dateStr}', 'afternoon')" ondragleave="onWeeklyPeriodDragLeave(event)" ondrop="onWeeklyPeriodDrop(event, '${day.dateStr}', 'afternoon')">
           <div class="weekly-period-divider">
             <span>下午</span>
           </div>
       `;
       if (afternoonMeetings.length === 0 && afternoonTransits.length === 0) {
         html += `
-          <div class="weekly-empty-period-slot" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '14:00', 60)" title="点击安排预约">
+          <div class="weekly-empty-period-slot" data-date="${day.dateStr}" data-slot-start="14:00" data-slot-end="18:00" ondragover="onCalendarSlotDragOver(event, '${day.dateStr}', '14:00', '18:00')" ondragleave="onCalendarSlotDragLeave(event)" ondrop="onCalendarSlotDrop(event, '${day.dateStr}', '14:00', '18:00')" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '14:00', 60)" title="点击安排预约 · 也可将会议拖拽至此">
             <div class="empty-slot-text">暂无排期</div>
           </div>
         `;
@@ -12860,7 +13059,7 @@ function renderSupervisorWeeklyBoard() {
           html += `<div class="weekly-period-free-slots">`;
           afternoonFreeSlots.forEach(slot => {
             html += `
-              <div class="weekly-free-slot" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '${slot.startStr}', ${Math.min(slot.duration, 60)})" title="下午空档 ${slot.startStr} - ${slot.endStr} (${slot.duration}m)">
+              <div class="weekly-free-slot" data-date="${day.dateStr}" data-slot-start="${slot.startStr}" data-slot-end="${slot.endStr}" ondragover="onCalendarSlotDragOver(event, '${day.dateStr}', '${slot.startStr}', '${slot.endStr}')" ondragleave="onCalendarSlotDragLeave(event)" ondrop="onCalendarSlotDrop(event, '${day.dateStr}', '${slot.startStr}', '${slot.endStr}')" onclick="openAddMeetingModalWithSlot('${day.dateStr}', '${slot.startStr}', ${Math.min(slot.duration, 60)})" title="下午空档 ${slot.startStr} - ${slot.endStr} (${slot.duration}m) · 可直接拖拽会议至此空档">
                 <span class="slot-time">${slot.startStr} - ${slot.endStr}</span>
                 <span class="slot-dur-tag">${slot.duration}m ＋</span>
               </div>
@@ -12930,7 +13129,7 @@ function renderSupervisorWeeklyBoard() {
   } else {
     pendingRequests.forEach(req => {
       html += `
-        <div class="weekly-request-card">
+        <div class="weekly-request-card" draggable="true" data-request-id="${req.id}" ondragstart="onPendingRequestDragStart(event, ${req.id})" ondragend="onMeetingCardDragEnd(event)" title="可按住直接拖拽到上方周历的任意日期或空档完成排期">
           <div class="weekly-request-top">
             <div style="display:flex; align-items:center; gap:8px;">
               <span class="weekly-request-person">👤 ${escapeHtml(req.requester)}</span>
@@ -13154,10 +13353,10 @@ function renderSupervisorDayCalendar() {
     const st = statusMap[m.status] || statusMap.scheduled;
 
     return `
-      <div class="day-meeting-card ${isPending ? 'is-pending' : (isHigh ? 'priority-high' : '')} ${isNoticeUnsent ? 'notice-unsent' : ''} ${hasConflict ? 'is-conflict' : ''}">
+      <div class="day-meeting-card ${isPending ? 'is-pending' : (isHigh ? 'priority-high' : '')} ${isNoticeUnsent ? 'notice-unsent' : ''} ${hasConflict ? 'is-conflict' : ''}" draggable="true" data-meeting-id="${m.id}" data-date="${curDateStr}" data-start="${dt.start}" data-end="${dt.end}" ondragstart="onMeetingCardDragStart(event, ${m.id})" ondragend="onMeetingCardDragEnd(event)" ondragover="onMeetingCardDragOver(event, ${m.id}, '${curDateStr}')" ondragleave="onMeetingCardDragLeave(event)" ondrop="onMeetingCardDrop(event, ${m.id}, '${curDateStr}')">
         <div class="day-meeting-top">
           <div class="day-meeting-time-bar">
-            <span class="day-meeting-time-text" style="${dt.isShifted ? 'color:#15803d; font-weight:800;' : ''}">🕒 ${dt.start} - ${dt.end}</span>
+            <span class="day-meeting-time-text" onclick="openQuickTimePopover(event, ${m.id})" title="点击快速微调时间/日期 · 按住卡片可上下拖拽调序" style="cursor:pointer; border-radius:4px; padding:1px 4px; ${dt.isShifted ? 'color:#15803d; font-weight:800;' : ''}">🕒 ${dt.start} - ${dt.end}</span>
             <span style="font-size:11.5px; color:var(--text-muted);">(${durHours}H)</span>
             ${isNoticeUnsent ? '<span class="weekly-notice-tag">⚠️ 待发通知</span>' : ''}
             ${isPending ? '<span class="weekly-pending-tag">⚠️ 待领导确认</span>' : `<span class="status-badge ${st.cls}">${st.text}</span>`}
@@ -13220,7 +13419,7 @@ function renderSupervisorDayCalendar() {
 
   function renderDaySlotCard(slot) {
     return `
-      <div class="day-free-slot-card" onclick="openAddMeetingModalWithSlot('${curDateStr}', '${slot.startStr}', ${Math.min(slot.duration, 60)})" title="点击预约此空档时段">
+      <div class="day-free-slot-card" data-date="${curDateStr}" data-slot-start="${slot.startStr}" data-slot-end="${slot.endStr}" ondragover="onCalendarSlotDragOver(event, '${curDateStr}', '${slot.startStr}', '${slot.endStr}')" ondragleave="onCalendarSlotDragLeave(event)" ondrop="onCalendarSlotDrop(event, '${curDateStr}', '${slot.startStr}', '${slot.endStr}')" onclick="openAddMeetingModalWithSlot('${curDateStr}', '${slot.startStr}', ${Math.min(slot.duration, 60)})" title="点击预约此空档时段 · 也可将会议拖拽至此">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:14px;">🕒</span>
           <strong style="color:#166534; font-size:12px;">可用空档：${slot.startStr} - ${slot.endStr}</strong>
@@ -13279,7 +13478,7 @@ function renderSupervisorDayCalendar() {
 
   if (morningItems.length === 0) {
     html += `
-      <div class="day-lunch-rest-card" style="background:#f0fdf4; border-color:#bbf7d0; color:#15803d; display:flex; justify-content:space-between; align-items:center;">
+      <div class="day-lunch-rest-card" ondragover="onCalendarSlotDragOver(event, '${curDateStr}', '09:00', '12:00')" ondragleave="onCalendarSlotDragLeave(event)" ondrop="onCalendarSlotDrop(event, '${curDateStr}', '09:00', '12:00')" style="background:#f0fdf4; border-color:#bbf7d0; color:#15803d; display:flex; justify-content:space-between; align-items:center;">
         <div><strong>上午暂无排期</strong></div>
         <button class="btn btn-sm btn-ghost" style="color:#15803d; border-color:#86efac; background:#fff; font-size:11px;" onclick="openAddMeetingModalWithSlot('${curDateStr}', '09:00', 60)">＋ 安排上午会议</button>
       </div>
@@ -13312,7 +13511,7 @@ function renderSupervisorDayCalendar() {
 
   if (afternoonItems.length === 0) {
     html += `
-      <div class="day-lunch-rest-card" style="background:#f0fdf4; border-color:#bbf7d0; color:#15803d; display:flex; justify-content:space-between; align-items:center;">
+      <div class="day-lunch-rest-card" ondragover="onCalendarSlotDragOver(event, '${curDateStr}', '14:00', '18:00')" ondragleave="onCalendarSlotDragLeave(event)" ondrop="onCalendarSlotDrop(event, '${curDateStr}', '14:00', '18:00')" style="background:#f0fdf4; border-color:#bbf7d0; color:#15803d; display:flex; justify-content:space-between; align-items:center;">
         <div><strong>下午暂无排期</strong></div>
         <button class="btn btn-sm btn-ghost" style="color:#15803d; border-color:#86efac; background:#fff; font-size:11px;" onclick="openAddMeetingModalWithSlot('${curDateStr}', '14:30', 60)">＋ 安排下午会议</button>
       </div>
@@ -13449,7 +13648,7 @@ function renderSupervisorMonthCalendar() {
         const prevYear = month === 0 ? year - 1 : year;
         const pDateStr = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(prevDay).padStart(2, '0')}`;
         html += `
-          <td class="cal-day-cell other-month" onclick="selectCalendarDate('${pDateStr}')">
+          <td class="cal-day-cell other-month" data-date="${pDateStr}" ondragover="onMonthCellDragOver(event, '${pDateStr}')" ondragleave="onMonthCellDragLeave(event)" ondrop="onMonthCellDrop(event, '${pDateStr}')" onclick="selectCalendarDate('${pDateStr}')">
             <div class="cal-day-header">
               <span class="cal-day-num">${prevDay}</span>
             </div>
@@ -13459,7 +13658,7 @@ function renderSupervisorMonthCalendar() {
         const nYear = month === 11 ? year + 1 : year;
         const nDateStr = `${nYear}-${String(nMonth).padStart(2, '0')}-${String(nextMonthDay).padStart(2, '0')}`;
         html += `
-          <td class="cal-day-cell other-month" onclick="selectCalendarDate('${nDateStr}')">
+          <td class="cal-day-cell other-month" data-date="${nDateStr}" ondragover="onMonthCellDragOver(event, '${nDateStr}')" ondragleave="onMonthCellDragLeave(event)" ondrop="onMonthCellDrop(event, '${nDateStr}')" onclick="selectCalendarDate('${nDateStr}')">
             <div class="cal-day-header">
               <span class="cal-day-num">${nextMonthDay}</span>
             </div>
@@ -13478,7 +13677,7 @@ function renderSupervisorMonthCalendar() {
         if (isWeekend) cellClasses.push('weekend-cell');
 
         html += `
-          <td class="${cellClasses.join(' ')}" onclick="selectCalendarDate('${curDateStr}')">
+          <td class="${cellClasses.join(' ')}" data-date="${curDateStr}" ondragover="onMonthCellDragOver(event, '${curDateStr}')" ondragleave="onMonthCellDragLeave(event)" ondrop="onMonthCellDrop(event, '${curDateStr}')" onclick="selectCalendarDate('${curDateStr}')">
             <div class="cal-day-header">
               <span class="cal-day-num">${dayCounter}</span>
               ${(() => {
@@ -13496,12 +13695,12 @@ function renderSupervisorMonthCalendar() {
                 const dt = getMeetingDisplayTime(m);
                 if (hasConflict) {
                   const c0 = mConflicts[0];
-                  return `<div class="cal-event-pill cal-event-conflict" title="⚠️ 时间冲突：与【${escapeHtml(c0.otherSubject)}】重合 ${c0.overlapRangeStr} (${c0.overlapDuration}分钟)">
+                  return `<div class="cal-event-pill cal-event-conflict" draggable="true" data-meeting-id="${m.id}" ondragstart="onMeetingCardDragStart(event, ${m.id})" ondragend="onMeetingCardDragEnd(event)" onclick="event.stopPropagation(); openQuickTimePopover(event, ${m.id})" title="⚠️ 时间冲突：与【${escapeHtml(c0.otherSubject)}】重合 ${c0.overlapRangeStr} · 可拖拽改期或点击微调时间">
                     <span style="font-weight:700;">⚠️ ${dt.start} ${escapeHtml(m.subject)}</span>
                     <span class="cal-conflict-overlap-tag">重合 ${c0.overlapRangeStr}</span>
                   </div>`;
                 }
-                return `<div class="cal-event-pill ${stCls}" title="${dt.start} ${escapeHtml(m.subject)}">${dt.start} ${escapeHtml(m.subject)}</div>`;
+                return `<div class="cal-event-pill ${stCls}" draggable="true" data-meeting-id="${m.id}" ondragstart="onMeetingCardDragStart(event, ${m.id})" ondragend="onMeetingCardDragEnd(event)" onclick="event.stopPropagation(); openQuickTimePopover(event, ${m.id})" title="${dt.start} ${escapeHtml(m.subject)} · 可直接拖拽至其他日期或点击微调时间">${dt.start} ${escapeHtml(m.subject)}</div>`;
               }).join('')}
               ${dayMeetingsList.length > 2 ? `<div class="cal-event-more">+${dayMeetingsList.length - 2} 更多...</div>` : ''}
             </div>
@@ -13519,6 +13718,693 @@ function renderSupervisorMonthCalendar() {
   `;
 
   calContainer.innerHTML = html;
+}
+
+// ==========================================
+// 会议日历：拖拽改期 / 改时间 & 点击时间快速微调引擎
+// ==========================================
+window._draggingMeetingId = null;
+window._draggingRequestId = null;
+window._justDraggedMeetingAt = 0;
+window._lastMeetingRescheduleUndo = null;
+
+function getOrCreateDragLiveBadge() {
+  if (typeof document === 'undefined' || !document.body) return null;
+  let el = document.getElementById('calendarDragLiveBadge');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'calendarDragLiveBadge';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function showDragLiveBadge(x, y, text) {
+  const el = getOrCreateDragLiveBadge();
+  if (!el) return;
+  el.textContent = text;
+  el.style.display = 'inline-flex';
+  const left = Math.min((x || 0) + 14, (window.innerWidth || 1200) - 240);
+  const top = Math.max((y || 0) - 34, 10);
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+}
+
+function hideDragLiveBadge() {
+  if (typeof document === 'undefined') return;
+  const el = document.getElementById('calendarDragLiveBadge');
+  if (el) el.style.display = 'none';
+}
+
+function clearAllCalendarDragHighlights() {
+  hideDragLiveBadge();
+  if (typeof document === 'undefined' || !document.querySelectorAll) return;
+  document.querySelectorAll('.drag-over-col, .drag-over-cell, .drag-over-period, .drag-over-slot, .drag-over-top, .drag-over-bottom, .is-dragging').forEach(el => {
+    el.classList.remove('drag-over-col', 'drag-over-cell', 'drag-over-period', 'drag-over-slot', 'drag-over-top', 'drag-over-bottom', 'is-dragging');
+  });
+}
+
+function getDraggingItemDuration() {
+  if (window._draggingMeetingId) {
+    const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+    const m = meetings.find(x => x.id == window._draggingMeetingId);
+    if (m) return parseInt(m.duration || 60, 10);
+  }
+  if (window._draggingRequestId) {
+    const reqs = getData(STORAGE_KEYS.MEETING_REQUESTS, []);
+    const r = reqs.find(x => x.id == window._draggingRequestId);
+    if (r) return parseInt(String(r.duration || '45').replace(/[^0-9]/g, ''), 10) || 45;
+  }
+  return 60;
+}
+
+function onMeetingCardDragStart(event, meetingId) {
+  closeQuickTimePopover();
+  window._draggingMeetingId = meetingId;
+  window._draggingRequestId = null;
+  window._justDraggedMeetingAt = Date.now();
+  if (event && event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+    try { event.dataTransfer.setData('text/plain', 'meeting:' + meetingId); } catch (e) {}
+  }
+  const target = event && event.currentTarget;
+  if (target && target.classList) {
+    setTimeout(() => target.classList.add('is-dragging'), 0);
+  }
+}
+
+function onPendingRequestDragStart(event, requestId) {
+  closeQuickTimePopover();
+  window._draggingRequestId = requestId;
+  window._draggingMeetingId = null;
+  window._justDraggedMeetingAt = Date.now();
+  if (event && event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+    try { event.dataTransfer.setData('text/plain', 'request:' + requestId); } catch (e) {}
+  }
+  const target = event && event.currentTarget;
+  if (target && target.classList) {
+    setTimeout(() => target.classList.add('is-dragging'), 0);
+  }
+}
+
+function onMeetingCardDragEnd() {
+  window._justDraggedMeetingAt = Date.now();
+  window._draggingMeetingId = null;
+  window._draggingRequestId = null;
+  clearAllCalendarDragHighlights();
+}
+
+function computeSlotScrubStartTime(event, slotStartStr, slotEndStr, durationMins) {
+  const sMin = timeStrToMinutes(slotStartStr || '09:00');
+  const eMin = slotEndStr ? timeStrToMinutes(slotEndStr) : (sMin + 60);
+  const avail = eMin - sMin;
+  const dur = durationMins || 60;
+  if (avail <= 45 || !event || typeof event.clientX !== 'number' || isNaN(event.clientX) || !event.currentTarget || !event.currentTarget.getBoundingClientRect) {
+    return slotStartStr || '09:00';
+  }
+  const rect = event.currentTarget.getBoundingClientRect();
+  if (!rect || !rect.width) return slotStartStr || '09:00';
+  const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  if (isNaN(ratio) || ratio < 0.35) return slotStartStr || '09:00';
+  const maxOffset = Math.max(0, avail - Math.min(dur, avail));
+  const steppedOffset = Math.floor((ratio * maxOffset) / 30) * 30;
+  return minutesToTimeStr(Math.min(sMin + steppedOffset, eMin - 30));
+}
+
+function onCalendarSlotDragOver(event, dateStr, slotStartStr, slotEndStr) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+
+  const dur = getDraggingItemDuration();
+  const targetStart = computeSlotScrubStartTime(event, slotStartStr, slotEndStr, dur);
+  const targetEnd = calculateEndTime(targetStart, dur);
+  if (event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.add('drag-over-slot');
+    event.currentTarget.setAttribute('data-scrub-start', targetStart);
+  }
+  showDragLiveBadge(event.clientX, event.clientY, `📥 松手排入 ${dateStr.slice(5)} ${targetStart}-${targetEnd}`);
+}
+
+function onCalendarSlotDragLeave(event) {
+  if (event && event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.remove('drag-over-slot');
+  }
+}
+
+function onCalendarSlotDrop(event, dateStr, slotStartStr, slotEndStr) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const dur = getDraggingItemDuration();
+  const scrubbed = (event.currentTarget && event.currentTarget.getAttribute && event.currentTarget.getAttribute('data-scrub-start')) || computeSlotScrubStartTime(event, slotStartStr, slotEndStr, dur);
+  const targetStart = scrubbed || slotStartStr || '09:00';
+  applyDragDropSchedule(dateStr, targetStart);
+}
+
+function onMeetingCardDragOver(event, targetMeetingId, dateStr) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  if (window._draggingMeetingId && String(window._draggingMeetingId) === String(targetMeetingId)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+
+  const el = event.currentTarget;
+  let isTop = false;
+  if (el && el.getBoundingClientRect) {
+    const rect = el.getBoundingClientRect();
+    isTop = (event.clientY - rect.top) < (rect.height * 0.48);
+  }
+  if (el && el.classList) {
+    el.classList.toggle('drag-over-top', isTop);
+    el.classList.toggle('drag-over-bottom', !isTop);
+  }
+
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const targetM = meetings.find(x => x.id == targetMeetingId);
+  if (!targetM) return;
+  const targetDt = getMeetingDisplayTime(targetM);
+  const dur = getDraggingItemDuration();
+
+  if (isTop) {
+    const dragM = window._draggingMeetingId ? meetings.find(x => x.id == window._draggingMeetingId) : null;
+    if (dragM && dragM.date === dateStr) {
+      showDragLiveBadge(event.clientX, event.clientY, `⇅ 松手与该会互换时间 (${targetDt.start})`);
+    } else {
+      const endStr = calculateEndTime(targetDt.start, dur);
+      showDragLiveBadge(event.clientX, event.clientY, `⬆️ 松手排至 ${dateStr.slice(5)} ${targetDt.start}-${endStr}`);
+    }
+  } else {
+    const nextStart = targetDt.end || calculateEndTime(targetDt.start, parseInt(targetM.duration || 45, 10));
+    const nextEnd = calculateEndTime(nextStart, dur);
+    showDragLiveBadge(event.clientX, event.clientY, `⬇️ 松手紧接其后 ${dateStr.slice(5)} ${nextStart}-${nextEnd}`);
+  }
+}
+
+function onMeetingCardDragLeave(event) {
+  if (event && event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom');
+  }
+}
+
+function onMeetingCardDrop(event, targetMeetingId, dateStr) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  if (window._draggingMeetingId && String(window._draggingMeetingId) === String(targetMeetingId)) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  const el = event.currentTarget;
+  let isTop = false;
+  if (el && el.getBoundingClientRect) {
+    const rect = el.getBoundingClientRect();
+    isTop = (event.clientY - rect.top) < (rect.height * 0.48);
+  }
+
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const targetM = meetings.find(x => x.id == targetMeetingId);
+  if (!targetM) return;
+  const targetDt = getMeetingDisplayTime(targetM);
+
+  if (isTop) {
+    const dragM = window._draggingMeetingId ? meetings.find(x => x.id == window._draggingMeetingId) : null;
+    if (dragM && dragM.date === dateStr) {
+      // 同一天拖到另一张卡片上半部：直接互换两场会议的时间段（或前后顺延），零冲突！
+      swapTwoMeetingsTimeOnSameDay(dragM.id, targetM.id);
+      clearAllCalendarDragHighlights();
+      window._draggingMeetingId = null;
+      return;
+    }
+    applyDragDropSchedule(dateStr, targetDt.start);
+  } else {
+    const nextStart = targetDt.end || calculateEndTime(targetDt.start, parseInt(targetM.duration || 45, 10));
+    applyDragDropSchedule(dateStr, nextStart);
+  }
+}
+
+function resolvePeriodDropStartTime(dateStr, period) {
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const dragM = window._draggingMeetingId ? meetings.find(x => x.id == window._draggingMeetingId) : null;
+  if (dragM) {
+    const dt = getMeetingDisplayTime(dragM);
+    const curMin = timeStrToMinutes(dt.start || '09:00');
+    const isCurMorning = curMin < 720;
+    if ((period === 'morning' && isCurMorning) || (period === 'afternoon' && !isCurMorning)) {
+      if (dragM.date !== dateStr) {
+        return dt.start; // 跨天同半天拖动：默认保留原具体时间
+      }
+    }
+  }
+  const { freeSlots } = calculateDayFreeSlots(meetings, dateStr);
+  if (period === 'morning') {
+    const mSlots = freeSlots.filter(s => s.end <= 720 && s.duration >= 30);
+    return mSlots.length > 0 ? mSlots[0].startStr : '09:00';
+  } else {
+    const aSlots = freeSlots.filter(s => s.start >= 840 && s.duration >= 30);
+    return aSlots.length > 0 ? aSlots[0].startStr : '14:00';
+  }
+}
+
+function onWeeklyPeriodDragOver(event, dateStr, period) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+  if (event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.add('drag-over-period');
+  }
+  const targetStart = resolvePeriodDropStartTime(dateStr, period);
+  const dur = getDraggingItemDuration();
+  const targetEnd = calculateEndTime(targetStart, dur);
+  showDragLiveBadge(event.clientX, event.clientY, `📅 松手改至 ${dateStr.slice(5)} (${period === 'morning' ? '上午' : '下午'}) ${targetStart}-${targetEnd}`);
+}
+
+function onWeeklyPeriodDragLeave(event) {
+  if (event && event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.remove('drag-over-period');
+  }
+}
+
+function onWeeklyPeriodDrop(event, dateStr, period) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const targetStart = resolvePeriodDropStartTime(dateStr, period);
+  applyDragDropSchedule(dateStr, targetStart);
+}
+
+function onWeeklyColDragOver(event, dateStr) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  event.preventDefault();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+  if (event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.add('drag-over-col');
+  }
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const dragM = window._draggingMeetingId ? meetings.find(x => x.id == window._draggingMeetingId) : null;
+  const keepStart = dragM ? getMeetingDisplayTime(dragM).start : '09:00';
+  const dur = getDraggingItemDuration();
+  const keepEnd = calculateEndTime(keepStart, dur);
+  showDragLiveBadge(event.clientX, event.clientY, `📅 松手移至 ${dateStr.slice(5)} ${keepStart}-${keepEnd}`);
+}
+
+function onWeeklyColDragLeave(event) {
+  if (event && event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.remove('drag-over-col');
+  }
+}
+
+function onWeeklyColDrop(event, dateStr) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const dragM = window._draggingMeetingId ? meetings.find(x => x.id == window._draggingMeetingId) : null;
+  const keepStart = dragM ? getMeetingDisplayTime(dragM).start : '09:00';
+  applyDragDropSchedule(dateStr, keepStart);
+}
+
+function onMonthCellDragOver(event, dateStr) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  event.preventDefault();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+  if (event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.add('drag-over-cell');
+  }
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const dragM = window._draggingMeetingId ? meetings.find(x => x.id == window._draggingMeetingId) : null;
+  const keepStart = dragM ? getMeetingDisplayTime(dragM).start : '09:00';
+  showDragLiveBadge(event.clientX, event.clientY, `📅 松手改期至 ${dateStr} ${keepStart}`);
+}
+
+function onMonthCellDragLeave(event) {
+  if (event && event.currentTarget && event.currentTarget.classList) {
+    event.currentTarget.classList.remove('drag-over-cell');
+  }
+}
+
+function onMonthCellDrop(event, dateStr) {
+  if (!window._draggingMeetingId && !window._draggingRequestId) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const dragM = window._draggingMeetingId ? meetings.find(x => x.id == window._draggingMeetingId) : null;
+  const keepStart = dragM ? getMeetingDisplayTime(dragM).start : '09:00';
+  applyDragDropSchedule(dateStr, keepStart);
+}
+
+function applyDragDropSchedule(targetDate, targetDisplayStart) {
+  const mId = window._draggingMeetingId;
+  const rId = window._draggingRequestId;
+  clearAllCalendarDragHighlights();
+  window._draggingMeetingId = null;
+  window._draggingRequestId = null;
+  window._justDraggedMeetingAt = Date.now();
+
+  if (mId) {
+    rescheduleMeetingDateTime(mId, targetDate, targetDisplayStart);
+  } else if (rId) {
+    schedulePendingRequestByDrop(rId, targetDate, targetDisplayStart);
+  }
+}
+
+function computeMeetingStorageTimesForDisplay(targetDate, displayStart, durMins) {
+  const normStart = normalizeTimeStr(displayStart) || '09:00';
+  const dur = parseInt(durMins || 60, 10);
+  const normEnd = calculateEndTime(normStart, dur);
+
+  const trip = getTripForDate(targetDate);
+  const activeTz = getActiveTripTimezone();
+  let cairoStart = normStart;
+  let cairoEnd = normEnd;
+  let tzBase = 'cairo';
+
+  if (trip && trip.diffHours !== 0) {
+    cairoStart = shiftTimeStrByHours(normStart, -trip.diffHours);
+    cairoEnd = shiftTimeStrByHours(normEnd, -trip.diffHours);
+    tzBase = trip.destination || 'cairo';
+  } else if (activeTz && activeTz !== 'cairo') {
+    const diffHours = getTripTimezoneDiffHours(activeTz);
+    if (diffHours !== 0) {
+      cairoStart = shiftTimeStrByHours(normStart, -diffHours);
+      cairoEnd = shiftTimeStrByHours(normEnd, -diffHours);
+      tzBase = activeTz;
+    }
+  }
+
+  return {
+    date: targetDate,
+    time: cairoStart,
+    startTime: cairoStart,
+    endTime: cairoEnd,
+    tzBase,
+    inputStartTime: normStart,
+    inputEndTime: normEnd,
+    localStartTime: normStart,
+    localEndTime: normEnd,
+    duration: dur,
+    durationHours: (dur / 60).toFixed(2)
+  };
+}
+
+function rescheduleMeetingDateTime(meetingId, targetDate, newDisplayStartTime, newDurationMins) {
+  let meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const target = meetings.find(m => m.id == meetingId);
+  if (!target) return false;
+
+  const oldDt = getMeetingDisplayTime(target);
+  const dur = newDurationMins ? parseInt(newDurationMins, 10) : parseInt(target.duration || 60, 10);
+  const finalDate = targetDate || target.date;
+  const finalStart = normalizeTimeStr(newDisplayStartTime || oldDt.start) || oldDt.start;
+
+  if (finalDate === target.date && finalStart === oldDt.start && dur === parseInt(target.duration || 60, 10)) {
+    return false;
+  }
+
+  // 保存撤销快照
+  window._lastMeetingRescheduleUndo = {
+    type: 'single',
+    snapshot: JSON.parse(JSON.stringify(target))
+  };
+
+  const updatedFields = computeMeetingStorageTimesForDisplay(finalDate, finalStart, dur);
+  meetings = meetings.map(m => m.id == meetingId ? { ...m, ...updatedFields } : m);
+  setData(STORAGE_KEYS.MEETINGS, meetings);
+  renderMeetings();
+
+  const newEnd = calculateEndTime(finalStart, dur);
+  showRescheduleToastWithUndo(`📅 已调整「${target.subject}」至 ${finalDate.slice(5)} ${finalStart}-${newEnd}`);
+  return true;
+}
+
+function swapTwoMeetingsTimeOnSameDay(dragId, targetId) {
+  let meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const mA = meetings.find(m => m.id == dragId);
+  const mB = meetings.find(m => m.id == targetId);
+  if (!mA || !mB) return;
+
+  window._lastMeetingRescheduleUndo = {
+    type: 'pair',
+    snapshots: [JSON.parse(JSON.stringify(mA)), JSON.parse(JSON.stringify(mB))]
+  };
+
+  const dtA = getMeetingDisplayTime(mA);
+  const dtB = getMeetingDisplayTime(mB);
+  const durA = parseInt(mA.duration || 60, 10);
+  const durB = parseInt(mB.duration || 60, 10);
+
+  const minA = timeStrToMinutes(dtA.start);
+  const minB = timeStrToMinutes(dtB.start);
+
+  let newStartA, newStartB;
+  if (minA > minB) {
+    // 把后面的 A 拖到前面的 B 上方：A 接管 B 的起点，B 紧接在 A 后面（若原本不相邻则互换起点）
+    newStartA = dtB.start;
+    const endA = calculateEndTime(newStartA, durA);
+    newStartB = (Math.abs(minA - timeStrToMinutes(dtB.end)) <= 15) ? endA : dtA.start;
+  } else {
+    newStartB = dtA.start;
+    const endB = calculateEndTime(newStartB, durB);
+    newStartA = (Math.abs(minB - timeStrToMinutes(dtA.end)) <= 15) ? endB : dtB.start;
+  }
+
+  const fieldsA = computeMeetingStorageTimesForDisplay(mA.date, newStartA, durA);
+  const fieldsB = computeMeetingStorageTimesForDisplay(mB.date, newStartB, durB);
+
+  meetings = meetings.map(m => {
+    if (m.id == dragId) return { ...m, ...fieldsA };
+    if (m.id == targetId) return { ...m, ...fieldsB };
+    return m;
+  });
+  setData(STORAGE_KEYS.MEETINGS, meetings);
+  renderMeetings();
+  showRescheduleToastWithUndo(`⇅ 已调换顺序：「${mA.subject}」(${newStartA}) ⇄ 「${mB.subject}」(${newStartB})`);
+}
+
+function schedulePendingRequestByDrop(requestId, targetDate, targetStart) {
+  let reqs = getData(STORAGE_KEYS.MEETING_REQUESTS, []);
+  const req = reqs.find(r => r.id == requestId);
+  if (!req) return;
+
+  const dur = parseInt(String(req.duration || '45').replace(/[^0-9]/g, ''), 10) || 45;
+  const timeFields = computeMeetingStorageTimesForDisplay(targetDate, targetStart || '09:00', dur);
+  const newMeeting = {
+    id: Date.now(),
+    ...timeFields,
+    subject: req.topic || '待排期会议',
+    reporter: req.requester || '',
+    location: '',
+    minuter: '',
+    attendees: '',
+    background: '',
+    decision: '',
+    requester: req.requester || '待排期池拖拽',
+    status: 'scheduled',
+    priority: 'medium',
+    notes: '',
+    requestId: req.id,
+    noticeSent: true
+  };
+
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  meetings.unshift(newMeeting);
+  setData(STORAGE_KEYS.MEETINGS, meetings);
+
+  reqs = reqs.map(r => r.id == requestId ? { ...r, status: 'scheduled' } : r);
+  setData(STORAGE_KEYS.MEETING_REQUESTS, reqs);
+  renderMeetings();
+  showToast(`✅ 已将「${newMeeting.subject}」排入 ${targetDate.slice(5)} ${targetStart}`);
+}
+
+function showRescheduleToastWithUndo(msg) {
+  const t = document.getElementById('appToast');
+  const m = document.getElementById('toastMessage');
+  if (t && m) {
+    m.innerHTML = `${escapeHtml(msg)} <button type="button" class="toast-undo-btn" onclick="undoLastMeetingReschedule(event)">↩️ 撤销</button>`;
+    t.style.display = 'flex';
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => {
+      t.style.display = 'none';
+    }, 5000);
+  } else {
+    showToast(msg);
+  }
+}
+
+function undoLastMeetingReschedule(event) {
+  if (event) event.stopPropagation();
+  const undo = window._lastMeetingRescheduleUndo;
+  if (!undo) return;
+  let meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  if (undo.type === 'single' && undo.snapshot) {
+    meetings = meetings.map(m => m.id == undo.snapshot.id ? undo.snapshot : m);
+  } else if (undo.type === 'pair' && Array.isArray(undo.snapshots)) {
+    const map = {};
+    undo.snapshots.forEach(s => { map[s.id] = s; });
+    meetings = meetings.map(m => map[m.id] ? map[m.id] : m);
+  }
+  window._lastMeetingRescheduleUndo = null;
+  setData(STORAGE_KEYS.MEETINGS, meetings);
+  renderMeetings();
+  showToast('↩️ 已恢复至调整前的日期与时间');
+}
+
+// ----------------- 点击卡片时间：快速改期/改时间迷你浮窗 -----------------
+function closeQuickTimePopover() {
+  if (typeof document === 'undefined') return;
+  const el = document.getElementById('quickTimePopoverEl');
+  if (el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+function openQuickTimePopover(event, meetingId) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  closeQuickTimePopover();
+
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const m = meetings.find(x => x.id == meetingId);
+  if (!m || typeof document === 'undefined' || !document.body) return;
+
+  const dt = getMeetingDisplayTime(m);
+  const curDur = parseInt(m.duration || 60, 10);
+  const quickStarts = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+  const quickDurs = [30, 45, 60, 90, 120];
+
+  const pop = document.createElement('div');
+  pop.id = 'quickTimePopoverEl';
+  pop.className = 'quick-time-popover';
+  pop.onclick = function(e) { e.stopPropagation(); };
+
+  pop.innerHTML = `
+    <div class="qtp-header">
+      <div class="qtp-title" title="${escapeHtml(m.subject)}">⏱️ ${escapeHtml(m.subject)}</div>
+      <button type="button" class="qtp-close" onclick="closeQuickTimePopover()">✕</button>
+    </div>
+
+    <div class="qtp-section-label">
+      <span>⚡ 一键顺延 / 提前</span>
+      <span style="color:#2563eb; font-family:var(--font-mono);">${dt.start} - ${dt.end}</span>
+    </div>
+    <div class="qtp-btn-row">
+      <button type="button" class="qtp-chip" onclick="nudgeMeetingTime(${m.id}, -60)">-1小时</button>
+      <button type="button" class="qtp-chip" onclick="nudgeMeetingTime(${m.id}, -30)">-30分</button>
+      <button type="button" class="qtp-chip" onclick="nudgeMeetingTime(${m.id}, 30)">+30分</button>
+      <button type="button" class="qtp-chip" onclick="nudgeMeetingTime(${m.id}, 60)">+1小时</button>
+    </div>
+
+    <div class="qtp-section-label">
+      <span>🕒 点选开始时间</span>
+    </div>
+    <div class="qtp-grid-times">
+      ${quickStarts.map(st => `<button type="button" class="qtp-chip ${st === dt.start ? 'active' : ''}" onclick="quickSelectMeetingStart(${m.id}, '${st}')">${st}</button>`).join('')}
+    </div>
+
+    <div class="qtp-section-label">
+      <span>⏳ 会议时长</span>
+    </div>
+    <div class="qtp-grid-durs">
+      ${quickDurs.map(d => `<button type="button" class="qtp-chip ${d === curDur ? 'active' : ''}" onclick="quickSelectMeetingDuration(${m.id}, ${d})">${d}m</button>`).join('')}
+    </div>
+
+    <div class="qtp-section-label">
+      <span>📅 改日期 / 自定义时段</span>
+    </div>
+    <div style="display:flex; gap:4px; align-items:center; margin-bottom:6px;">
+      <button type="button" class="qtp-chip" style="padding:4px 6px;" onclick="nudgeMeetingDate(${m.id}, -1)" title="前一天">◀ 前一天</button>
+      <input type="date" id="qtpDateInput" value="${m.date}" style="flex:1; height:26px; padding:0 6px; font-size:11.5px; border:1px solid #cbd5e1; border-radius:6px;" onchange="applyCustomQuickDateTime(${m.id})" />
+      <button type="button" class="qtp-chip" style="padding:4px 6px;" onclick="nudgeMeetingDate(${m.id}, 1)" title="后一天">后一天 ▶</button>
+    </div>
+    <div style="display:flex; gap:4px; align-items:center;">
+      <input type="text" id="qtpStartInput" value="${dt.start}" placeholder="09:30" style="width:68px; height:26px; padding:0 6px; font-size:11.5px; text-align:center; border:1px solid #cbd5e1; border-radius:6px; font-family:var(--font-mono);" />
+      <span style="color:#64748b;">-</span>
+      <input type="text" id="qtpEndInput" value="${dt.end}" placeholder="10:30" style="width:68px; height:26px; padding:0 6px; font-size:11.5px; text-align:center; border:1px solid #cbd5e1; border-radius:6px; font-family:var(--font-mono);" />
+      <button type="button" class="btn btn-sm btn-primary" style="flex:1; height:26px; padding:0 8px; font-size:11.5px;" onclick="applyCustomQuickDateTime(${m.id})">确定</button>
+    </div>
+  `;
+
+  document.body.appendChild(pop);
+
+  // 定位浮窗在点击位置附近并防止超出屏幕
+  const clickX = (event && event.clientX) ? event.clientX : Math.floor((window.innerWidth || 800) / 2);
+  const clickY = (event && event.clientY) ? event.clientY : Math.floor((window.innerHeight || 600) / 3);
+  const popWidth = 286;
+  const popHeight = 320;
+  const left = Math.max(10, Math.min(clickX - 20, (window.innerWidth || 1000) - popWidth - 14));
+  const top = (clickY + popHeight + 20 > (window.innerHeight || 800))
+    ? Math.max(10, clickY - popHeight - 8)
+    : (clickY + 10);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+}
+
+function nudgeMeetingTime(meetingId, deltaMins) {
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const m = meetings.find(x => x.id == meetingId);
+  if (!m) return;
+  const dt = getMeetingDisplayTime(m);
+  const curMin = timeStrToMinutes(dt.start || '09:00');
+  const nextMin = Math.max(6 * 60, Math.min(22 * 60, curMin + deltaMins));
+  const nextStart = minutesToTimeStr(nextMin);
+  closeQuickTimePopover();
+  rescheduleMeetingDateTime(meetingId, m.date, nextStart, m.duration);
+}
+
+function nudgeMeetingDate(meetingId, deltaDays) {
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const m = meetings.find(x => x.id == meetingId);
+  if (!m || !m.date) return;
+  const parts = m.date.split('-').map(Number);
+  const d = new Date(parts[0], parts[1] - 1, parts[2]);
+  d.setDate(d.getDate() + deltaDays);
+  const nextDateStr = formatDateToStr(d);
+  const dt = getMeetingDisplayTime(m);
+  closeQuickTimePopover();
+  rescheduleMeetingDateTime(meetingId, nextDateStr, dt.start, m.duration);
+}
+
+function quickSelectMeetingStart(meetingId, startStr) {
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const m = meetings.find(x => x.id == meetingId);
+  if (!m) return;
+  closeQuickTimePopover();
+  rescheduleMeetingDateTime(meetingId, m.date, startStr, m.duration);
+}
+
+function quickSelectMeetingDuration(meetingId, durationMins) {
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const m = meetings.find(x => x.id == meetingId);
+  if (!m) return;
+  const dt = getMeetingDisplayTime(m);
+  closeQuickTimePopover();
+  rescheduleMeetingDateTime(meetingId, m.date, dt.start, durationMins);
+}
+
+function applyCustomQuickDateTime(meetingId) {
+  const meetings = getData(STORAGE_KEYS.MEETINGS, []);
+  const m = meetings.find(x => x.id == meetingId);
+  if (!m) return;
+  const dEl = document.getElementById('qtpDateInput');
+  const sEl = document.getElementById('qtpStartInput');
+  const eEl = document.getElementById('qtpEndInput');
+  const newDate = (dEl && dEl.value) ? dEl.value : m.date;
+  const newStart = normalizeTimeStr(sEl ? sEl.value : '') || getMeetingDisplayTime(m).start;
+  const newEnd = normalizeTimeStr(eEl ? eEl.value : '');
+  let dur = parseInt(m.duration || 60, 10);
+  if (newStart && newEnd) {
+    const calc = calculateDurationFromRange(newStart, newEnd);
+    if (calc >= 10) dur = calc;
+  }
+  closeQuickTimePopover();
+  rescheduleMeetingDateTime(meetingId, newDate, newStart, dur);
+}
+
+if (typeof document !== 'undefined' && document.addEventListener) {
+  document.addEventListener('click', function() {
+    closeQuickTimePopover();
+  });
 }
 
 // ----------------- 会议主渲染引擎 (Main Meetings Renderer) -----------------
@@ -17918,6 +18804,8 @@ function deleteCurrentEditRequest() {
 }
 
 function editMeeting(id) {
+  if (window._justDraggedMeetingAt && Date.now() - window._justDraggedMeetingAt < 350) return;
+  if (typeof closeQuickTimePopover === 'function') closeQuickTimePopover();
   closeAllTimePickers();
   const smartInput = document.getElementById('smartMeetingInputText');
   if (smartInput) smartInput.value = '';
@@ -21791,7 +22679,7 @@ function renderMobileTodayTimeline() {
         <div class="m-card-meeting ${isShifted ? 'is-shifted' : ''} ${isPending ? 'is-pending' : ''}">
           <div class="m-meeting-top">
             <div style="display:flex; align-items:center; gap:6px;">
-              <span class="m-meeting-time">🕒 ${dt.start} - ${dt.end}</span>
+              <span class="m-meeting-time" onclick="openQuickTimePopover(event, ${m.id})" style="cursor:pointer;" title="点击快速调整日期与时间">🕒 ${dt.start} - ${dt.end}</span>
               <span style="font-size:11px; color:#64748b;">(${dur}m)</span>
             </div>
             <div>
@@ -21822,6 +22710,7 @@ function renderMobileTodayTimeline() {
           ` : ''}
 
           <div class="m-card-actions">
+            <button class="m-btn-mini" onclick="openQuickTimePopover(event, ${m.id})">⏱️ 调时/改期</button>
             <button class="m-btn-mini" onclick="copySingleMeetingNotice(${m.id})">📋 复制通知</button>
             ${!isCompleted ? `<button class="m-btn-mini complete" onclick="updateMeetingStatus(${m.id}, 'completed'); renderMobileApp();">✅ 标记完成</button>` : ''}
             <button class="m-btn-mini" onclick="editMeeting(${m.id})">✏️ 编辑</button>
@@ -22037,7 +22926,7 @@ initHostDatabaseSync();
 initMobileAppMode();
 window.addEventListener('resize', () => { initMobileAppMode(); });
 
-window.APP_VERSION = 'v1.7.7';
+window.APP_VERSION = 'v1.7.8';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
