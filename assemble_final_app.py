@@ -16,6 +16,8 @@ if not app_version.startswith('v') and not app_version.startswith('V'):
     app_version = f"v{app_version}"
 
 print(f"Step 1: Reading base64 assets, English curriculum data, and Version: {app_version}...")
+import base64 as _b64
+
 with open('assets_b64.json', 'r', encoding='utf-8') as f:
     assets = json.load(f)
 
@@ -25,20 +27,35 @@ with open('english_data.json', 'r', encoding='utf-8') as f:
 with open('english_dictionary.json', 'r', encoding='utf-8') as f:
     english_dict_json = f.read().strip()
 
-# Authentic Charles M. Schulz Personas
-img_ordinary_doghouse = assets['ordinary_doghouse']
-img_border_snoopy = assets['border_snoopy']
-img_woodstock = assets['woodstock']
-img_supervisor_secretary = assets['supervisor_secretary']
-img_beagle_scout = assets['beagle_scout']
-img_flying_ace = assets['flying_ace']
-img_joe_cool = assets['joe_cool_lean']
-img_author = assets['author_typewriter']
-img_daily_english = assets['daily_english']
-img_canonical = assets['canonical']
-img_dance = assets['dance']
+# Extract Base64 personas to static PNG files so index.html & login.html shrink by ~80% and leverage browser cache
+personas_dir = os.path.join(BASE_DIR, 'assets', 'personas')
+dist_personas_dir = os.path.join(BASE_DIR, 'dist', 'assets', 'personas')
+os.makedirs(personas_dir, exist_ok=True)
+os.makedirs(dist_personas_dir, exist_ok=True)
 
-print("Loaded all primary personas and base64 assets successfully.")
+for asset_key, data_uri in assets.items():
+    if isinstance(data_uri, str) and ',' in data_uri:
+        raw_b64 = data_uri.split(',', 1)[1]
+        png_bytes_data = _b64.b64decode(raw_b64)
+        for target_folder in (personas_dir, dist_personas_dir):
+            out_png = os.path.join(target_folder, f"{asset_key}.png")
+            with open(out_png, 'wb') as pf:
+                pf.write(png_bytes_data)
+
+# Authentic Charles M. Schulz Personas (Static Cached URLs)
+img_ordinary_doghouse = '/assets/personas/ordinary_doghouse.png'
+img_border_snoopy = '/assets/personas/border_snoopy.png'
+img_woodstock = '/assets/personas/woodstock.png'
+img_supervisor_secretary = '/assets/personas/supervisor_secretary.png'
+img_beagle_scout = '/assets/personas/beagle_scout.png'
+img_flying_ace = '/assets/personas/flying_ace.png'
+img_joe_cool = '/assets/personas/joe_cool_lean.png'
+img_author = '/assets/personas/author_typewriter.png'
+img_daily_english = '/assets/personas/daily_english.png'
+img_canonical = '/assets/personas/canonical.png'
+img_dance = '/assets/personas/dance.png'
+
+print("Extracted all primary personas to /assets/personas/*.png successfully.")
 
 html_template = """<!DOCTYPE html>
 <html lang="zh-CN">
@@ -7004,6 +7021,10 @@ body.is-desktop-forced .floating-back-to-mobile {
         <div class="form-group">
           <label>粘贴会议文本（自动识别多日期、时间与会议主题并按时间规整）：</label>
           <textarea id="inputImportTableText" style="min-height: 150px; font-family: inherit; font-size: 12.5px; line-height:1.5; padding:8px 10px;" placeholder="支持直接粘贴任意大段或多日期会议文本，系统将自动识别各场会议日期、时间与主题并按先后顺序规整，例如：&#10;11月18日 09:30-10:30 塞内加尔光伏电站交付推进会&#10;11月18日 下午2点到3点 刚果金工程周例会&#10;11月19日 10:00-11:00 摩洛哥业务对齐会" oninput="runCalendarLivePreview()"></textarea>
+          <label id="importOverwriteDayWrap" style="display:flex; align-items:center; gap:8px; padding:8px 12px; margin-top:8px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; cursor:pointer; user-select:none; font-size:12.5px; color:#1e3a8a; font-weight:600;">
+            <input type="checkbox" id="chkOverwriteImportDates" onchange="runCalendarLivePreview()" style="width:16px; height:16px; accent-color:#2563eb; cursor:pointer; margin:0;" />
+            <span>🧹 按日覆盖模式：清空本次所涉日期的原排期，完全以本次导入为准（自动清理当天已取消或改名的旧会）</span>
+          </label>
         </div>
 
         <!-- Recognition Status & Dual Normalization Live Preview -->
@@ -12734,11 +12755,13 @@ function undoLastMeetingReschedule(event) {
     const map = {};
     undo.snapshots.forEach(s => { map[s.id] = s; });
     meetings = meetings.map(m => map[m.id] ? map[m.id] : m);
+  } else if (undo.type === 'full_list' && Array.isArray(undo.list)) {
+    meetings = undo.list;
   }
   window._lastMeetingRescheduleUndo = null;
   setData(STORAGE_KEYS.MEETINGS, meetings);
   renderMeetings();
-  showToast('↩️ 已恢复至调整前的日期与时间');
+  showToast('↩️ 已恢复至操作前的日历状态');
 }
 
 // ----------------- 点击卡片时间：快速改期/改时间迷你浮窗 -----------------
@@ -15094,6 +15117,8 @@ function openImportCalendarModal() {
   const targetDateEl = document.getElementById('importTargetDate');
   if (targetDateEl) targetDateEl.value = selectedTimelineDate || todayStr;
   document.getElementById('inputImportTableText').value = '';
+  const chkOv = document.getElementById('chkOverwriteImportDates');
+  if (chkOv) chkOv.checked = false;
   document.getElementById('importLivePreviewArea').style.display = 'none';
   document.getElementById('btnConfirmImport').disabled = true;
   parsedImportMeetings = [];
@@ -16082,9 +16107,15 @@ function runCalendarLivePreview() {
     const existing = getData(STORAGE_KEYS.MEETINGS, []);
     const existingKeys = new Set(existing.map(m => normalizeMeetingSubjectKey(m.subject)).filter(Boolean));
     const replaceCount = parsedImportMeetings.filter(m => existingKeys.has(normalizeMeetingSubjectKey(m.subject))).length;
+    const isOverwriteDay = Boolean(document.getElementById('chkOverwriteImportDates') && document.getElementById('chkOverwriteImportDates').checked);
 
     const datesSet = new Set(parsedImportMeetings.map(m => m.date));
-    statusText.textContent = `🟢 智能识别成功：已规整 ${parsedImportMeetings.length} 场会议，涉及 ${datesSet.size} 个排期日期${replaceCount > 0 ? `（其中 ${replaceCount} 场将自动替换同名旧安排）` : ''}`;
+    const dayOldCount = existing.filter(m => datesSet.has(m.date)).length;
+    if (isOverwriteDay) {
+      statusText.textContent = `🟢 智能识别成功：已规整 ${parsedImportMeetings.length} 场会议，涉及 ${datesSet.size} 个日期（🧹 按日覆盖：将清空所涉日期原有的 ${dayOldCount} 场旧排期）`;
+    } else {
+      statusText.textContent = `🟢 智能识别成功：已规整 ${parsedImportMeetings.length} 场会议，涉及 ${datesSet.size} 个排期日期${replaceCount > 0 ? `（其中 ${replaceCount} 场将自动替换同名旧安排）` : ''}`;
+    }
 
     const grouped = {};
     parsedImportMeetings.forEach(m => {
@@ -16215,10 +16246,21 @@ function confirmImportCalendar() {
     };
   });
 
-  // 如果新导入的会议与已有会议同名，自动删除旧的安排，保留新导入的安排
+  // 保存导入前快照，支持一键撤销
+  window._lastMeetingRescheduleUndo = {
+    type: 'full_list',
+    list: JSON.parse(JSON.stringify(existing))
+  };
+
+  const isOverwriteDay = Boolean(document.getElementById('chkOverwriteImportDates') && document.getElementById('chkOverwriteImportDates').checked);
+  const importedDates = new Set(newMeetings.map(m => m.date).filter(Boolean));
   const importedSubjectKeys = new Set(newMeetings.map(m => normalizeMeetingSubjectKey(m.subject)).filter(Boolean));
   let removedOldCount = 0;
   const remainingExisting = existing.filter(oldM => {
+    if (isOverwriteDay && oldM.date && importedDates.has(oldM.date)) {
+      removedOldCount++;
+      return false;
+    }
     const key = normalizeMeetingSubjectKey(oldM.subject);
     if (key && importedSubjectKeys.has(key)) {
       removedOldCount++;
@@ -16256,10 +16298,12 @@ function confirmImportCalendar() {
 
   closeModal('importCalendarModal');
   renderMeetings();
-  if (removedOldCount > 0) {
-    showToast(`🎉 成功导入 ${newMeetings.length} 场会议（已自动删除 ${removedOldCount} 场同名旧安排）！`);
+  if (isOverwriteDay) {
+    showRescheduleToastWithUndo(`🧹 已按日覆盖导入 ${newMeetings.length} 场会议（已清空所涉日期 ${removedOldCount} 场旧排期）`);
+  } else if (removedOldCount > 0) {
+    showRescheduleToastWithUndo(`🎉 成功导入 ${newMeetings.length} 场会议（已自动删除 ${removedOldCount} 场同名旧安排）`);
   } else {
-    showToast(`🎉 成功识别并导入 ${newMeetings.length} 场会议至日历！`);
+    showRescheduleToastWithUndo(`🎉 成功识别并导入 ${newMeetings.length} 场会议至日历`);
   }
 }
 

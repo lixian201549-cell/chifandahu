@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import base64
+import gzip
 import hashlib
 import hmac
 import io
@@ -435,10 +436,38 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
             "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
             "connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
         )
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
+        req_path = urlparse(getattr(self, "path", "")).path
+        if req_path.startswith("/assets/") or req_path in ("/favicon.ico", "/favicon.png"):
+            self.send_header("Cache-Control", "public, max-age=604800, immutable")
+        else:
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
         super().end_headers()
+
+    def _serve_html_file(self, rel_filename):
+        full_path = os.path.join(DIST_DIR, rel_filename)
+        if not os.path.isfile(full_path):
+            self.send_error(404)
+            return
+        with open(full_path, "rb") as f:
+            raw_bytes = f.read()
+        accept_enc = self.headers.get("Accept-Encoding", "")
+        if "gzip" in accept_enc:
+            body = gzip.compress(raw_bytes, compresslevel=6)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Encoding", "gzip")
+            self.send_header("Vary", "Accept-Encoding")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        else:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(raw_bytes)))
+            self.end_headers()
+            self.wfile.write(raw_bytes)
 
     def _json_response(self, status, payload, extra_headers=None):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -532,11 +561,10 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
             if not AUTH_ENABLED or self._is_authenticated():
                 self._redirect("/")
                 return
-            self.path = "/login.html"
-            super().do_GET()
+            self._serve_html_file("login.html")
             return
 
-        if path in ("/favicon.ico", "/favicon.png", "/manifest.json"):
+        if path in ("/favicon.ico", "/favicon.png", "/manifest.json") or path.startswith("/assets/"):
             self.path = path
             super().do_GET()
             return
@@ -574,8 +602,9 @@ class PlatformHTTPHandler(SimpleHTTPRequestHandler):
         if not self._is_authenticated():
             self._redirect("/login")
             return
-        if path == "/":
-            self.path = "/index.html"
+        if path in ("/", "/index.html"):
+            self._serve_html_file("index.html")
+            return
         super().do_GET()
 
     def do_POST(self):
