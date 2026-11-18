@@ -6906,7 +6906,7 @@ body.is-desktop-forced .floating-back-to-mobile {
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.8.0</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.8.1</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -16979,19 +16979,19 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
     const mdMatch = str.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]?/);
     if (mdMatch) return `${todayRef.getFullYear()}-${pad(mdMatch[1])}-${pad(mdMatch[2])}`;
 
-    const slashMd = str.match(/(?:^|[^\d:])(\d{1,2})\s*[/-]\s*(\d{1,2})(?![\d:]|\s*(?:小时|h|H|分钟|min|m|点|时|分))/);
+    const slashMd = str.match(/(?:^|[\s，,。；;（(【\[])(\d{1,2})\s*[/-]\s*(\d{1,2})(?=$|[\s，,。；;：:）)\]】周星])/);
     if (slashMd) {
       const m = parseInt(slashMd[1], 10), d = parseInt(slashMd[2], 10);
       if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return `${todayRef.getFullYear()}-${pad(m)}-${pad(d)}`;
     }
 
-    const dotMd = str.match(/(?:^|[^\d:])(\d{1,2})\.(\d{1,2})(?![\d:]|\s*(?:小时|h|H|分钟|min|m|点|时|分))/);
+    const dotMd = str.match(/(?:^|[\s，,。；;（(【\[])(\d{1,2})\.(\d{1,2})(?=$|[\s，,。；;：:）)\]】周星])/);
     if (dotMd) {
       const m = parseInt(dotMd[1], 10), d = parseInt(dotMd[2], 10);
       if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return `${todayRef.getFullYear()}-${pad(m)}-${pad(d)}`;
     }
 
-    const dayOnly = str.match(/(?:^|[^\d月年/.\-])(\d{1,2})\s*[日号](?![楼层室])/);
+    const dayOnly = str.match(/(?:^|[\s，,。；;（(【\[])(\d{1,2})\s*[日号](?![楼层室号机栋线期标段文院门井站])/);
     if (dayOnly) {
       const d = parseInt(dayOnly[1], 10);
       if (d >= 1 && d <= 31) return `${todayRef.getFullYear()}-${pad(todayRef.getMonth() + 1)}-${pad(d)}`;
@@ -17088,9 +17088,11 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
         return { start: s, end: '' };
       }
     }
-    if (/下午/.test(norm)) return { start: '14:30', end: '15:15' };
-    if (/晚上/.test(norm)) return { start: '19:30', end: '20:15' };
-    if (/上午|早上/.test(norm)) return { start: '09:30', end: '10:15' };
+    if (/^(?:下午|晚上|上午|早上)\s+/.test(norm) || /[，,\s](?:下午|晚上|上午|早上)\s*[\d点时]/.test(norm)) {
+      if (/下午/.test(norm)) return { start: '14:30', end: '15:15' };
+      if (/晚上/.test(norm)) return { start: '19:30', end: '20:15' };
+      if (/上午|早上/.test(norm)) return { start: '09:30', end: '10:15' };
+    }
     return { start: '', end: '' };
   }
 
@@ -17098,25 +17100,26 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
     if (!str) return '';
     return str
       .replace(/(\d{1,2})：(\d{2})/g, '$1:$2')
-      .replace(/【(?:会议通知|通知|会议日程|日程安排|重要|紧急)】/g, ' ')
-      .replace(/^(?:[（(]?[一二三四五六七八九十]+[）)]?[、.\s]*|\d+[、)）]\s*|\d+\.\s+)/, ' ')
-      .replace(/(?:会议主题|主题|会议议题|议题|会议名称|名称|题目|会议时间|开会时间|时间|日期)\s*[:：]\s*/g, ' ')
+      .replace(/【(?:会议通知|通知|会议日程|日程安排)】/g, ' ')
+      .replace(/^\s*(?:\d+[、.)）]\s+|\d+\.\s+)/, ' ')
+      .replace(/(?:会议主题|主题|会议议题|议题(?!背景)|会议名称|题目|会议时间|开会时间|时间|日期)\s*[:：]\s*/g, ' ')
       .replace(/(\d{4}\s*[-/.年]\s*\d{1,2}\s*[-/.月]\s*\d{1,2}\s*[日号]?)/g, ' ')
       .replace(/(\d{1,2}\s*月\s*\d{1,2}\s*[日号]?)/g, ' ')
-      .replace(/(?:^|[^\d:])\d{1,2}\s*[/-]\s*\d{1,2}(?![\d:]|\s*(?:小时|h|H|分钟|min|m|点|时|分))/g, ' ')
-      .replace(/(?:^|[^\d:])\d{1,2}\.\d{1,2}(?![\d:]|\s*(?:小时|h|H|分钟|min|m|点|时|分))/g, ' ')
-      .replace(/(?:^|[^\d月年/.\-])\d{1,2}\s*[日号](?![楼层室])/g, ' ')
-      .replace(/(?:大后天|后天|明天|次日|明日|今天|今日|本日|同一天|当天)/g, ' ')
+      .replace(/(^|[\s，,。；;（(【\[])\d{1,2}\s*[/-]\s*\d{1,2}(?=$|[\s，,。；;：:）)\]】周星])/g, '$1 ')
+      .replace(/(^|[\s，,。；;（(【\[])\d{1,2}\.\d{1,2}(?=$|[\s，,。；;：:）)\]】周星])/g, '$1 ')
+      .replace(/(^|[\s，,。；;（(【\[])\d{1,2}\s*[日号](?![楼层室号机栋线期标段文院门井站])/g, '$1 ')
+      .replace(/(^|[\s，,。；;（(【\[])(?:大后天|后天|明天|次日|明日|今天|今日|本日|同一天|当天)(?=$|[\s，,。；;：:）)\]】上午下午晚上\d])/g, '$1 ')
       .replace(/(?:（|\()?\s*(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7]\s*(?:）|\))?/g, ' ')
       .replace(/(?:上午|下午|晚上)?\s*\d{1,2}:\d{2}\s*(?:[-~至到与/—]\s*(?:上午|下午|晚上)?\s*\d{1,2}:\d{2})?/g, ' ')
       .replace(/(?:上午|下午|晚上)?\s*\d{1,2}(?:(?:点|时)(?:\d{1,2}分|半)?)?\s*[-~至到与—]\s*(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?/g, ' ')
       .replace(/(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?/g, ' ')
-      .replace(/(?:在\s*[0-9a-zA-Z\u4e00-\u9fa5]{2,16}?(?:会议室|办公室|总部|大厦|中心|WeLink|腾讯会议))/g, ' ')
-      .replace(/(?:地点|汇报人|参会人|参会人员|纪要人|记录人|议题背景|决策要点|核心决策)\s*[:：是]?\s*[^，,。；;\n\t]+/g, ' ')
-      .replace(/[^，,。；;\s\t]{2,8}(?:汇报|参会|做纪要|记录)/g, ' ')
+      .replace(/(?:在\s*[0-9a-zA-Z\u4e00-\u9fa5]{2,14}?(?:会议室|办公室)\s*(?:开|召开|举行)?)/g, ' ')
+      .replace(/(?:地点|汇报人|参会人|参会人员|纪要人|记录人|议题背景|决策要点|核心决策)\s*[:：]\s*[^\n\r]+/g, ' ')
+      .replace(/[，,。；;]\s*[^，,。；;\s\t]{2,6}(?:汇报|参会|做纪要)(?=$|[，,。；;\s])/g, ' ')
       .replace(/(?:（\s*）|\(\s*\)|【\s*】|\[\s*\])/g, ' ')
-      .replace(/^(?:另外|此外|还有|接着|然后|并|及|开|召开|举行|组织|安排|上午|下午|晚上|早上)\s*/g, ' ')
-      .replace(/^[#*•\-\s\t，,。；;:：~—（）()【】\[\]]+|[#*•\-\s\t，,。；;:：~—]+$/g, '')
+      .replace(/^\s*(?:另外|此外|还有|接着|然后|召开|举行)\s+/g, '')
+      .replace(/^[\s\t，,。；;:：~—]+|[\s\t，,。；;:：~—]+$/g, '')
+      .replace(/\s{2,}/g, ' ')
       .trim();
   }
 
@@ -17154,22 +17157,17 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
   }
 
   let subject = '';
-  const subKv = text.match(/(?:会议主题|主题|会议议题|议题(?!背景)|会议名称|题目)\s*[:：]\s*([^\n\r\t，,。；;]+)/);
+  const subKv = text.match(/(?:会议主题|主题|会议议题|议题(?!背景)|会议名称|题目)\s*[:：]\s*([^\n\r]+)/);
   if (subKv) {
     subject = subKv[1].trim();
   } else {
-    const holdM = text.match(/(?:开|召开|举行|组织|开展)\s*([0-9a-zA-Z\u4e00-\u9fa5]{3,28}?(?:推进会|评审会|研讨会|对齐会|协调会|例会|汇报会|总结会|沟通会|周会|月会|会议|评审|审批|对齐|复盘))/);
-    if (holdM) {
-      subject = holdM[1].trim();
-    } else {
-      const cleaned = stripDateTimeAndNoise(text);
-      const cells = cleaned.split(/[\n\r\t|；;]/).map(s => s.trim()).filter(Boolean);
-      const firstCell = cells[0] || '';
-      subject = firstCell.replace(/^(?:开|召开|举行|组织|安排)\s*/, '').replace(/^[，,。：:\s\-~]+|[，,。：:\s\-~]+$/g, '').trim();
-    }
+    const cleaned = stripDateTimeAndNoise(text);
+    const linesClean = cleaned.split(/[\n\r]+/).map(s => s.trim()).filter(Boolean);
+    const firstLine = (linesClean[0] || '').replace(/\t+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+    subject = firstLine.replace(/^(?:在.{2,12}(?:办公室|会议室)\s*(?:召开|举行|开)|(?:召开|举行)\s+)/, '').replace(/^[，,。：:\s~]+|[，,。：:\s~]+$/g, '').trim();
   }
 
-  subject = subject.replace(/^[【\[]?(?:会议通知|通知|日程)[】\]]?\s*/, '').replace(/[:：]/g, '').trim();
+  subject = subject.replace(/^[【\[]?(?:会议通知|通知)[】\]]?\s*/, '').trim();
   if (!subject) return null;
 
   return {
@@ -17269,15 +17267,15 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
     }
   }
 
-  const timeUnitStr = '(?:上午|下午|晚上)?\\s*(?:\\d{1,2}[：:]\\d{2}\\s*[-~至到与/—]\\s*(?:上午|下午|晚上)?\\s*\\d{1,2}[：:]\\d{2}|\\d{1,2}(?:(?:点|时)(?:\\d{1,2}分|半)?)?\\s*[-~至到与—]\\s*(?:上午|下午|晚上)?\\s*\\d{1,2}(?:点|时)(?:\\d{1,2}分|半)?|\\d{1,2}[：:]\\d{2}|(?:上午|下午|晚上)?\\s*\\d{1,2}(?:点|时)(?:\\d{1,2}分|半)?)';
-  const singleDateStr = '(?:\\d{4}\\s*[-/.年]\\s*\\d{1,2}\\s*[-/.月]\\s*\\d{1,2}\\s*[日号]?|\\d{1,2}\\s*月\\s*\\d{1,2}\\s*[日号]?|\\d{1,2}\\.\\d{1,2}(?![\\d:])|(?:^|[^\\d月年/.\\-])\\d{1,2}\\s*[日号](?![楼层室])|(?:大后天|后天|明天|次日|明日|今天|今日|本日)|(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7])';
-  const combinedDateUnitStr = singleDateStr + '(?:\\s*[（(]?\\s*' + singleDateStr + '\\s*[）)]?)?';
+  const timeUnitStr = '(?:上午|下午|晚上)?\s*(?:\d{1,2}[：:]\d{2}\s*[-~至到与/—]\s*(?:上午|下午|晚上)?\s*\d{1,2}[：:]\d{2}|\d{1,2}(?:(?:点|时)(?:\d{1,2}分|半)?)?\s*[-~至到与—]\s*(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?|\d{1,2}[：:]\d{2}|(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?)';
+  const singleDateStr = '(?:\d{4}\s*[-/.年]\s*\d{1,2}\s*[-/.月]\s*\d{1,2}\s*[日号]?|\d{1,2}\s*月\s*\d{1,2}\s*[日号]?|(?:^|[\s，,。；;（(【\[])\d{1,2}\.\d{1,2}(?=$|[\s，,。；;：:）)\]】周星])|(?:^|[\s，,。；;（(【\[])\d{1,2}\s*[日号](?![楼层室号机栋线期标段文院门井站])|(?:大后天|后天|明天|次日|明日|今天|今日|本日)|(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7])';
+  const combinedDateUnitStr = singleDateStr + '(?:\s*[（(]?\s*' + singleDateStr + '\s*[）)]?)?';
 
   function hasSub(s) {
     if (!s || !s.trim()) return false;
     if (extractDateOnly(s, activeDate)) return false;
     const p = parseMeetingFromSingleText(s, activeDate, todayStr);
-    return Boolean(p && p.subject && p.subject.length >= 2);
+    return Boolean(p && p.subject && p.subject.length >= 1);
   }
   function hasTm(s) {
     const p = probeText(s, activeDate);
@@ -17289,7 +17287,13 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
   }
 
   function splitLineSmart(line) {
-    let parts = line.split(/[；;。]+/).map(s => s.trim()).filter(Boolean);
+    // Only split on [；;。] if multiple segments each have their own time or date
+    const rawSemiParts = line.split(/[；;。]+/).map(s => s.trim()).filter(Boolean);
+    let parts = [line.trim()];
+    if (rawSemiParts.length >= 2 && rawSemiParts.every(seg => hasTm(seg) || hasDt(seg))) {
+      parts = rawSemiParts;
+    }
+
     const byDate = [];
     for (const p of parts) {
       const dMatches = [...p.matchAll(new RegExp(combinedDateUnitStr, 'g'))];
@@ -17297,7 +17301,7 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
         let lastIdx = 0;
         for (let k = 1; k < dMatches.length; k++) {
           const idx = dMatches[k].index;
-          const prev = p.slice(lastIdx, idx).replace(/[，,\s]+$/, '').trim();
+          const prev = p.slice(lastIdx, idx).replace(/[，,;；。\s]+$/, '').trim();
           const rest = p.slice(idx).trim();
           if (hasSub(prev) && (hasDt(prev) || hasTm(prev) || hasSub(rest))) {
             byDate.push(prev);
@@ -17318,7 +17322,7 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
         let lastIdx = 0;
         for (let k = 1; k < tMatches.length; k++) {
           const idx = tMatches[k].index;
-          const prev = bd.slice(lastIdx, idx).replace(/[，,\s]+$/, '').trim();
+          const prev = bd.slice(lastIdx, idx).replace(/[，,;；。\s]+$/, '').trim();
           const rest = bd.slice(idx).trim();
           if (hasSub(prev) && hasTm(prev) && hasSub(rest)) {
             finalParts.push(prev);
@@ -17533,21 +17537,13 @@ function switchImportPreviewTab(tab) {
 }
 
 function normalizeMeetingSubjectKey(str) {
-  return String(str || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  // 严格精确匹配：只要有任何细微文字、符号、编号或字母差异，均视为不同会议
+  return String(str || '').trim();
 }
 
 function deduplicateImportedMeetingsKeepLatest(list) {
-  if (!Array.isArray(list) || list.length <= 1) return list || [];
-  // 若单次粘贴文本内本身有同名会议，仅保留最后出现的那条最新排期
-  const lastIndexMap = new Map();
-  list.forEach((m, idx) => {
-    const k = normalizeMeetingSubjectKey(m.subject);
-    if (k) lastIndexMap.set(k, idx);
-  });
-  return list.filter((m, idx) => {
-    const k = normalizeMeetingSubjectKey(m.subject);
-    return !k || lastIndexMap.get(k) === idx;
-  });
+  // 导入的新日历内部所有条目全数保留，不做内部合并；仅在入库时对比并替换旧日历中完全同名的安排
+  return Array.isArray(list) ? list : [];
 }
 
 function runCalendarLivePreview() {
@@ -22987,7 +22983,7 @@ initHostDatabaseSync();
 initMobileAppMode();
 window.addEventListener('resize', () => { initMobileAppMode(); });
 
-window.APP_VERSION = 'v1.8.0';
+window.APP_VERSION = 'v1.8.1';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
