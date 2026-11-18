@@ -16020,6 +16020,24 @@ function switchImportPreviewTab(tab) {
   if (wrapCard) wrapCard.style.display = tab === 'card' ? 'block' : 'none';
 }
 
+function normalizeMeetingSubjectKey(str) {
+  return String(str || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function deduplicateImportedMeetingsKeepLatest(list) {
+  if (!Array.isArray(list) || list.length <= 1) return list || [];
+  // 若单次粘贴文本内本身有同名会议，仅保留最后出现的那条最新排期
+  const lastIndexMap = new Map();
+  list.forEach((m, idx) => {
+    const k = normalizeMeetingSubjectKey(m.subject);
+    if (k) lastIndexMap.set(k, idx);
+  });
+  return list.filter((m, idx) => {
+    const k = normalizeMeetingSubjectKey(m.subject);
+    return !k || lastIndexMap.get(k) === idx;
+  });
+}
+
 function runCalendarLivePreview() {
   const text = document.getElementById('inputImportTableText').value;
   const targetDateEl = document.getElementById('importTargetDate');
@@ -16030,7 +16048,7 @@ function runCalendarLivePreview() {
   const statusText = document.getElementById('importPreviewStatusText');
   const btn = document.getElementById('btnConfirmImport');
 
-  parsedImportMeetings = parseUniversalScheduleText(text, targetDate);
+  parsedImportMeetings = deduplicateImportedMeetingsKeepLatest(parseUniversalScheduleText(text, targetDate));
 
   if (parsedImportMeetings.length === 0) {
     previewArea.style.display = 'none';
@@ -16039,8 +16057,12 @@ function runCalendarLivePreview() {
     previewArea.style.display = 'block';
     btn.disabled = false;
 
+    const existing = getData(STORAGE_KEYS.MEETINGS, []);
+    const existingKeys = new Set(existing.map(m => normalizeMeetingSubjectKey(m.subject)).filter(Boolean));
+    const replaceCount = parsedImportMeetings.filter(m => existingKeys.has(normalizeMeetingSubjectKey(m.subject))).length;
+
     const datesSet = new Set(parsedImportMeetings.map(m => m.date));
-    statusText.textContent = `🟢 智能识别成功：已规整 ${parsedImportMeetings.length} 场会议，涉及 ${datesSet.size} 个排期日期`;
+    statusText.textContent = `🟢 智能识别成功：已规整 ${parsedImportMeetings.length} 场会议，涉及 ${datesSet.size} 个排期日期${replaceCount > 0 ? `（其中 ${replaceCount} 场将自动替换同名旧安排）` : ''}`;
 
     const grouped = {};
     parsedImportMeetings.forEach(m => {
@@ -16066,10 +16088,14 @@ function runCalendarLivePreview() {
             ${list.map(m => {
               const sT = m.startTime || m.time || '10:00';
               const eT = m.endTime || calculateEndTime(sT, m.duration || 45);
+              const willReplace = existingKeys.has(normalizeMeetingSubjectKey(m.subject));
               return `
               <tr>
                 <td><strong>${sT} - ${eT}</strong></td>
-                <td><strong style="color:var(--text-primary);">${escapeHtml(m.subject)}</strong></td>
+                <td>
+                  <strong style="color:var(--text-primary);">${escapeHtml(m.subject)}</strong>
+                  ${willReplace ? '<span style="margin-left:6px; font-size:10.5px; padding:1px 5px; border-radius:4px; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; font-weight:600;">替换旧安排</span>' : ''}
+                </td>
               </tr>
               `;
             }).join('')}
@@ -16089,12 +16115,14 @@ function runCalendarLivePreview() {
           ${list.map(m => {
             const sT = m.startTime || m.time || '10:00';
             const eT = m.endTime || calculateEndTime(sT, m.duration || 45);
+            const willReplace = existingKeys.has(normalizeMeetingSubjectKey(m.subject));
             return `
             <div class="weekly-card" style="margin:0; cursor:default;">
               <div class="weekly-card-time">
                 <span class="weekly-card-time-text" style="white-space:nowrap !important; flex-shrink:0; font-size:11px; font-weight:700; color:var(--blue-accent);">
                   <span>${sT} - ${eT}</span>
                 </span>
+                ${willReplace ? '<div class="weekly-card-time-badges"><span class="weekly-loc-tag" style="color:#2563eb; max-width:none;">替换旧安排</span></div>' : ''}
               </div>
               <div class="weekly-card-title">${escapeHtml(m.subject)}</div>
             </div>
@@ -16110,7 +16138,8 @@ function confirmImportCalendar() {
   if (parsedImportMeetings.length === 0) return;
 
   let existing = getData(STORAGE_KEYS.MEETINGS);
-  const newMeetings = parsedImportMeetings.map((m, idx) => {
+  const dedupedImports = deduplicateImportedMeetingsKeepLatest(parsedImportMeetings);
+  const newMeetings = dedupedImports.map((m, idx) => {
     const sTime = m.startTime || m.time || '10:00';
     const dur = m.duration || 45;
     const eTime = m.endTime || calculateEndTime(sTime, dur);
@@ -16164,7 +16193,19 @@ function confirmImportCalendar() {
     };
   });
 
-  const updated = [...newMeetings, ...existing];
+  // 如果新导入的会议与已有会议同名，自动删除旧的安排，保留新导入的安排
+  const importedSubjectKeys = new Set(newMeetings.map(m => normalizeMeetingSubjectKey(m.subject)).filter(Boolean));
+  let removedOldCount = 0;
+  const remainingExisting = existing.filter(oldM => {
+    const key = normalizeMeetingSubjectKey(oldM.subject);
+    if (key && importedSubjectKeys.has(key)) {
+      removedOldCount++;
+      return false;
+    }
+    return true;
+  });
+
+  const updated = [...newMeetings, ...remainingExisting];
   setData(STORAGE_KEYS.MEETINGS, updated);
 
   if (newMeetings[0] && newMeetings[0].date) {
@@ -16193,7 +16234,11 @@ function confirmImportCalendar() {
 
   closeModal('importCalendarModal');
   renderMeetings();
-  showToast(`🎉 成功识别并导入 ${newMeetings.length} 场会议至日历！`);
+  if (removedOldCount > 0) {
+    showToast(`🎉 成功导入 ${newMeetings.length} 场会议（已自动删除 ${removedOldCount} 场同名旧安排）！`);
+  } else {
+    showToast(`🎉 成功识别并导入 ${newMeetings.length} 场会议至日历！`);
+  }
 }
 
 function exportExecutiveScheduleBriefing() {
@@ -17029,8 +17074,13 @@ function saveMeeting() {
     }
   }
 
+  const normSubjectKey = normalizeMeetingSubjectKey(subject);
+
   // Conflict detection and confirmation prompt against Cairo baseline with exact overlapping times
-  const conflicts = getMeetingConflicts(date, cairoStartTime, cairoEndTime, id);
+  // (Exclude any existing meeting with the exact same name since it will be replaced by this new arrangement)
+  const conflicts = getMeetingConflicts(date, cairoStartTime, cairoEndTime, id).filter(c => {
+    return !normSubjectKey || normalizeMeetingSubjectKey(c.subject) !== normSubjectKey;
+  });
   if (conflicts.length > 0) {
     const targetStartMin = timeStrToMinutes(startTime);
     const targetEndMin = timeStrToMinutes(endTime);
@@ -17071,6 +17121,17 @@ function saveMeeting() {
   const existingMeeting = id ? meetings.find(m => m.id == id) : null;
   const requestId = window.convertingRequestId || (existingMeeting ? existingMeeting.requestId : null);
 
+  // 若存在同名旧会议（且非当前正在编辑的同一条 ID），自动删除旧安排，保留新安排
+  let replacedOld = false;
+  if (normSubjectKey) {
+    const beforeLen = meetings.length;
+    meetings = meetings.filter(m => {
+      if (id && m.id == id) return true;
+      return normalizeMeetingSubjectKey(m.subject) !== normSubjectKey;
+    });
+    if (meetings.length < beforeLen) replacedOld = true;
+  }
+
   const meetingData = {
     date,
     time: cairoStartTime,
@@ -17103,13 +17164,13 @@ function saveMeeting() {
 
   if (id) {
     meetings = meetings.map(m => m.id == id ? { ...m, ...meetingData, id: m.id } : m);
-    showToast('会议预约已更新');
+    showToast(replacedOld ? '会议预约已更新（并已删除同名旧安排）' : '会议预约已更新');
   } else {
     meetings.unshift({
       id: Date.now(),
       ...meetingData
     });
-    showToast('会议预约已成功登记');
+    showToast(replacedOld ? '会议预约已登记（已自动替换同名旧安排）' : '会议预约已成功登记');
   }
 
   // If this meeting was converted from a quick meeting request, mark it scheduled!
