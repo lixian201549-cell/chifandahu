@@ -2903,6 +2903,37 @@ html_template = """<!DOCTYPE html>
   .sub-quadrant-card:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   }
+  .today-hero-board.quadrant-drop-active,
+  .sub-quadrant-card.quadrant-drop-active {
+    outline: 2px dashed #2563eb !important;
+    outline-offset: -2px;
+    background: #eff6ff !important;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.14) !important;
+  }
+  .today-task-row[draggable="true"],
+  .quadrant-mini-card[draggable="true"] {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .today-task-row[draggable="true"]:active,
+  .quadrant-mini-card[draggable="true"]:active {
+    cursor: grabbing;
+  }
+  .today-task-row.is-dragging,
+  .quadrant-mini-card.is-dragging {
+    opacity: 0.42 !important;
+    transform: scale(0.98) !important;
+    border: 1.5px dashed #2563eb !important;
+  }
+  .today-task-row.drag-over-top,
+  .quadrant-mini-card.drag-over-top {
+    box-shadow: 0 -3px 0 0 #2563eb !important;
+  }
+  .today-task-row.drag-over-bottom,
+  .quadrant-mini-card.drag-over-bottom {
+    box-shadow: 0 3px 0 0 #2563eb !important;
+  }
   .sub-quadrant-q2 { border-top: 3px solid #3b82f6; }
   .sub-quadrant-q2 .sub-quadrant-header { background: #eff6ff; color: #1e40af; }
   .sub-quadrant-q3 { border-top: 3px solid #f59e0b; }
@@ -18541,8 +18572,11 @@ function renderTodos() {
 
     matrixEl.innerHTML = `
       <div class="todo-focus-layout" style="gap:14px; margin-top:10px;">
-        <!-- 1. 「今天完成」焦点卡片 (极简设计，内嵌轻量进度，支持拖拽排序) -->
-        <div class="today-hero-board">
+        <!-- 1. 「今天完成」焦点卡片 (极简设计，内嵌轻量进度，支持四象限互拖与排序) -->
+        <div class="today-hero-board" data-quadrant="q1"
+             ondragover="handleQuadrantBoxDragOver(event, 'q1')"
+             ondragleave="handleQuadrantBoxDragLeave(event)"
+             ondrop="handleQuadrantBoxDrop(event, 'q1')">
           <div class="today-hero-header" style="padding:10px 16px;">
             <div class="today-hero-title" style="font-size:14px;">
               <span><strong>今天完成</strong></span>
@@ -18561,20 +18595,21 @@ function renderTodos() {
           <div class="today-hero-items" style="padding:10px 14px; gap:8px;">
             ${q1Tasks.length === 0 ? `
               <div style="text-align:center; padding:18px 12px; color:var(--text-muted); font-size:12px;">
-                暂无待办事项
+                暂无待办事项（可将下方任务直接拖拽至此）
               </div>
             ` : q1Tasks.map(t => `
-              <div class="today-task-row ${t.completed ? 'done' : ''}" style="padding:9px 12px; cursor:default;"
+              <div class="today-task-row ${t.completed ? 'done' : ''}" style="padding:9px 12px;"
                    draggable="true"
                    data-todo-id="${t.id}"
+                   data-quadrant="q1"
                    ondragstart="handleTodayTodoDragStart(event, ${t.id})"
-                   ondragover="handleTodayTodoDragOver(event)"
+                   ondragover="handleTodayTodoDragOver(event, ${t.id}, 'q1')"
                    ondragenter="handleTodayTodoDragEnter(event)"
                    ondragleave="handleTodayTodoDragLeave(event)"
-                   ondrop="handleTodayTodoDrop(event, ${t.id})"
+                   ondrop="handleTodayTodoDrop(event, ${t.id}, 'q1')"
                    ondragend="handleTodayTodoDragEnd(event)">
                 <div class="today-task-left">
-                  <span class="drag-grip-icon" title="按住拖拽排序" style="margin-right:6px;">⠿</span>
+                  <span class="drag-grip-icon" title="按住可跨象限拖拽或调整顺序" style="margin-right:6px;">⠿</span>
                   <input type="checkbox" class="todo-check" style="width:16px; height:16px; cursor:pointer;" ${t.completed ? 'checked' : ''} onchange="toggleTodo(${t.id})" />
                   <div style="flex:1; min-width:0;">
                     <span class="today-task-text" style="font-size:13px;">${escapeHtml(t.text)}</span>
@@ -18596,13 +18631,16 @@ function renderTodos() {
           </div>
         </div>
 
-        <!-- 2. 后续规划轻量三列 (这周安排上 | 先放一放 | 有空再说 - 无赘述文案) -->
+        <!-- 2. 后续规划轻量三列 (这周安排上 | 先放一放 | 有空再说 - 支持四象限任意互拖) -->
         <div class="todo-submatrix-grid">
           ${subQuadrants.map(qKey => {
             const qInfo = QUADRANT_CONFIG[qKey];
             const subTasks = sortedActive.filter(t => getTodoQuadrant(t) === qKey);
             return `
-              <div class="sub-quadrant-card sub-quadrant-${qKey}">
+              <div class="sub-quadrant-card sub-quadrant-${qKey}" data-quadrant="${qKey}"
+                   ondragover="handleQuadrantBoxDragOver(event, '${qKey}')"
+                   ondragleave="handleQuadrantBoxDragLeave(event)"
+                   ondrop="handleQuadrantBoxDrop(event, '${qKey}')">
                 <div class="sub-quadrant-header" style="padding:8px 12px; font-size:12.5px;">
                   <div style="display:flex; align-items:center; gap:6px;">
                     <span><strong>${qInfo.title}</strong></span>
@@ -18614,10 +18652,20 @@ function renderTodos() {
                 </div>
                 <div class="sub-quadrant-items" style="padding:8px; gap:6px;">
                   ${subTasks.length === 0 ? `
-                    <div style="font-size:11px; color:var(--text-muted); text-align:center; padding:16px 8px;">暂无事项</div>
+                    <div style="font-size:11px; color:var(--text-muted); text-align:center; padding:16px 8px;">暂无事项（可拖拽任务至此）</div>
                   ` : subTasks.map(t => `
-                    <div class="quadrant-mini-card ${t.completed ? 'done' : ''}" style="padding:7px 9px;">
+                    <div class="quadrant-mini-card ${t.completed ? 'done' : ''}" style="padding:7px 9px;"
+                         draggable="true"
+                         data-todo-id="${t.id}"
+                         data-quadrant="${qKey}"
+                         ondragstart="handleTodayTodoDragStart(event, ${t.id})"
+                         ondragover="handleTodayTodoDragOver(event, ${t.id}, '${qKey}')"
+                         ondragenter="handleTodayTodoDragEnter(event)"
+                         ondragleave="handleTodayTodoDragLeave(event)"
+                         ondrop="handleTodayTodoDrop(event, ${t.id}, '${qKey}')"
+                         ondragend="handleTodayTodoDragEnd(event)">
                       <div style="display:flex; gap:6px; align-items:flex-start; flex:1; min-width:0;">
+                        <span class="drag-grip-icon" title="按住可拖拽至其他象限或调整顺序" style="font-size:12px; color:#94a3b8; margin-top:1px;">⠿</span>
                         <input type="checkbox" class="todo-check" style="margin-top:2px;" ${t.completed ? 'checked' : ''} onchange="toggleTodo(${t.id})" />
                         <div style="flex:1; min-width:0;">
                           <div class="quadrant-mini-text" style="font-size:12px;">${escapeHtml(t.text)}</div>
@@ -18837,63 +18885,19 @@ function quickMoveTodo(id, targetQuadrant) {
 
 let draggedTodayTodoId = null;
 
-function handleTodayTodoDragStart(e, id) {
-  draggedTodayTodoId = id;
-  if (e && e.dataTransfer) {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(id));
-  }
-  const row = e && e.currentTarget;
-  if (row) {
-    setTimeout(() => { if (row.classList) row.classList.add('is-dragging'); }, 0);
-  }
-}
-
-function handleTodayTodoDragOver(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  if (e && e.dataTransfer) {
-    e.dataTransfer.dropEffect = 'move';
-  }
-}
-
-function handleTodayTodoDragEnter(e) {
-  const row = e && e.currentTarget && e.currentTarget.closest ? e.currentTarget.closest('.today-task-row') : null;
-  if (row && row.classList && !row.classList.contains('is-dragging')) {
-    row.classList.add('drag-over');
-  }
-}
-
-function handleTodayTodoDragLeave(e) {
-  const row = e && e.currentTarget && e.currentTarget.closest ? e.currentTarget.closest('.today-task-row') : null;
-  if (row && row.classList && (!e.relatedTarget || !row.contains(e.relatedTarget))) {
-    row.classList.remove('drag-over');
-  }
-}
-
-function handleTodayTodoDragEnd(e) {
-  draggedTodayTodoId = null;
-  if (document.querySelectorAll) {
-    document.querySelectorAll('.today-task-row').forEach(el => {
-      if (el.classList) el.classList.remove('is-dragging', 'drag-over');
+function clearAllTodoDragHighlights() {
+  if (typeof hideDragLiveBadge === 'function') hideDragLiveBadge();
+  if (typeof document !== 'undefined' && document.querySelectorAll) {
+    document.querySelectorAll('.today-task-row, .quadrant-mini-card, .today-hero-board, .sub-quadrant-card').forEach(el => {
+      if (el.classList) {
+        el.classList.remove('is-dragging', 'drag-over', 'drag-over-top', 'drag-over-bottom', 'quadrant-drop-active');
+      }
     });
   }
 }
 
-function handleTodayTodoDrop(e, targetId) {
-  if (e && e.preventDefault) e.preventDefault();
-  if (document.querySelectorAll) {
-    document.querySelectorAll('.today-task-row').forEach(el => {
-      if (el.classList) el.classList.remove('drag-over', 'is-dragging');
-    });
-  }
-  if (!draggedTodayTodoId || draggedTodayTodoId === targetId) return;
-
-  let todos = getData(STORAGE_KEYS.TODOS);
-  const activeTodos = todos.filter(t => !t.archived);
-  const q1Tasks = activeTodos.filter(t => getTodoQuadrant(t) === 'q1');
-
-  // Match current render order
-  q1Tasks.sort((a, b) => {
+function sortQuadrantTaskList(list) {
+  return list.sort((a, b) => {
     if (a.completed !== b.completed) return a.completed ? 1 : -1;
     if (a.order !== undefined && b.order !== undefined && a.order !== b.order) {
       return a.order - b.order;
@@ -18908,21 +18912,107 @@ function handleTodayTodoDrop(e, targetId) {
     if (!a.dueDate && b.dueDate) return 1;
     return (b.id || 0) - (a.id || 0);
   });
+}
 
-  const dragIndex = q1Tasks.findIndex(t => t.id === draggedTodayTodoId);
-  const targetIndex = q1Tasks.findIndex(t => t.id === targetId);
-  if (dragIndex === -1 || targetIndex === -1) return;
+function handleTodayTodoDragStart(e, id) {
+  draggedTodayTodoId = id;
+  if (e && e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', String(id)); } catch (err) {}
+  }
+  const row = e && e.currentTarget;
+  if (row) {
+    setTimeout(() => { if (row.classList) row.classList.add('is-dragging'); }, 0);
+  }
+}
 
-  const [movedTask] = q1Tasks.splice(dragIndex, 1);
-  q1Tasks.splice(targetIndex, 0, movedTask);
+function handleTodayTodoDragOver(e, targetId, targetQuadrant) {
+  if (!draggedTodayTodoId) return;
+  if (e && e.preventDefault) e.preventDefault();
+  if (e && e.stopPropagation) e.stopPropagation();
+  if (e && e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'move';
+  }
+  const el = e && e.currentTarget;
+  let isTop = true;
+  if (el && el.getBoundingClientRect && typeof e.clientY === 'number') {
+    const rect = el.getBoundingClientRect();
+    isTop = (e.clientY - rect.top) < (rect.height * 0.5);
+  }
+  if (el && el.classList && String(draggedTodayTodoId) !== String(targetId)) {
+    el.classList.toggle('drag-over-top', isTop);
+    el.classList.toggle('drag-over-bottom', !isTop);
+  }
+  const qKey = targetQuadrant || (el && el.getAttribute && el.getAttribute('data-quadrant')) || 'q1';
+  const qTitle = (QUADRANT_CONFIG[qKey] && QUADRANT_CONFIG[qKey].title) || qKey;
+  if (typeof showDragLiveBadge === 'function' && e && typeof e.clientX === 'number') {
+    showDragLiveBadge(e.clientX, e.clientY, `${isTop ? '⬆️' : '⬇️'} 松手移入【${qTitle}】`);
+  }
+}
 
-  // Assign 1-indexed sequential order
-  q1Tasks.forEach((t, idx) => {
-    t.order = idx + 1;
-  });
+function handleTodayTodoDragEnter(e) {
+  const row = e && e.currentTarget;
+  if (row && row.classList && !row.classList.contains('is-dragging')) {
+    row.classList.add('drag-over');
+  }
+}
 
-  const orderMap = new Map(q1Tasks.map(t => [t.id, t.order]));
+function handleTodayTodoDragLeave(e) {
+  const row = e && e.currentTarget;
+  if (row && row.classList && (!e.relatedTarget || !row.contains || !row.contains(e.relatedTarget))) {
+    row.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+  }
+}
+
+function handleTodayTodoDragEnd() {
+  draggedTodayTodoId = null;
+  clearAllTodoDragHighlights();
+}
+
+function handleQuadrantBoxDragOver(e, targetQuadrant) {
+  if (!draggedTodayTodoId) return;
+  if (e && e.preventDefault) e.preventDefault();
+  if (e && e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'move';
+  }
+  if (e && e.currentTarget && e.currentTarget.classList) {
+    e.currentTarget.classList.add('quadrant-drop-active');
+  }
+  const qTitle = (QUADRANT_CONFIG[targetQuadrant] && QUADRANT_CONFIG[targetQuadrant].title) || targetQuadrant;
+  if (typeof showDragLiveBadge === 'function' && e && typeof e.clientX === 'number') {
+    showDragLiveBadge(e.clientX, e.clientY, `📥 松手移至【${qTitle}】`);
+  }
+}
+
+function handleQuadrantBoxDragLeave(e) {
+  const box = e && e.currentTarget;
+  if (box && box.classList && (!e.relatedTarget || !box.contains || !box.contains(e.relatedTarget))) {
+    box.classList.remove('quadrant-drop-active');
+  }
+}
+
+function handleQuadrantBoxDrop(e, targetQuadrant) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (e && e.stopPropagation) e.stopPropagation();
+  const dragId = draggedTodayTodoId;
+  draggedTodayTodoId = null;
+  clearAllTodoDragHighlights();
+  if (!dragId || !targetQuadrant) return;
+
+  let todos = getData(STORAGE_KEYS.TODOS, []);
+  const draggedTask = todos.find(t => t.id == dragId);
+  if (!draggedTask) return;
+
+  const oldQuadrant = getTodoQuadrant(draggedTask);
+  const destTasks = sortQuadrantTaskList(todos.filter(t => !t.archived && getTodoQuadrant(t) === targetQuadrant && t.id != dragId));
+  destTasks.push({ ...draggedTask, quadrant: targetQuadrant, priority: targetQuadrant });
+  destTasks.forEach((t, idx) => { t.order = idx + 1; });
+  const orderMap = new Map(destTasks.map(t => [t.id, t.order]));
+
   todos = todos.map(t => {
+    if (t.id == dragId) {
+      return { ...t, quadrant: targetQuadrant, priority: targetQuadrant, order: orderMap.get(t.id) || 1 };
+    }
     if (orderMap.has(t.id)) {
       return { ...t, order: orderMap.get(t.id) };
     }
@@ -18931,7 +19021,64 @@ function handleTodayTodoDrop(e, targetId) {
 
   setData(STORAGE_KEYS.TODOS, todos);
   renderTodos();
-  showToast('↕️ 今日任务顺序已调整');
+  const qTitle = (QUADRANT_CONFIG[targetQuadrant] && QUADRANT_CONFIG[targetQuadrant].title) || targetQuadrant;
+  showToast(oldQuadrant !== targetQuadrant ? `✨ 任务已移至【${qTitle}】` : `↕️ 【${qTitle}】任务顺序已调整`);
+}
+
+function handleTodayTodoDrop(e, targetId, explicitTargetQuadrant) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (e && e.stopPropagation) e.stopPropagation();
+
+  const el = e && e.currentTarget;
+  let insertBefore = true;
+  if (el && el.getBoundingClientRect && typeof e.clientY === 'number') {
+    const rect = el.getBoundingClientRect();
+    insertBefore = (e.clientY - rect.top) < (rect.height * 0.5);
+  }
+
+  const dragId = draggedTodayTodoId;
+  draggedTodayTodoId = null;
+  clearAllTodoDragHighlights();
+  if (!dragId) return;
+
+  let todos = getData(STORAGE_KEYS.TODOS, []);
+  const draggedTask = todos.find(t => t.id == dragId);
+  const targetTask = todos.find(t => t.id == targetId);
+  if (!draggedTask || !targetTask) return;
+
+  const oldQuadrant = getTodoQuadrant(draggedTask);
+  const targetQuadrant = explicitTargetQuadrant || getTodoQuadrant(targetTask) || 'q1';
+
+  if (String(dragId) === String(targetId) && oldQuadrant === targetQuadrant) return;
+
+  const destTasks = sortQuadrantTaskList(todos.filter(t => !t.archived && getTodoQuadrant(t) === targetQuadrant && t.id != dragId));
+  let targetIndex = destTasks.findIndex(t => t.id == targetId);
+  if (targetIndex === -1) {
+    destTasks.push({ ...draggedTask, quadrant: targetQuadrant, priority: targetQuadrant });
+  } else {
+    const insertIdx = insertBefore ? targetIndex : (targetIndex + 1);
+    destTasks.splice(insertIdx, 0, { ...draggedTask, quadrant: targetQuadrant, priority: targetQuadrant });
+  }
+
+  destTasks.forEach((t, idx) => {
+    t.order = idx + 1;
+  });
+
+  const orderMap = new Map(destTasks.map(t => [t.id, t.order]));
+  todos = todos.map(t => {
+    if (t.id == dragId) {
+      return { ...t, quadrant: targetQuadrant, priority: targetQuadrant, order: orderMap.get(t.id) || 1 };
+    }
+    if (orderMap.has(t.id)) {
+      return { ...t, order: orderMap.get(t.id) };
+    }
+    return t;
+  });
+
+  setData(STORAGE_KEYS.TODOS, todos);
+  renderTodos();
+  const qTitle = (QUADRANT_CONFIG[targetQuadrant] && QUADRANT_CONFIG[targetQuadrant].title) || targetQuadrant;
+  showToast(oldQuadrant !== targetQuadrant ? `✨ 任务已移至【${qTitle}】` : `↕️ 【${qTitle}】任务顺序已调整`);
 }
 
 function toggleTodo(id) {
