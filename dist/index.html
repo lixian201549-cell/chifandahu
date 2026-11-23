@@ -6937,7 +6937,7 @@ body.is-desktop-forced .floating-back-to-mobile {
     <div class="footer-inner">
       <div class="footer-left">
         <span>Snoopy’s Little Lab · Sanyli.</span>
-        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.8.5</span>
+        <span class="app-version-badge" id="appFooterVersionBadge" title="当前发布版本（每次更新递增）">🏷️ v1.8.6</span>
       </div>
       <div>Designed with Charles M. Schulz’s Peanuts Legacy 🐾</div>
     </div>
@@ -17254,41 +17254,80 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
   const afterTomorrowStr = formatDate(afterTomorrow);
 
   const weekdayMap = { '日': 0, '天': 0, '7': 0, '一': 1, '1': 1, '二': 2, '2': 2, '三': 3, '3': 3, '四': 4, '4': 4, '五': 5, '5': 5, '六': 6, '6': 6 };
+  const cnHourMap = { '零': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10, '十一': 11, '十二': 12 };
+
+  function parseHourToken(tok) {
+    if (!tok) return NaN;
+    if (/^\d+$/.test(tok)) return parseInt(tok, 10);
+    if (tok in cnHourMap) return cnHourMap[tok];
+    return NaN;
+  }
+
+  function normalizeSpokenChineseTimes(str) {
+    if (!str) return '';
+    return str.replace(/(上午|早上|早晨|中午|下午|傍晚|晚上)?\s*(十一|十二|十|[一二两三四五六七八九])\s*(点|时)(?:\s*(半|[一二三四五]十[一二三四五]?|\d{1,2})\s*分?)?/g, (full, pfx, hCn, unit, mPart) => {
+      const h = parseHourToken(hCn);
+      if (isNaN(h)) return full;
+      let mStr = '';
+      if (mPart === '半') mStr = '半';
+      else if (mPart) {
+        const cnMinMap = { '十': 10, '十五': 15, '二十': 20, '二十五': 25, '三十': 30, '三十五': 35, '四十': 40, '四十五': 45, '五十': 50, '五十五': 55 };
+        const mVal = cnMinMap[mPart] !== undefined ? cnMinMap[mPart] : parseInt(mPart, 10);
+        if (!isNaN(mVal)) mStr = `${mVal}分`;
+      }
+      return `${pfx || ''}${h}${unit}${mStr}`;
+    });
+  }
 
   function extractDate(str, prevActiveDate) {
     if (!str) return '';
-    const ymMatch = str.match(/(\d{4})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})\s*[日号]?/);
-    if (ymMatch) return `${ymMatch[1]}-${pad(ymMatch[2])}-${pad(ymMatch[3])}`;
+    // 先剔除点号格式的时间范围（如 10.00-11.30 或 10.30~11.30），防止被误识别为 10月30日
+    const safeStr = str.replace(/\b\d{1,2}\.[0-5]\d\s*(?:[-~～—–－―至到与/]|——|--)\s*\d{1,2}\.[0-5]\d\b/g, ' ');
 
-    const mdMatch = str.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]?/);
-    if (mdMatch) return `${todayRef.getFullYear()}-${pad(mdMatch[1])}-${pad(mdMatch[2])}`;
+    const ymMatch = safeStr.match(/(\d{4})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})\s*[日号]?/);
+    if (ymMatch) {
+      const y = parseInt(ymMatch[1], 10), m = parseInt(ymMatch[2], 10), d = parseInt(ymMatch[3], 10);
+      if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return `${y}-${pad(m)}-${pad(d)}`;
+    }
 
-    const slashMd = str.match(/(?:^|[\s，,。；;（(【\[|｜])(\d{1,2})\s*[/-]\s*(\d{1,2})(?=$|[\s，,。；;：:）)\]】|｜周星])/);
+    const mdMatch = safeStr.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]/);
+    if (mdMatch) {
+      const m = parseInt(mdMatch[1], 10), d = parseInt(mdMatch[2], 10);
+      if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return `${todayRef.getFullYear()}-${pad(m)}-${pad(d)}`;
+    }
+
+    const mdNoSuffix = safeStr.match(/(?:^|[\s，,。；;（(【\[|｜])(\d{1,2})\s*月\s*(\d{1,2})(?=$|[\s，,。；;：:）)\]】|｜周星])/);
+    if (mdNoSuffix) {
+      const m = parseInt(mdNoSuffix[1], 10), d = parseInt(mdNoSuffix[2], 10);
+      if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return `${todayRef.getFullYear()}-${pad(m)}-${pad(d)}`;
+    }
+
+    const slashMd = safeStr.match(/(?:^|[\s，,。；;（(【\[|｜])(\d{1,2})\s*[/-]\s*(\d{1,2})(?=$|[\s，,。；;：:）)\]】|｜周星])/);
     if (slashMd) {
       const m = parseInt(slashMd[1], 10), d = parseInt(slashMd[2], 10);
       if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return `${todayRef.getFullYear()}-${pad(m)}-${pad(d)}`;
     }
 
-    const dotMd = str.match(/(?:^|[\s，,。；;（(【\[|｜])(\d{1,2})\.(\d{1,2})(?=$|[\s，,。；;：:）)\]】|｜周星])/);
+    const dotMd = safeStr.match(/(?:^|[\s，,。；;（(【\[|｜])(\d{1,2})\.(\d{1,2})(?=$|[\s，,。；;：:）)\]】|｜周星])/);
     if (dotMd) {
       const m = parseInt(dotMd[1], 10), d = parseInt(dotMd[2], 10);
       if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return `${todayRef.getFullYear()}-${pad(m)}-${pad(d)}`;
     }
 
-    const dayOnly = str.match(/(?:^|[\s，,。；;（(【\[|｜])(\d{1,2})\s*[日号](?![楼层室号机栋线期标段文院门井站])/);
+    const dayOnly = safeStr.match(/(?:^|[\s，,。；;（(【\[|｜])(\d{1,2})\s*[日号](?![楼层室号机栋线期标段文院门井站])/);
     if (dayOnly) {
       const d = parseInt(dayOnly[1], 10);
       if (d >= 1 && d <= 31) return `${todayRef.getFullYear()}-${pad(todayRef.getMonth() + 1)}-${pad(d)}`;
     }
 
-    if (/大后天/.test(str)) {
+    if (/大后天/.test(safeStr)) {
       const d = new Date(todayRef); d.setDate(todayRef.getDate() + 3); return formatDate(d);
     }
-    if (/后天/.test(str)) return afterTomorrowStr;
-    if (/明天|次日|明日/.test(str)) return tomorrowStr;
-    if (/今天|今日|本日/.test(str)) return todayStr;
+    if (/后天/.test(safeStr)) return afterTomorrowStr;
+    if (/明天|次日|明日/.test(safeStr)) return tomorrowStr;
+    if (/今天|今日|本日/.test(safeStr)) return todayStr;
 
-    const wkMatch = str.match(/(下周|本周|这周|周|星期|礼拜)([一二三四五六日天1-7])/);
+    const wkMatch = safeStr.match(/(下周|本周|这周|周|星期|礼拜)([一二三四五六日天1-7])/);
     if (wkMatch) {
       const prefix = wkMatch[1];
       const targetDow = weekdayMap[wkMatch[2]];
@@ -17319,73 +17358,124 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
     return `${pad(h)}:${pad(m)}`;
   }
 
-  function extractTimes(str) {
-    if (!str) return { start: '', end: '' };
-    const norm = str.replace(/(\d{1,2})：(\d{2})/g, '$1:$2');
-    let s = '', e = '';
-    const trMatch = norm.match(/(上午|下午|晚上)?\s*(\d{1,2}:\d{2})\s*[-~至到与/—]\s*(上午|下午|晚上)?\s*(\d{1,2}:\d{2})/);
-    if (trMatch) {
-      let [h1, m1] = trMatch[2].split(':').map(Number);
-      let [h2, m2] = trMatch[4].split(':').map(Number);
-      const p1 = trMatch[1], p2 = trMatch[3] || p1;
-      if ((p1 === '下午' || p1 === '晚上') && h1 < 12) h1 += 12;
-      if ((p2 === '下午' || p2 === '晚上') && h2 < 12) h2 += 12;
-      if (!p2 && h2 < h1 && h2 <= 12) h2 += 12;
-      s = `${pad(h1)}:${pad(m1)}`;
-      e = `${pad(h2)}:${pad(m2)}`;
-      return { start: s, end: e };
-    }
-    const cnRange = norm.match(/(上午|下午|晚上)?\s*(\d{1,2})(?:(?:点|时)(?:(\d{1,2})分|半)?)?\s*[-~至到与—]\s*(上午|下午|晚上)?\s*(\d{1,2})(?:点|时)(?:(\d{1,2})分|半)?/);
-    if (cnRange) {
-      const p1 = cnRange[1];
-      let h1 = parseInt(cnRange[2], 10);
-      const leftHalf = cnRange[0].split(/[-~至到与—]/)[0];
-      const m1 = cnRange[3] ? parseInt(cnRange[3], 10) : (leftHalf.includes('半') ? 30 : 0);
-      if ((p1 === '下午' || p1 === '晚上') && h1 < 12) h1 += 12;
-
-      const p2 = cnRange[4] || p1;
-      let h2 = parseInt(cnRange[5], 10);
-      const rightHalf = cnRange[0].split(/[-~至到与—]/)[1] || '';
-      const m2 = cnRange[6] ? parseInt(cnRange[6], 10) : (rightHalf.includes('半') ? 30 : 0);
-      if ((p2 === '下午' || p2 === '晚上') && h2 < 12) h2 += 12;
-      if (!p2 && h2 < h1 && h2 <= 12) h2 += 12;
-
-      s = `${pad(h1)}:${pad(m1)}`;
-      e = `${pad(h2)}:${pad(m2)}`;
-      return { start: s, end: e };
-    }
-
-    const stMatch = norm.match(/(?:(上午|下午|晚上)\s*)?(\d{1,2}:\d{2})/);
-    if (stMatch) {
-      let [h, m] = stMatch[2].split(':').map(Number);
-      if ((stMatch[1] === '下午' || stMatch[1] === '晚上') && h < 12) h += 12;
-      s = `${pad(h)}:${pad(m)}`;
-      return { start: s, end: '' };
-    }
-    const cnSingle = norm.match(/(上午|下午|晚上)?\s*(\d{1,2})(?:点|时)(?:(\d{1,2})分|(半))?/);
-    if (cnSingle && (cnSingle[1] || norm.includes('点') || norm.includes('时'))) {
-      let h = parseInt(cnSingle[2], 10);
-      const m = cnSingle[3] ? parseInt(cnSingle[3], 10) : (cnSingle[4] ? 30 : 0);
-      if ((cnSingle[1] === '下午' || cnSingle[1] === '晚上') && h < 12) h += 12;
-      if (h >= 0 && h <= 23) {
-        s = `${pad(h)}:${pad(m)}`;
-        return { start: s, end: '' };
+  function adjustHourByPeriod(h, period, refStartHour) {
+    const p = String(period || '').toLowerCase();
+    if ((p === '下午' || p === '傍晚' || p === '晚上' || p === '晚' || p === 'pm') && h < 12) return h + 12;
+    if ((p === '中午') && h >= 1 && h <= 3) return h + 12;
+    if ((p === '上午' || p === '早上' || p === '早晨' || p === 'am') && h === 12) return 0;
+    if (!p) {
+      if (refStartHour !== undefined && refStartHour !== null) {
+        if (h < refStartHour && h >= 1 && h <= 11 && refStartHour >= 7 && refStartHour <= 18) return h + 12;
+      } else if (h >= 1 && h <= 6) {
+        return h + 12;
       }
     }
-    if (/^(?:下午|晚上|上午|早上)\s+/.test(norm) || /[，,\s](?:下午|晚上|上午|早上)\s*[\d点时]/.test(norm)) {
-      if (/下午/.test(norm)) return { start: '14:30', end: '15:15' };
-      if (/晚上/.test(norm)) return { start: '19:30', end: '20:15' };
-      if (/上午|早上/.test(norm)) return { start: '09:30', end: '10:15' };
+    return h;
+  }
+
+  function stripTimezoneTokens(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/[（(\[【]?\s*(?:GMT|UTC)\s*[+-]?\s*\d{1,2}(?:[：:]\d{2})?\s*[）)\]】]?/gi, ' ')
+      .replace(/[（(\[【]?\s*(?:开罗时间|北京时间|当地时间|东二区|东八区|西五区)\s*[）)\]】]?/g, ' ');
+  }
+
+  // 提取时间及在字符串中的匹配跨度 { start, end, matchText, index }
+  function extractTimes(str) {
+    if (!str) return { start: '', end: '', matchText: '', index: -1 };
+    let norm = normalizeSpokenChineseTimes(stripTimezoneTokens(str))
+      .replace(/(\d{1,2})：(\d{2})/g, '$1:$2')
+      .replace(/(\b\d{1,2})\.([0-5]\d)\s*((?:[-~～—–－―至到与/]|——|--)\s*(?:上午|早上|中午|下午|傍晚|晚上)?\s*\d{1,2})\.([0-5]\d\b)/g, '$1:$2$3:$4')
+      .replace(/(上午|早上|中午|下午|傍晚|晚上)\s*(\d{1,2})\.([0-5]\d)\b/g, '$1$2:$3');
+
+    // 1. 冒号时间段: 10:00 - 11:30, 10:00～11:30, 10:00–11:30, 10:00——11:30, 2:00pm-3:30pm
+    const trMatch = norm.match(/(上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*(\d{1,2}:[0-5]\d)\s*(am|pm)?\s*(?:[-~～—–－―至到与/]|——|--)\s*(上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*(\d{1,2}:[0-5]\d)\s*(am|pm)?/i);
+    if (trMatch) {
+      let [h1, m1] = trMatch[2].split(':').map(Number);
+      let [h2, m2] = trMatch[5].split(':').map(Number);
+      if (h1 <= 23 && h2 <= 23) {
+        const p1 = trMatch[1] || trMatch[3] || '';
+        const p2 = trMatch[4] || trMatch[6] || p1;
+        h1 = adjustHourByPeriod(h1, p1, null);
+        h2 = adjustHourByPeriod(h2, p2, h1);
+        return { start: `${pad(h1)}:${pad(m1)}`, end: `${pad(h2)}:${pad(m2)}`, matchText: trMatch[0], index: trMatch.index };
+      }
     }
-    return { start: '', end: '' };
+
+    // 2. 紧凑四位数字时间段: 0930-1030, 1400~1530
+    const compactRange = norm.match(/(?:^|[\s（(【\[|｜])([01]\d|2[0-3])([0-5]\d)\s*(?:[-~～—–－―至到]|——|--)\s*([01]\d|2[0-3])([0-5]\d)(?=$|[\s，,。；;：:）)\]】|｜])/);
+    if (compactRange) {
+      const h1 = parseInt(compactRange[1], 10), m1 = parseInt(compactRange[2], 10);
+      const h2 = parseInt(compactRange[3], 10), m2 = parseInt(compactRange[4], 10);
+      return { start: `${pad(h1)}:${pad(m1)}`, end: `${pad(h2)}:${pad(m2)}`, matchText: compactRange[0], index: compactRange.index };
+    }
+
+    // 3. 中文点/时时间段: 下午2点到3点半, 9点半-10点半, 14点-15点15分
+    const cnRange = norm.match(/(上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*(\d{1,2})(?:(?:点|时)(?:(\d{1,2})分|(半))?)?\s*(?:[-~～—–－―至到与]|——|--)\s*(上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*(\d{1,2})(?:点|时)(?:(\d{1,2})分|(半))?/);
+    if (cnRange) {
+      const p1 = cnRange[1] || '';
+      let h1 = parseInt(cnRange[2], 10);
+      const m1 = cnRange[3] ? parseInt(cnRange[3], 10) : (cnRange[4] ? 30 : 0);
+      const p2 = cnRange[5] || p1;
+      let h2 = parseInt(cnRange[6], 10);
+      const m2 = cnRange[7] ? parseInt(cnRange[7], 10) : (cnRange[8] ? 30 : 0);
+      if (h1 <= 23 && h2 <= 23 && m1 <= 59 && m2 <= 59) {
+        h1 = adjustHourByPeriod(h1, p1, null);
+        h2 = adjustHourByPeriod(h2, p2, h1);
+        return { start: `${pad(h1)}:${pad(m1)}`, end: `${pad(h2)}:${pad(m2)}`, matchText: cnRange[0], index: cnRange.index };
+      }
+    }
+
+    // 4. 制表符或双空格分隔的起止时间列: 10:00 	 11:30
+    const colRange = norm.match(/(?:^|[\t|｜]|\s{2,})(上午|下午|晚上)?\s*(\d{1,2}:[0-5]\d)\s*(?:[\t|｜]|\s{2,})\s*(上午|下午|晚上)?\s*(\d{1,2}:[0-5]\d)(?=$|[\t|｜]|\s)/);
+    if (colRange) {
+      let [h1, m1] = colRange[2].split(':').map(Number);
+      let [h2, m2] = colRange[4].split(':').map(Number);
+      if (h1 <= 23 && h2 <= 23) {
+        h1 = adjustHourByPeriod(h1, colRange[1], null);
+        h2 = adjustHourByPeriod(h2, colRange[3] || colRange[1], h1);
+        return { start: `${pad(h1)}:${pad(m1)}`, end: `${pad(h2)}:${pad(m2)}`, matchText: colRange[0], index: colRange.index };
+      }
+    }
+
+    // 5. 单个冒号时间: 14:30, 下午2:30, 9:30am
+    const stMatch = norm.match(/(?:(上午|早上|早晨|中午|下午|傍晚|晚上|晚)\s*)?(\d{1,2}:[0-5]\d)\s*(am|pm)?/i);
+    if (stMatch) {
+      let [h, m] = stMatch[2].split(':').map(Number);
+      if (h <= 23) {
+        h = adjustHourByPeriod(h, stMatch[1] || stMatch[3] || '', null);
+        return { start: `${pad(h)}:${pad(m)}`, end: '', matchText: stMatch[0], index: stMatch.index };
+      }
+    }
+
+    // 6. 单个中文点/时: 下午2点半, 10点, 14点30分
+    const cnSingle = norm.match(/(上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*(\d{1,2})(?:点|时)(?:(\d{1,2})分|(半))?/);
+    if (cnSingle) {
+      let h = parseInt(cnSingle[2], 10);
+      const m = cnSingle[3] ? parseInt(cnSingle[3], 10) : (cnSingle[4] ? 30 : 0);
+      if (h >= 0 && h <= 23 && m <= 59) {
+        h = adjustHourByPeriod(h, cnSingle[1] || '', null);
+        return { start: `${pad(h)}:${pad(m)}`, end: '', matchText: cnSingle[0], index: cnSingle.index };
+      }
+    }
+
+    if (/^(?:下午|晚上|上午|早上)\s+/.test(norm) || /[，,\s](?:下午|晚上|上午|早上)\s*[\d点时]/.test(norm)) {
+      if (/下午/.test(norm)) return { start: '14:30', end: '15:15', matchText: '下午', index: norm.indexOf('下午') };
+      if (/晚上/.test(norm)) return { start: '19:30', end: '20:15', matchText: '晚上', index: norm.indexOf('晚上') };
+      if (/上午|早上/.test(norm)) return { start: '09:30', end: '10:15', matchText: '上午', index: norm.search(/上午|早上/) };
+    }
+    return { start: '', end: '', matchText: '', index: -1 };
   }
 
   function stripDateTimeAndNoise(str) {
     if (!str) return '';
-    return str
+    return normalizeSpokenChineseTimes(stripTimezoneTokens(str))
       .replace(/(\d{1,2})：(\d{2})/g, '$1:$2')
+      .replace(/(\b\d{1,2})\.([0-5]\d)\s*((?:[-~～—–－―至到与/]|——|--)\s*(?:上午|早上|中午|下午|傍晚|晚上)?\s*\d{1,2})\.([0-5]\d\b)/g, '$1:$2$3:$4')
+      .replace(/(上午|早上|中午|下午|傍晚|晚上)\s*(\d{1,2})\.([0-5]\d)\b/g, '$1$2:$3')
       .replace(/【(?:会议通知|通知|会议日程|日程安排)】/g, ' ')
-      .replace(/^\s*(?:\d+[、.)）]\s+|\d+\.\s+)/, ' ')
+      .replace(/^\s*(?:[📌🔴🟢🔵🟡📅🗓️•·▪▫▸►\-*]+\s*)+/, ' ')
+      .replace(/^\s*(?:[①②③④⑤⑥⑦⑧⑨⑩]|(?:\(\d{1,2}\)|（\d{1,2}）)|\d{1,2}[、.)）]|\d{1,2}\.\s+)\s*/, ' ')
       .replace(/(?:会议主题|主题|会议议题|议题(?!背景)|会议名称|题目|会议时间|开会时间|时间|日期)\s*[:：]\s*/g, ' ')
       .replace(/(\d{4}\s*[-/.年]\s*\d{1,2}\s*[-/.月]\s*\d{1,2}\s*[日号]?)/g, ' ')
       .replace(/(\d{1,2}\s*月\s*\d{1,2}\s*[日号]?)/g, ' ')
@@ -17394,46 +17484,159 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
       .replace(/(^|[\s，,。；;（(【\[|｜])\d{1,2}\s*[日号](?![楼层室号机栋线期标段文院门井站])/g, '$1 ')
       .replace(/(^|[\s，,。；;（(【\[|｜])(?:大后天|后天|明天|次日|明日|今天|今日|本日|同一天|当天)(?=$|[\s，,。；;：:）)\]】|｜上午下午晚上\d])/g, '$1 ')
       .replace(/(?:（|\()?\s*(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7]\s*(?:）|\))?/g, ' ')
-      .replace(/(?:上午|下午|晚上)?\s*\d{1,2}:\d{2}\s*(?:[-~至到与/—]\s*(?:上午|下午|晚上)?\s*\d{1,2}:\d{2})?/g, ' ')
-      .replace(/(?:上午|下午|晚上)?\s*\d{1,2}(?:(?:点|时)(?:\d{1,2}分|半)?)?\s*[-~至到与—]\s*(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?/g, ' ')
-      .replace(/(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?/g, ' ')
+      .replace(/(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*\d{1,2}:[0-5]\d\s*(?:am|pm)?\s*(?:(?:[-~～—–－―至到与/]|——|--)\s*(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*\d{1,2}:[0-5]\d\s*(?:am|pm)?)?/gi, ' ')
+      .replace(/(?:^|[\s（(【\[|｜])(?:[01]\d|2[0-3])[0-5]\d\s*(?:[-~～—–－―至到]|——|--)\s*(?:[01]\d|2[0-3])[0-5]\d(?=$|[\s，,。；;：:）)\]】|｜])/g, ' ')
+      .replace(/(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*\d{1,2}(?:(?:点|时)(?:\d{1,2}分|半)?)?\s*(?:[-~～—–－―至到与]|——|--)\s*(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?/g, ' ')
+      .replace(/(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?/g, ' ')
       .replace(/(?:在\s*[0-9a-zA-Z\u4e00-\u9fa5]{2,14}?(?:会议室|办公室)\s*(?:开|召开|举行)?)/g, ' ')
       .replace(/(?:地点|汇报人|参会人|参会人员|纪要人|记录人|议题背景|决策要点|核心决策)\s*[:：]\s*[^\n\r]+/g, ' ')
       .replace(/[，,。；;]\s*[^，,。；;\s\t]{2,6}(?:汇报|参会|做纪要)(?=$|[，,。；;\s])/g, ' ')
       .replace(/(?:（\s*）|\(\s*\)|【\s*】|\[\s*\])/g, ' ')
       .replace(/^\s*(?:另外|此外|还有|接着|然后|召开|举行)\s+/g, '')
-      .replace(/^[\s\t|｜，,。；;:：~—]+|[\s\t|｜，,。；;:：~—]+$/g, '')
+      .replace(/^[\s\t|｜，,。；;:：~～—–\-]+|[\s\t|｜，,。；;:：~～—–\-]+$/g, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
   }
 
-  // 若包含分隔号 | 或 ｜（如 "11:00-11:45 | 候选人面试——王超" 或 "| 1月二级计委材料预审—交付"）
-  // 分隔号左侧提取日期与时间，分隔号右侧原封不动作为会议主题！
+  function cleanLeadingListMarker(s) {
+    return String(s || '')
+      .replace(/^\s*(?:[📌🔴🟢🔵🟡📅🗓️•·▪▫▸►]+\s*)+/, '')
+      .replace(/^\s*(?:[①②③④⑤⑥⑦⑧⑨⑩]|(?:\(\d{1,2}\)|（\d{1,2}）)|\d{1,2}[、)）]|\d{1,2}\.(?!\d))\s*/, '')
+      .trim();
+  }
+
+  function isPureDateOrTimeMetaSegment(seg) {
+    if (!seg || !seg.trim()) return true;
+    const rem = stripDateTimeAndNoise(seg)
+      .replace(/^(?:GMT[+-]?\d{1,2}(?::\d{2})?|UTC[+-]?\d{1,2}|开罗时间|北京时间|当地时间|上午|下午|晚上|中午|早上)+$/gi, '')
+      .trim();
+    return rem.length === 0;
+  }
+
+  let explicitDate = '';
+  let startTime = '';
+  let endTime = '';
+  let hasExplicitTime = false;
+  let explicitIsolatedSubject = '';
   let dateTimeSourceText = text;
-  let explicitPipeSubject = '';
-  const pipeIdx = text.search(/[|｜]/);
-  if (pipeIdx !== -1) {
-    const leftPart = text.slice(0, pipeIdx).trim();
-    const rightPart = text.slice(pipeIdx + 1).replace(/^[\s|｜]+/, '').trim();
-    const leftTimes = extractTimes(leftPart);
-    const leftDate = extractDate(leftPart, fallbackDate);
-    if (rightPart && (leftPart === '' || leftTimes.start || leftDate)) {
-      dateTimeSourceText = leftPart || text;
-      explicitPipeSubject = rightPart.split(/[\r\n]+/)[0].trim();
+
+  // 策略 A：若包含显式列分隔符（|、｜ 或 Tab 	），按列智能识别哪一列是日期、哪一列是时间、哪一列是主题
+  const singleLineCheck = text.indexOf('\n') === -1 && text.indexOf('\r') === -1;
+  if (singleLineCheck && (/[|｜\t]/.test(text))) {
+    const rawCols = text.split(/[|｜\t]+/).map(c => c.trim());
+    const nonEmptyCols = rawCols.filter(Boolean);
+    if (nonEmptyCols.length >= 2) {
+      let colDate = '';
+      const colTimes = [];
+      const subjectCols = [];
+      let anyMetaCol = false;
+
+      for (let c = 0; c < nonEmptyCols.length; c++) {
+        const col = cleanLeadingListMarker(nonEmptyCols[c]);
+        if (!col) continue;
+        // 序号列 (如 "1", "2")
+        if (/^\d{1,2}$/.test(col) && c === 0 && nonEmptyCols.length >= 3) {
+          anyMetaCol = true;
+          continue;
+        }
+        const tInfo = extractTimes(col);
+        const dInfo = extractDate(col, fallbackDate);
+        if ((tInfo.start || dInfo) && isPureDateOrTimeMetaSegment(col)) {
+          anyMetaCol = true;
+          if (dInfo && !colDate) colDate = dInfo;
+          if (tInfo.start) colTimes.push(tInfo);
+        } else {
+          subjectCols.push(nonEmptyCols[c]);
+        }
+      }
+
+      if (anyMetaCol && subjectCols.length > 0) {
+        if (colDate) explicitDate = colDate;
+        if (colTimes.length >= 1) {
+          hasExplicitTime = true;
+          startTime = colTimes[0].start;
+          if (colTimes[0].end) {
+            endTime = colTimes[0].end;
+          } else if (colTimes.length >= 2 && colTimes[1].start) {
+            endTime = colTimes[1].start;
+          }
+        }
+        explicitIsolatedSubject = subjectCols[0].trim();
+      }
     }
   }
 
-  const explicitDate = extractDate(dateTimeSourceText, fallbackDate);
+  // 策略 B：单行无列分隔符时，通过定位【时间短语】的位置将行切分为 [时间前] + [时间] + [时间后]，绝不误删主题内部的日期/星期/数字
+  if (!explicitIsolatedSubject && singleLineCheck) {
+    const preCleaned = cleanLeadingListMarker(stripTimezoneTokens(text));
+    const tInfo = extractTimes(preCleaned);
+    if (tInfo.start && tInfo.index !== -1 && tInfo.matchText) {
+      let beforeTime = preCleaned.slice(0, tInfo.index).trim();
+      let afterTime = preCleaned.slice(tInfo.index + tInfo.matchText.length).trim();
+
+      // 处理时间被括号包裹的情况，例如 "(10:00-11:00) 主题" 或 "主题 (10:00-11:00)"
+      if (/[（(【\[]$/.test(beforeTime) && /^[）)】\]]/.test(afterTime)) {
+        beforeTime = beforeTime.replace(/[（(【\[]$/, '').trim();
+        afterTime = afterTime.replace(/^[）)】\]]/, '').trim();
+      }
+
+      const trimSep = s => s.replace(/^[\s|｜，,。；;:：~～—–\-]+|[\s|｜，,。；;:：~～—–\-]+$/g, '').trim();
+      const beforePureMeta = isPureDateOrTimeMetaSegment(beforeTime);
+      const afterPureMeta = isPureDateOrTimeMetaSegment(afterTime);
+
+      if (beforePureMeta && !afterPureMeta) {
+        // 典型结构：[日期/星期?] [时间] [会议主题]
+        // 仅从 beforeTime 中提取日期，afterTime 完整保留为会议主题！
+        const dFromBefore = extractDate(beforeTime, fallbackDate);
+        if (dFromBefore) explicitDate = dFromBefore;
+        hasExplicitTime = true;
+        startTime = tInfo.start;
+        endTime = tInfo.end;
+        dateTimeSourceText = beforeTime + ' ' + tInfo.matchText;
+        explicitIsolatedSubject = trimSep(afterTime);
+      } else if (!beforePureMeta && afterPureMeta) {
+        // 典型结构：[会议主题] [日期/星期?] [时间]
+        hasExplicitTime = true;
+        startTime = tInfo.start;
+        endTime = tInfo.end;
+        const dFromAfter = extractDate(afterTime, fallbackDate);
+        if (dFromAfter) explicitDate = dFromAfter;
+        // 检查 beforeTime 末尾是否紧跟了一个独立的日期短语（如 "候选人面试 11月24日"）
+        const trailingDateMatch = beforeTime.match(/^(.*?)(?:[\s，,（(【\[|｜]+)((?:\d{4}[-/.年])?\d{1,2}[-/.月]\d{1,2}[日号]?|(?:大后天|后天|明天|次日|明日|今天|今日|本日)|(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7])(?:\s*[（(]?\s*(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7]\s*[）)]?)?\s*$/);
+        if (trailingDateMatch && trailingDateMatch[1].trim()) {
+          if (!explicitDate) explicitDate = extractDate(trailingDateMatch[2], fallbackDate);
+          explicitIsolatedSubject = trimSep(trailingDateMatch[1]);
+        } else {
+          // 检查 beforeTime 开头是否有独立日期（如 "11月24日 候选人面试 14:00-15:00"）
+          const leadingDateMatch = beforeTime.match(/^((?:\d{4}[-/.年])?\d{1,2}[-/.月]\d{1,2}[日号]?|(?:大后天|后天|明天|次日|明日|今天|今日|本日)|(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7])(?:\s*[（(]?\s*(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7]\s*[）)]?)?(?:[\s，,：:|｜]+)(.+)$/);
+          if (leadingDateMatch && leadingDateMatch[2].trim()) {
+            if (!explicitDate) explicitDate = extractDate(leadingDateMatch[1], fallbackDate);
+            explicitIsolatedSubject = trimSep(leadingDateMatch[2]);
+          } else {
+            explicitIsolatedSubject = trimSep(beforeTime);
+          }
+        }
+      }
+    }
+  }
+
+  // 策略 C：多行通知或复杂自然语言兜底
+  if (!explicitIsolatedSubject) {
+    if (!explicitDate) explicitDate = extractDate(dateTimeSourceText, fallbackDate);
+    if (!hasExplicitTime) {
+      const times = extractTimes(dateTimeSourceText);
+      hasExplicitTime = Boolean(times.start);
+      startTime = times.start;
+      endTime = times.end;
+    }
+  }
+
   let date = explicitDate || fallbackDate || todayStr;
-  const times = extractTimes(dateTimeSourceText);
-  const hasExplicitTime = Boolean(times.start);
-  let startTime = times.start;
-  let endTime = times.end;
   let duration = 45;
 
   if (startTime && endTime) {
     const diff = timeToMin(endTime) - timeToMin(startTime);
-    if (diff > 0 && diff <= 480) {
+    if (diff > 0 && diff <= 600) {
       duration = diff;
     } else {
       duration = 45;
@@ -17457,8 +17660,8 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
   }
 
   let subject = '';
-  if (explicitPipeSubject) {
-    subject = explicitPipeSubject;
+  if (explicitIsolatedSubject) {
+    subject = explicitIsolatedSubject;
   } else {
     const subKv = text.match(/(?:会议主题|主题|会议议题|议题(?!背景)|会议名称|题目)\s*[:：]\s*([^\n\r]+)/);
     if (subKv) {
@@ -17467,11 +17670,15 @@ function parseMeetingFromSingleText(rawText, fallbackDate, todayRefStr) {
       const cleaned = stripDateTimeAndNoise(text);
       const linesClean = cleaned.split(/[\n\r]+/).map(s => s.trim()).filter(Boolean);
       const firstLine = (linesClean[0] || '').replace(/\t+/g, ' ').replace(/\s{2,}/g, ' ').trim();
-      subject = firstLine.replace(/^(?:在.{2,12}(?:办公室|会议室)\s*(?:召开|举行|开)|(?:召开|举行)\s+)/, '').replace(/^[\s|｜，,。：:~]+|[\s|｜，,。：:~]+$/g, '').trim();
+      subject = firstLine.replace(/^(?:在.{2,12}(?:办公室|会议室)\s*(?:召开|举行|开)|(?:召开|举行)\s+)/, '').replace(/^[\s|｜，,。：:~～—–\-]+|[\s|｜，,。：:~～—–\-]+$/g, '').trim();
     }
   }
 
-  subject = subject.replace(/^[【\[]?(?:会议通知|通知)[】\]]?\s*/, '').replace(/^[\s|｜]+/, '').trim();
+  subject = subject
+    .replace(/^[【\[]?(?:会议通知|通知)[】\]]?\s*/, '')
+    .replace(/^(?:会议主题|主题|会议议题|议题(?!背景)|会议名称|题目)\s*[:：]\s*/, '')
+    .replace(/^[\s|｜]+/, '')
+    .trim();
   if (!subject) return null;
 
   return {
@@ -17504,17 +17711,22 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
   let activeDate = referenceDate || todayStr;
 
   function probeText(str, curDate) {
-    return parseMeetingFromSingleText(str + ' 占位主题', curDate, todayStr);
+    return parseMeetingFromSingleText(str + ' | 占位主题', curDate, todayStr);
   }
 
   function extractDateOnly(line, curDate) {
-    if (!line || /[|｜]/.test(line)) return '';
-    const p = probeText(line, curDate);
+    if (!line) return '';
+    const cleanedLine = line
+      .replace(/^\s*(?:[📌🔴🟢🔵🟡📅🗓️•·▪▫▸►\-*]+\s*)+/, '')
+      .replace(/^[【\[（(]+|[】\]）):：]+$/g, '')
+      .trim();
+    if (!cleanedLine || /[|｜]/.test(cleanedLine)) return '';
+    const p = probeText(cleanedLine, curDate);
     if (!p || !p.hasExplicitDate || p.hasExplicitTime) return '';
-    const testParsed = parseMeetingFromSingleText(line, curDate, todayStr);
+    const testParsed = parseMeetingFromSingleText(cleanedLine, curDate, todayStr);
     if (!testParsed) return p.date;
     const rem = (testParsed.subject || '')
-      .replace(/^(?:日程安排|会议安排|会议日程|今日日程|明日日程|本周日程|下周日程|排期|日程|安排|会议|汇总|如下|通知)+$/g, '')
+      .replace(/^(?:日程安排|会议安排|会议日程|今日日程|明日日程|本周日程|下周日程|排期|日程|安排|会议|汇总|如下|通知|：|:)+$/g, '')
       .trim();
     return rem.length === 0 ? p.date : '';
   }
@@ -17541,7 +17753,7 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
         let rowSlotEnd = '10:45';
         let rowSlotDur = 45;
         if (!(0 in gridDayCols) && rowCells[0]) {
-          const rowTimeProbe = parseMeetingFromSingleText(rowCells[0] + ' 占位主题', activeDate, todayStr);
+          const rowTimeProbe = parseMeetingFromSingleText(rowCells[0] + ' | 占位主题', activeDate, todayStr);
           if (rowTimeProbe && rowTimeProbe.hasExplicitTime) {
             rowSlotStart = rowTimeProbe.startTime;
             rowSlotEnd = rowTimeProbe.endTime;
@@ -17572,7 +17784,7 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
     }
   }
 
-  const timeUnitRegex = /(?:上午|下午|晚上)?\s*(?:\d{1,2}[：:]\d{2}\s*[-~至到与/—]\s*(?:上午|下午|晚上)?\s*\d{1,2}[：:]\d{2}|\d{1,2}(?:(?:点|时)(?:\d{1,2}分|半)?)?\s*[-~至到与—]\s*(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?|\d{1,2}[：:]\d{2}|(?:上午|下午|晚上)?\s*\d{1,2}(?:点|时)(?:\d{1,2}分|半)?)/g;
+  const timeUnitRegex = /(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*(?:\d{1,2}[：:.][0-5]\d\s*(?:am|pm)?\s*(?:[-~～—–－―至到与/]|——|--)\s*(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*\d{1,2}[：:.][0-5]\d\s*(?:am|pm)?|(?:[01]\d|2[0-3])[0-5]\d\s*(?:[-~～—–－―至到]|——|--)\s*(?:[01]\d|2[0-3])[0-5]\d|(?:\d{1,2}|十一|十二|十|[一二两三四五六七八九])(?:(?:点|时)(?:\d{1,2}分|半)?)?\s*(?:[-~～—–－―至到与]|——|--)\s*(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*(?:\d{1,2}|十一|十二|十|[一二两三四五六七八九])(?:点|时)(?:\d{1,2}分|半)?|\d{1,2}[：:][0-5]\d\s*(?:am|pm)?|(?:上午|早上|早晨|中午|下午|傍晚|晚上|晚)?\s*(?:\d{1,2}|十一|十二|十|[一二两三四五六七八九])(?:点|时)(?:\d{1,2}分|半)?)/gi;
   const combinedDateUnitRegex = /(?:(?:\d{4}\s*[-/.年]\s*\d{1,2}\s*[-/.月]\s*\d{1,2}\s*[日号]?|\d{1,2}\s*月\s*\d{1,2}\s*[日号]?|(?:^|[\s，,。；;（(【\[])\d{1,2}\.\d{1,2}(?=$|[\s，,。；;：:）)\]】周星])|(?:^|[\s，,。；;（(【\[])\d{1,2}\s*[日号](?![楼层室号机栋线期标段文院门井站])|(?:大后天|后天|明天|次日|明日|今天|今日|本日)|(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7])(?:\s*[（(]?\s*(?:下周|本周|这周|周|星期|礼拜)[一二三四五六日天1-7]\s*[）)]?)?)/g;
 
   function hasSub(s) {
@@ -17591,28 +17803,32 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
   }
 
   function splitLineSmart(line) {
+    line = line.replace(/[（(\[【]?\s*(?:GMT|UTC)\s*[+-]?\s*\d{1,2}(?:[：:]\d{2})?\s*[）)\]】]?/gi, ' ').trim();
+    // 若包含列分隔符 |、｜ 或 	，整行作为一条结构化记录，绝不按分号或内部日期拆碎
+    if (/[|｜\t]/.test(line)) {
+      return [line.trim()];
+    }
+
+    // 仅当分号/句号切分出的每一段都带有明确的时间（或首段为纯日期且其余段均带时间）时才拆行，防止将带有分号的会议主题拆碎
     const rawSemiParts = line.split(/[；;。]+/).map(s => s.trim()).filter(Boolean);
     let parts = [line.trim()];
-    if (rawSemiParts.length >= 2 && rawSemiParts.every(seg => hasTm(seg) || hasDt(seg))) {
+    if (rawSemiParts.length >= 2 && rawSemiParts.every((seg, idx) => hasTm(seg) || (idx === 0 && extractDateOnly(seg, activeDate)))) {
       parts = rawSemiParts;
     }
 
     const byDate = [];
     for (const p of parts) {
-      const pipeCount = (p.match(/[|｜]/g) || []).length;
-      if (pipeCount === 1) {
-        byDate.push(p);
-        continue;
-      }
+      const tMatchesInP = [...p.matchAll(timeUnitRegex)];
       const dMatches = [...p.matchAll(combinedDateUnitRegex)];
-      if (dMatches.length >= 2) {
+      // 只有当同一行中确实出现 >=2 个时间（或首段是纯日期头），才按日期切分多场会议，防止把会议名称里的日期拆成两场会议
+      if (dMatches.length >= 2 && tMatchesInP.length >= 2) {
         let lastIdx = 0;
         for (let k = 1; k < dMatches.length; k++) {
           let idx = dMatches[k].index;
           if (idx > 0 && /[\s，,。；;]/.test(p[idx])) idx++;
           const prev = p.slice(lastIdx, idx).replace(/[，,;；。\s]+$/, '').trim();
           const rest = p.slice(idx).trim();
-          if (hasSub(prev) && (hasDt(prev) || hasTm(prev)) && (hasTm(rest) || extractDateOnly(rest, activeDate))) {
+          if (hasSub(prev) && hasTm(prev) && hasTm(rest)) {
             byDate.push(prev);
             lastIdx = idx;
           }
@@ -17648,9 +17864,31 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
     return finalParts;
   }
 
+  function isNoiseOrMetadataLine(line) {
+    if (!line) return true;
+    const s = line.trim();
+    if (!s) return true;
+    if (/^[━─—\-=_*#]{3,}$/.test(s)) return true;
+    if (/^↳/.test(s)) return true;
+    if (/^📅\s*.*日程安排/.test(s) || /^【主管会议日程总览/.test(s) || /^由\s*Snoopy/i.test(s) || /^秘书处提示[:：]/.test(s)) return true;
+    if (/^[【\[]?(?:会议通知|通知|会议日程|日程安排)[】\]]?[:：]?$/.test(s)) return true;
+    if (/邀请您参加(?:腾讯会议|WeLink|华为云会议|Zoom|Teams)/i.test(s)) return true;
+    if (/^(?:点击链接入会|手机一键拨号入会|根据您的位置拨号|复制该信息|打开手机WeLink)/i.test(s)) return true;
+    if (/^https?:\/\//i.test(s)) return true;
+    if (/^(?:会议地点|开会地点|地点|腾讯会议|WeLink|会议室|会议\s*ID|会议号|会议密码|入会密码|会议链接|入会链接|汇报人|主讲人|主持人|召集人|发起人|参会人员|与会人员|出席人员|参会人|纪要人|记录人|会议纪要|议题背景|会议背景|背景说明|背景|核心决策点|决策要点|决策点|决议事项|备注|说明)\s*[:：]/i.test(s)) {
+      return true;
+    }
+    // 表格表头行忽略 (如 "日期 | 时间 | 会议主题")
+    if (/^(?:序号\s*[|｜\t\s]+)?(?:日期\s*[|｜\t\s]+)?(?:会议时间|时间|开始时间)\s*[|｜\t\s]+(?:结束时间\s*[|｜\t\s]+)?(?:会议主题|主题|会议名称|议题)/.test(s)) {
+      return true;
+    }
+    return false;
+  }
+
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   const expandedLines = [];
   for (const line of lines) {
+    if (isNoiseOrMetadataLine(line)) continue;
     expandedLines.push(...splitLineSmart(line));
   }
 
@@ -17666,11 +17904,7 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
 
   for (let i = 0; i < expandedLines.length; i++) {
     const line = expandedLines[i];
-
-    if (/^[【\[]?(?:会议通知|通知|会议日程|日程安排)[】\]]?[:：]?$/.test(line)) continue;
-    if (/^(?:会议地点|开会地点|地点|腾讯会议|WeLink|会议室|汇报人|主讲人|参会人员|与会人员|出席人员|参会人|纪要人|记录人|会议纪要|议题背景|会议背景|背景说明|背景|核心决策点|决策要点|决策点|决议事项)\s*[:：]/.test(line)) {
-      continue;
-    }
+    if (isNoiseOrMetadataLine(line)) continue;
 
     const dOnly = extractDateOnly(line, activeDate);
     if (dOnly) {
@@ -17678,7 +17912,16 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
       continue;
     }
 
-    const probe = probeText(line, activeDate);
+    // 处理同行包含 "日期：2026-11-24" 但无会议主题的行
+    if (/^(?:会议日期|日期)\s*[:：]/.test(line) && !hasTm(line)) {
+      const pDate = probeText(line.replace(/^(?:会议日期|日期)\s*[:：]\s*/, ''), activeDate);
+      if (pDate && pDate.hasExplicitDate) {
+        activeDate = pDate.date;
+        continue;
+      }
+    }
+
+    const probe = parseMeetingFromSingleText(line, activeDate, todayStr);
     if (probe && probe.hasExplicitDate) {
       activeDate = probe.date;
     }
@@ -17689,7 +17932,7 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
     if (lineHasTime && !lineHasSub && i + 1 < expandedLines.length) {
       const nextLine = expandedLines[i + 1];
       if (!extractDateOnly(nextLine, activeDate) && !hasTm(nextLine)) {
-        const merged = parseMeetingFromSingleText(line + ' ' + nextLine, activeDate, todayStr);
+        const merged = parseMeetingFromSingleText(line + ' | ' + nextLine, activeDate, todayStr);
         if (merged && merged.subject) {
           activeDate = merged.date;
           results.push(merged);
@@ -17706,22 +17949,22 @@ function parseMeetingsFromAnyText(rawText, referenceDate) {
       const nextHasSub = hasSub(nextLine);
 
       if ((nextHasTime || /^(?:时间|会议时间|日期|开会时间)\s*[:：]/.test(nextLine)) && !nextHasSub) {
-        let combined = line + '\n' + nextLine;
+        let timeMeta = nextLine.replace(/^(?:时间|会议时间|日期|开会时间)\s*[:：]\s*/, '');
         i++;
         if (i + 1 < expandedLines.length && hasTm(expandedLines[i + 1]) && !hasSub(expandedLines[i + 1])) {
-          combined += '\n' + expandedLines[i + 1];
+          timeMeta += ' ' + expandedLines[i + 1].replace(/^(?:时间|会议时间|日期|开会时间)\s*[:：]\s*/, '');
           i++;
         }
-        const merged = parseMeetingFromSingleText(combined, activeDate, todayStr);
+        const merged = parseMeetingFromSingleText(timeMeta + ' | ' + line, activeDate, todayStr);
         if (merged && merged.subject) {
           activeDate = merged.date;
           results.push(merged);
           continue;
         }
       } else if (nextIsDateOnly && i + 2 < expandedLines.length && hasTm(expandedLines[i + 2]) && !hasSub(expandedLines[i + 2])) {
-        const combined = line + '\n' + nextLine + '\n' + expandedLines[i + 2];
+        const timeMeta = nextLine + ' ' + expandedLines[i + 2].replace(/^(?:时间|会议时间|日期|开会时间)\s*[:：]\s*/, '');
         i += 2;
-        const merged = parseMeetingFromSingleText(combined, activeDate, todayStr);
+        const merged = parseMeetingFromSingleText(timeMeta + ' | ' + line, activeDate, todayStr);
         if (merged && merged.subject) {
           activeDate = merged.date;
           results.push(merged);
@@ -17764,7 +18007,8 @@ function applySmartMeetingTextToModal() {
   }
 
   const defaultDate = document.getElementById('inputMeetingDate').value || selectedTimelineDate || getTodayDateStr();
-  const parsed = parseMeetingFromSingleText(rawText, defaultDate, getTodayDateStr());
+  const multiParsed = parseMeetingsFromAnyText(rawText, defaultDate);
+  const parsed = (multiParsed && multiParsed.length > 0) ? multiParsed[0] : parseMeetingFromSingleText(rawText, defaultDate, getTodayDateStr());
   if (!parsed || !parsed.subject) {
     showToast('⚠️ 未能识别出会议主题，请检查粘贴文本');
     return;
@@ -23367,7 +23611,7 @@ initHostDatabaseSync();
 initMobileAppMode();
 window.addEventListener('resize', () => { initMobileAppMode(); });
 
-window.APP_VERSION = 'v1.8.5';
+window.APP_VERSION = 'v1.8.6';
 console.log("Snoopy's Little Lab loaded successfully (" + window.APP_VERSION + ") with smart calendar import, auto free slots, and chronological timezones!");
 </script>
 </body>
