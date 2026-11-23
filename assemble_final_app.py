@@ -8446,6 +8446,7 @@ const STORAGE_KEYS = {
   MONTHLY_ROUTINES: 'snoopy_monthly_routines_v1',
   MONTHLY_CHECKLIST: 'snoopy_monthly_checklist_v1',
   LEGACY_TASKS: 'snoopy_legacy_tasks_v1',
+  LEGACY_REPORT_MEMORY: 'snoopy_legacy_report_memory_v1',
   THEME: 'snoopy_theme_v6'
 };
 
@@ -13164,6 +13165,7 @@ function doesMeetingMatchLegacyTask(meeting, task) {
   var mSub = String(meeting.subject || '').trim();
   var tTitle = String(task.title || '').trim();
   if (!mSub || !tTitle) return false;
+  if (mSub.toLowerCase() === tTitle.toLowerCase()) return true;
 
   var mBrackets = extractLegacyBrackets(mSub);
   var tBrackets = extractLegacyBrackets(tTitle);
@@ -13216,21 +13218,23 @@ function getNormalizedTaskReports(task, allMeetings) {
   if (!task) return [];
   var reports = [];
 
-  // 1. 严格过滤：绝不根据审核意见制造汇报！仅允许在界面主动点击“登记汇报”保存的手工记录 (isManual === true)
+  // 1. 保留任务自身已记录或从历史记忆库恢复的所有合法开会/汇报记录
   if (Array.isArray(task.reports)) {
     task.reports.forEach(function(r) {
-      if (r && r.isManual === true && r.reportTime) {
-        var rt = String(r.reportTime).trim();
+      var rawTime = r ? (r.reportTime || r.time || '') : '';
+      if (r && (r.isManual === true || r.meetingId || String(r.id || '').indexOf('rep_') === 0) && rawTime) {
+        var rt = String(rawTime).trim();
         if (rt && rt !== 'SITE' && rt !== 'Y' && rt !== 'N' && rt !== 'FBB' && rt !== 'TMO' && rt !== 'NFV') {
           reports.push({
             id: r.id || ('rep_' + Math.random()),
             seq: r.seq || 1,
             reportTime: rt,
+            time: rt,
             hasMinutes: Boolean(r.hasMinutes),
-            minutes: r.minutes || '',
-            reviewOpinion: r.reviewOpinion || '',
+            minutes: r.minutes || r.reviewOpinion || '',
+            reviewOpinion: r.reviewOpinion || r.minutes || '',
             meetingId: r.meetingId || null,
-            meetingSubject: r.meetingSubject || '',
+            meetingSubject: r.meetingSubject || r.subject || '',
             isManual: true,
             reporter: r.reporter || task.owner || ''
           });
@@ -13491,8 +13495,13 @@ function execCommandCopy(text, successMsg) {
 }
 
 function renderLegacyTasks() {
-  const allTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  let allTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
+
+  // 自动将已有开会/汇报记录备份到历史记忆库，并自动为尚未恢复记录的同名任务恢复开会记录
+  if (typeof syncAndRestoreLegacyTasksMemory === 'function') {
+    allTasks = syncAndRestoreLegacyTasksMemory(allTasks, allMeetings);
+  }
 
   // 严格规则：默认只展示 open 任务和申请关闭任务；勾选查看已关闭后展示已关闭任务
   const panelTasks = allTasks.filter(t => isAllowedPanelTask(t, legacyShowClosedTasks));
@@ -14010,6 +14019,9 @@ function saveAddReportSession() {
   tasks[idx].updatedAt = Date.now();
 
   setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
+  if (typeof archiveLegacyTaskReportsToMemory === 'function') {
+    archiveLegacyTaskReportsToMemory(tasks);
+  }
   closeModal('legacyAddReportModal');
   renderLegacyTasks();
   showToast(`🎉 已成功登记第${nextSeq}次向曦总汇报记录！`);
@@ -14087,6 +14099,9 @@ function saveEditReportSession() {
   tasks[tIdx].updatedAt = Date.now();
 
   setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
+  if (typeof archiveLegacyTaskReportsToMemory === 'function') {
+    archiveLegacyTaskReportsToMemory(tasks);
+  }
 
   // 双向联动：如果本次汇报关联了预约会议，同步更新会议纪要状态
   if (meetingIdToUpdate) {
@@ -14177,7 +14192,7 @@ function saveLegacyTask() {
       tasks[idx].updatedAt = Date.now();
     }
   } else {
-    tasks.unshift({
+    const newTaskObj = {
       id: Date.now(),
       title: title,
       owner: owner || '待分配',
@@ -14187,10 +14202,17 @@ function saveLegacyTask() {
       hasMinutes: false,
       createdAt: Date.now(),
       updatedAt: Date.now()
-    });
+    };
+    if (typeof restoreLegacyTaskReportFromMemory === 'function') {
+      restoreLegacyTaskReportFromMemory(newTaskObj);
+    }
+    tasks.unshift(newTaskObj);
   }
 
   setData(STORAGE_KEYS.LEGACY_TASKS, tasks);
+  if (typeof archiveLegacyTaskReportsToMemory === 'function') {
+    archiveLegacyTaskReportsToMemory(tasks);
+  }
   closeModal('legacyTaskModal');
   renderLegacyTasks();
   showToast('💾 遗留任务已保存！');
@@ -14540,11 +14562,6 @@ function matchLegacyHeaderColumns(row) {
     }
   });
 
-  // 严格兜底：B 列 (index 1) 是且仅是 遗留任务 (*问题描述)，C 列 (index 2) 是 责任人 (*责任人)
-  if (colMap.title === -1 && row.length > 1) colMap.title = 1;
-  if (colMap.owner === -1 && row.length > 2) colMap.owner = 2;
-  if (colMap.status === -1 && row.length > 0) colMap.status = 0;
-
   return colMap;
 }
 
@@ -14682,6 +14699,192 @@ function fillLegacyImportSample() {
   }
 }
 
+function normalizeLegacyTaskMemoryKey(title) {
+  return String(title || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+}
+
+function getLegacyTaskBracketKey(title) {
+  var m = String(title || '').match(/【([^】]+)】/);
+  if (m && m[1] && m[1].trim().length >= 2) {
+    return 'bracket:' + m[1].trim().toLowerCase();
+  }
+  return '';
+}
+
+function archiveLegacyTaskReportsToMemory(tasksList) {
+  var list = Array.isArray(tasksList) ? tasksList : getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  var allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
+  var mem = getData(STORAGE_KEYS.LEGACY_REPORT_MEMORY, {});
+  if (!mem || typeof mem !== 'object' || Array.isArray(mem)) mem = {};
+  var changed = false;
+
+  list.forEach(function(task) {
+    if (!task || !task.title) return;
+    var key = normalizeLegacyTaskMemoryKey(task.title);
+    if (!key) return;
+    var bKey = getLegacyTaskBracketKey(task.title);
+    var normReps = getNormalizedTaskReports(task, allMeetings);
+    var hasRepData = normReps.length > 0 || (task.reportTime && String(task.reportTime).trim()) || task.hasMinutes;
+    if (!hasRepData) return;
+
+    var existing = mem[key] || (bKey && mem[bKey]) || {
+      title: task.title,
+      reports: [],
+      reportTime: '',
+      hasMinutes: false,
+      reviewOpinion: ''
+    };
+
+    var mergedReps = Array.isArray(existing.reports) ? existing.reports.slice() : [];
+    normReps.forEach(function(r) {
+      var rTime = String(r.reportTime || r.time || '').trim();
+      var rMin = r.minutes || r.reviewOpinion || '';
+      var dup = mergedReps.some(function(er) {
+        var erTime = String(er.reportTime || er.time || '').trim();
+        if (r.meetingId && er.meetingId && String(r.meetingId) === String(er.meetingId)) return true;
+        if (rTime && erTime && rTime === erTime) return true;
+        return false;
+      });
+      if (!dup) {
+        mergedReps.push({
+          id: r.id || ('rep_mem_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
+          reportTime: rTime,
+          time: rTime,
+          minutes: rMin,
+          reviewOpinion: rMin,
+          hasMinutes: !!(r.hasMinutes || (rMin && rMin.trim())),
+          meetingId: r.meetingId || null,
+          meetingSubject: r.meetingSubject || r.subject || '',
+          subject: r.meetingSubject || r.subject || '',
+          isManual: true
+        });
+      } else {
+        mergedReps.forEach(function(er) {
+          var erTime = String(er.reportTime || er.time || '').trim();
+          var same = (r.meetingId && er.meetingId && String(r.meetingId) === String(er.meetingId)) ||
+                     (rTime && erTime && rTime === erTime);
+          if (same) {
+            if (rMin && (!er.minutes || rMin.length >= er.minutes.length)) {
+              er.minutes = rMin;
+              er.reviewOpinion = rMin;
+            }
+            if (r.hasMinutes) er.hasMinutes = true;
+          }
+        });
+      }
+    });
+
+    mergedReps.sort(function(a, b) {
+      return String(a.reportTime || a.time || '').localeCompare(String(b.reportTime || b.time || ''));
+    });
+
+    var latestRepTime = mergedReps.length > 0 ? (mergedReps[mergedReps.length - 1].reportTime || mergedReps[mergedReps.length - 1].time || '') : '';
+    var record = {
+      title: task.title,
+      reports: mergedReps,
+      reportTime: latestRepTime || task.reportTime || existing.reportTime || '',
+      hasMinutes: mergedReps.some(function(r) { return r.hasMinutes || (r.minutes && r.minutes.trim()); }) || !!task.hasMinutes || !!existing.hasMinutes,
+      reviewOpinion: (task.reviewOpinion && String(task.reviewOpinion).trim()) ? task.reviewOpinion : (existing.reviewOpinion || ''),
+      updatedAt: Date.now()
+    };
+
+    mem[key] = record;
+    if (bKey) {
+      mem[bKey] = record;
+    }
+    changed = true;
+  });
+
+  if (changed) {
+    setData(STORAGE_KEYS.LEGACY_REPORT_MEMORY, mem);
+  }
+  return mem;
+}
+
+function findMemoryRecordForTask(task, mem) {
+  if (!task || !task.title || !mem || typeof mem !== 'object') return null;
+  var key = normalizeLegacyTaskMemoryKey(task.title);
+  if (key && mem[key]) return mem[key];
+  var bKey = getLegacyTaskBracketKey(task.title);
+  if (bKey && mem[bKey]) return mem[bKey];
+  return null;
+}
+
+function restoreLegacyTaskReportFromMemory(task, mem, allMeetings) {
+  if (!task || !task.title) return false;
+  var memoryMap = mem || getData(STORAGE_KEYS.LEGACY_REPORT_MEMORY, {});
+  var meetings = allMeetings || getData(STORAGE_KEYS.MEETINGS, []);
+  var rec = findMemoryRecordForTask(task, memoryMap);
+  var restored = false;
+
+  if (rec) {
+    if (!Array.isArray(task.reports)) task.reports = [];
+    if (Array.isArray(rec.reports) && rec.reports.length > 0) {
+      rec.reports.forEach(function(r) {
+        var rTime = String(r.reportTime || r.time || '').trim();
+        var rMin = r.minutes || r.reviewOpinion || '';
+        var dup = task.reports.some(function(tr) {
+          var trTime = String(tr.reportTime || tr.time || '').trim();
+          if (r.meetingId && tr.meetingId && String(r.meetingId) === String(tr.meetingId)) return true;
+          if (rTime && trTime && rTime === trTime) return true;
+          return false;
+        });
+        if (!dup) {
+          task.reports.push(Object.assign({}, r, {
+            reportTime: rTime,
+            time: rTime,
+            minutes: rMin,
+            reviewOpinion: rMin,
+            isManual: true
+          }));
+          restored = true;
+        }
+      });
+    }
+    if ((!task.reportTime || !String(task.reportTime).trim()) && rec.reportTime) {
+      task.reportTime = rec.reportTime;
+      restored = true;
+    }
+    if (!task.hasMinutes && rec.hasMinutes) {
+      task.hasMinutes = true;
+      restored = true;
+    }
+    if ((!task.reviewOpinion || !String(task.reviewOpinion).trim()) && rec.reviewOpinion) {
+      task.reviewOpinion = rec.reviewOpinion;
+      restored = true;
+    }
+  }
+
+  var norm = getNormalizedTaskReports(task, meetings);
+  if (norm.length > 0) {
+    if (!task.reportTime || !String(task.reportTime).trim()) {
+      task.reportTime = norm[norm.length - 1].reportTime || norm[norm.length - 1].time || '';
+    }
+    restored = true;
+  }
+  return restored;
+}
+
+function syncAndRestoreLegacyTasksMemory(tasksList, allMeetings) {
+  if (!Array.isArray(tasksList) || tasksList.length === 0) return Array.isArray(tasksList) ? tasksList : [];
+  var mem = archiveLegacyTaskReportsToMemory(tasksList);
+  var changed = false;
+  tasksList.forEach(function(task) {
+    var beforeCount = Array.isArray(task.reports) ? task.reports.length : 0;
+    var beforeTime = task.reportTime || '';
+    restoreLegacyTaskReportFromMemory(task, mem, allMeetings);
+    var afterCount = Array.isArray(task.reports) ? task.reports.length : 0;
+    var afterTime = task.reportTime || '';
+    if (afterCount !== beforeCount || afterTime !== beforeTime) {
+      changed = true;
+    }
+  });
+  if (changed) {
+    setData(STORAGE_KEYS.LEGACY_TASKS, tasksList);
+  }
+  return tasksList;
+}
+
 function handleLegacyImportTextChange() {
   var text = document.getElementById('inputLegacyImportText').value;
   parsedLegacyImportTasks = parseLegacyTaskRows(text);
@@ -14697,23 +14900,43 @@ function handleLegacyImportTextChange() {
     return;
   }
 
+  var mem = archiveLegacyTaskReportsToMemory();
+  var allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
+  var matchedMemoryCount = 0;
+  parsedLegacyImportTasks.forEach(function(t) {
+    var normBefore = getNormalizedTaskReports(t, allMeetings);
+    var rec = findMemoryRecordForTask(t, mem);
+    if ((rec && ((rec.reports && rec.reports.length > 0) || rec.reportTime)) || normBefore.length > 0) {
+      matchedMemoryCount++;
+    }
+  });
+
   if (emptyTip) emptyTip.style.display = 'none';
   if (previewArea) previewArea.style.display = 'block';
   if (btnConfirm) btnConfirm.disabled = false;
 
   var countBadge = document.getElementById('legacyImportCountBadge');
   if (countBadge) {
-    countBadge.textContent = '✓ 成功识别出 ' + parsedLegacyImportTasks.length + ' 项部门遗留任务';
+    countBadge.textContent = '✓ 成功识别出 ' + parsedLegacyImportTasks.length + ' 项部门遗留任务' + (matchedMemoryCount > 0 ? '（已自动匹配保留 ' + matchedMemoryCount + ' 项历史开会记录）' : '');
   }
 
   var tableBody = document.getElementById('legacyImportPreviewTableBody');
   if (tableBody) {
     tableBody.innerHTML = parsedLegacyImportTasks.slice(0, 15).map(function(t, idx) {
+      var tempTask = Object.assign({}, t, { reports: Array.isArray(t.reports) ? t.reports.slice() : [] });
+      restoreLegacyTaskReportFromMemory(tempTask, mem, allMeetings);
+      var reps = getNormalizedTaskReports(tempTask, allMeetings);
+      var repHtml = reps.length > 0
+        ? '<span style="color:#059669; font-weight:800;">🟢 已继承 ' + reps.length + ' 次开会 (' + escapeHtml(reps[reps.length - 1].time) + ')</span>'
+        : (tempTask.reportTime ? '<span style="color:#059669; font-weight:700;">🟢 ' + escapeHtml(tempTask.reportTime) + '</span>' : '⚪ 待从预约会议自动匹配');
+      var minHtml = (tempTask.hasMinutes || reps.some(function(r) { return r.hasMinutes || (r.minutes && r.minutes.trim()); }))
+        ? '<span style="color:#0284c7; font-weight:700;">✓ 已有纪要</span>'
+        : '待输出';
       return '<tr>' +
         '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; font-weight:700; color:#0f172a;">' + (idx + 1) + '. ' + escapeHtml(t.title) + '</td>' +
         '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#0284c7; font-weight:700; white-space:nowrap;">👤 ' + escapeHtml(t.owner) + '</td>' +
-        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:11.5px;">⚪ 待从预约会议自动匹配</td>' +
-        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:11.5px;">待输出</td>' +
+        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:11.5px;">' + repHtml + '</td>' +
+        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; color:#64748b; font-size:11.5px;">' + minHtml + '</td>' +
         '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; font-weight:700; font-size:11.5px;">' + escapeHtml(t.status) + '</td>' +
       '</tr>';
     }).join('');
@@ -14732,20 +14955,38 @@ function confirmImportLegacyTasks() {
 
   const mode = document.querySelector('input[name="legacyImportModeRadio"]:checked') ? document.querySelector('input[name="legacyImportModeRadio"]:checked').value : 'append';
   let currentTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
+  const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
+
+  // 先把当前列表中已有的开会/汇报记录归档到持久记忆库
+  const mem = archiveLegacyTaskReportsToMemory(currentTasks);
+
+  let restoredCount = 0;
+  const importedTasks = parsedLegacyImportTasks.map(function(t) {
+    const taskCopy = Object.assign({}, t, { reports: Array.isArray(t.reports) ? t.reports.slice() : [] });
+    if (restoreLegacyTaskReportFromMemory(taskCopy, mem, allMeetings)) {
+      restoredCount++;
+    }
+    return taskCopy;
+  });
 
   if (mode === 'replace') {
-    if (!confirm(`确定要覆盖替换现有全部 ${currentTasks.length} 项遗留任务吗？\\n此操作将清空当前清单，并以本次导入的 ${parsedLegacyImportTasks.length} 项任务为准。`)) {
+    if (currentTasks.length > 0 && !confirm(`确定要覆盖替换现有全部 ${currentTasks.length} 项遗留任务吗？\\n（之前已登记的开会/汇报记录已自动备份，同名任务将自动继承历史开会记录）`)) {
       return;
     }
-    currentTasks = [...parsedLegacyImportTasks];
+    currentTasks = [...importedTasks];
   } else {
-    currentTasks = [...parsedLegacyImportTasks, ...currentTasks];
+    currentTasks = [...importedTasks, ...currentTasks];
   }
 
   setData(STORAGE_KEYS.LEGACY_TASKS, currentTasks);
+  archiveLegacyTaskReportsToMemory(currentTasks);
   closeModal('legacyImportModal');
   renderLegacyTasks();
-  showToast(`🎉 成功导入 ${parsedLegacyImportTasks.length} 项遗留任务！数据已同步到 Mac SQLite 数据库。`);
+  if (restoredCount > 0) {
+    showToast(`🎉 成功导入 ${importedTasks.length} 项遗留任务，并自动为您恢复了 ${restoredCount} 项同名任务的历史开会记录！`);
+  } else {
+    showToast(`🎉 成功导入 ${importedTasks.length} 项遗留任务！数据已同步到 Mac SQLite 数据库。`);
+  }
 }
 
 function clearAllLegacyTasks() {
@@ -14755,11 +14996,15 @@ function clearAllLegacyTasks() {
     return;
   }
 
+  // 先自动备份所有开过会的记录
+  const mem = archiveLegacyTaskReportsToMemory(currentTasks);
+  const archivedCount = Object.keys(mem || {}).filter(function(k) { return k.indexOf('bracket:') !== 0; }).length;
+
   const ok = confirm(
-    '⚠️ 危险操作确认：\\n\\n' +
+    '🧹 清空遗留任务确认：\\n\\n' +
     '确定要清空当前全部 ' + currentTasks.length + ' 项遗留任务吗？\\n\\n' +
-    '此操作将从主机 SQLite 数据库及本地存储中彻底抹除所有遗留任务记录，无法撤销！\\n\\n' +
-    '点击【确定】立即清空，点击【取消】保留数据。'
+    '💡 贴心保护：系统已自动为您永久备份了 ' + archivedCount + ' 项历史开会与纪要记录！后续您重新导入相同名称（或相同【标签】）的任务时，将自动恢复之前的开会记录。\\n\\n' +
+    '点击【确定】立即清空列表，点击【取消】返回。'
   );
   if (!ok) return;
 
@@ -14768,7 +15013,7 @@ function clearAllLegacyTasks() {
   if (document.getElementById('legacyImportModal')) {
     closeModal('legacyImportModal');
   }
-  showToast('🗑️ 遗留任务清单已全部清空！');
+  showToast('🗑️ 遗留任务清单已清空！（历史开会记录已安全备份，重新导入同名任务即可自动恢复）');
 }
 
 
@@ -20903,69 +21148,8 @@ function initSeeds() {
   }
 
   seedLocalOnly(STORAGE_KEYS.MEETINGS, []);
-
-  if (!localStorage.getItem(STORAGE_KEYS.LEGACY_TASKS) || JSON.parse(localStorage.getItem(STORAGE_KEYS.LEGACY_TASKS) || '[]').length === 0) {
-    seedLocalOnly(STORAGE_KEYS.LEGACY_TASKS, [
-      {
-        id: 1001,
-        status: "推进中",
-        title: "突尼斯与利比亚交付资源协调与外汇保函特批",
-        owner: "陈总",
-        createdDate: "2026-10-15",
-        targetDate: "2026-11-20",
-        updatedFinishDate: "",
-        progress: "整理两地法务补充条款，预约下周向曦总复汇报审批，跟进商务保函出具",
-        reviewOpinion: "同意汇率特批方案，补充利比亚分包合规条款后上会定夺",
-        remark: "需重点关注利比亚外汇管制，会同法务部协同",
-        reportTime: "2026-10-28 14:30",
-        isOverdue: false,
-        isCurrentNew: true,
-        isCurrentClosed: false,
-        domain: "交付商务",
-        department: "交付商务",
-        createdAt: 1730000000000
-      },
-      {
-        id: 1002,
-        title: "开罗数据中心应急演练与灾备容灾方案审批",
-        owner: "王工",
-        department: "海外IT与基础设施部",
-        priority: "p1",
-        status: "pending",
-        description: "按年度合规要求，开罗核心机房需在11月底前完成双活容灾实战演练，需向曦总汇报整体窗口期及业务割接降级方案。",
-        targetDate: "2026-11-25",
-        nextPlan: "准备演练方案PPT汇报稿，本周内发起预约向曦总做首轮专项汇报。",
-        hasMinutes: false,
-        createdAt: 1730100000000
-      },
-      {
-        id: 1003,
-        title: "中东非区域跨国差旅合规报销流程优化方案",
-        owner: "李经理",
-        department: "财务与综合管理部",
-        priority: "p1",
-        status: "in_progress",
-        description: "各办事处反馈外币汇率折算及多币种发票核销周期过长，拟优化电子发票快速通道并推行差旅预审制。",
-        targetDate: "2026-11-15",
-        nextPlan: "已向曦总汇报一次，曦总要求补充利比亚与尼日利亚特殊币种操作细则，修改后出具会议纪要并宣贯。",
-        hasMinutes: true,
-        createdAt: 1730200000000
-      },
-      {
-        id: 1004,
-        title: "Q2季度大客户维保续签与SLA服务等级协议闭环",
-        owner: "赵总",
-        department: "海外交付与商务部",
-        priority: "p0",
-        status: "completed",
-        description: "重点电信运营商年度维保合同谈判，前期商务条款存在分歧，经向曦总汇报并获授权商务折让方案后顺利签约。",
-        targetDate: "2026-10-30",
-        nextPlan: "合同已全签完毕，纪要已归档，项目已顺利移交运营团队，本项遗留任务圆满闭环。",
-        hasMinutes: true,
-        createdAt: 1729000000000
-      }
-    ]);
-  }
+  seedLocalOnly(STORAGE_KEYS.LEGACY_TASKS, []);
+  seedLocalOnly(STORAGE_KEYS.LEGACY_REPORT_MEMORY, {});
 
   seedLocalOnly(STORAGE_KEYS.TODOS, [
     { id: 101, text: "核对阿尔及利亚代表处最新提交的差旅凭证并归档", priority: "q2", quadrant: "q2", dueDate: todayStr, completed: false, archived: false },
