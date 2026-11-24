@@ -13070,7 +13070,7 @@ function extractLegacyBrackets(str) {
   return list;
 }
 
-// 核心规则：根据预约会议记录的会议名称，如果出现【xxx】，且对应遗留任务名称【xxx】，即判定为已汇报
+// 核心规则：根据预约会议记录的会议名称，如果出现【xxx】，且对应遗留任务名称【xxx】完全一致，即判定为关联汇报
 function doesMeetingMatchLegacyTask(meeting, task) {
   if (!meeting || !task) return false;
   // 1. 显式 ID 绑定
@@ -13086,32 +13086,28 @@ function doesMeetingMatchLegacyTask(meeting, task) {
   var mBrackets = extractLegacyBrackets(mSub);
   var tBrackets = extractLegacyBrackets(tTitle);
 
-  // 2. 检查会议名称中的【xxx】
-  for (var i = 0; i < mBrackets.length; i++) {
-    var mb = mBrackets[i];
-    var mbLower = mb.toLowerCase();
-
-    // 与任务中括号比对
-    for (var j = 0; j < tBrackets.length; j++) {
-      var tb = tBrackets[j];
-      var tbLower = tb.toLowerCase();
-      if (mbLower === tbLower) return true;
-      if (mbLower.length >= 4 && tbLower.indexOf(mbLower) !== -1) return true;
-      if (tbLower.length >= 4 && mbLower.indexOf(tbLower) !== -1) return true;
+  // 2. 只有当会议名称和遗留任务都带有【xxx】标签时，严格比对双方【xxx】标签是否一致
+  // 绝不允许拿【ADO】去匹配正文中偶然出现 "ADO" 字样的其他【xxx】任务！
+  if (mBrackets.length > 0 && tBrackets.length > 0) {
+    for (var i = 0; i < mBrackets.length; i++) {
+      var mb = mBrackets[i].trim();
+      var mbLower = mb.toLowerCase();
+      for (var j = 0; j < tBrackets.length; j++) {
+        var tb = tBrackets[j].trim();
+        var tbLower = tb.toLowerCase();
+        if (mbLower === tbLower) return true;
+      }
+      // 兼容任务重命名了短标签但完整保留了长标签原文（>=6字）的历史情况，如【FTTH数字化Netlive和ISDP的关系】
+      if (mb.length >= 6 && tTitle.toLowerCase().indexOf(mbLower) !== -1) return true;
     }
-
-    // 会议中的【mb】直接出现在任务标题中
-    if (tTitle.indexOf('【' + mb + '】') !== -1 || tTitle.indexOf('[' + mb + ']') !== -1) return true;
-    // 会议中括号提取出的核心关键词（长度>=3）出现在任务标题中
-    if (mb.length >= 3 && tTitle.toLowerCase().indexOf(mbLower) !== -1) return true;
+    return false;
   }
 
-  // 3. 检查任务中括号【tb】是否直接出现在会议主题中
-  for (var k = 0; k < tBrackets.length; k++) {
-    var tb2 = tBrackets[k];
-    var tb2Lower = tb2.toLowerCase();
-    if (mSub.indexOf('【' + tb2 + '】') !== -1 || mSub.indexOf('[' + tb2 + ']') !== -1) return true;
-    if (tb2.length >= 3 && mSub.toLowerCase().indexOf(tb2Lower) !== -1) return true;
+  // 3. 若遗留任务没有【xxx】标签，但会议带有【xxx】标签且标签与任务全名一致
+  if (mBrackets.length > 0 && tBrackets.length === 0) {
+    for (var k = 0; k < mBrackets.length; k++) {
+      if (mBrackets[k].trim().toLowerCase() === tTitle.toLowerCase()) return true;
+    }
   }
 
   return false;
@@ -13133,12 +13129,31 @@ function getTaskReportMeetings(task, allMeetings) {
 function getNormalizedTaskReports(task, allMeetings) {
   if (!task) return [];
   var reports = [];
+  var meetingsList = allMeetings || (typeof getData === 'function' ? getData(STORAGE_KEYS.MEETINGS, []) : []);
 
-  // 1. 保留任务自身已记录或从历史记忆库恢复的所有合法开会/汇报记录
+  // 1. 保留任务自身手动登记或从历史记忆库恢复的已开会记录
   if (Array.isArray(task.reports)) {
     task.reports.forEach(function(r) {
       var rawTime = r ? (r.reportTime || r.time || '') : '';
-      if (r && (r.isManual === true || r.meetingId || String(r.id || '').indexOf('rep_') === 0) && rawTime) {
+      if (!r || !rawTime) return;
+      var isFromMeeting = Boolean(r.meetingId || String(r.id || '').indexOf('rep_m_') === 0 || String(r.id || '').indexOf('rep_mtg_') === 0);
+      var rSub = String(r.meetingSubject || r.subject || '').trim();
+
+      // 若该条记录源自日历会议，必须校验：
+      // (a) 会议主题仍然严格匹配当前任务（防止旧版本误匹配的【ADO】污染其他任务）
+      if (isFromMeeting && rSub && !doesMeetingMatchLegacyTask({ subject: rSub }, task)) {
+        return;
+      }
+      // (b) 若该会议在当前日历中已不存在（被改期或删除），且尚未输出过纪要（未实际开会闭环），则自动剔除旧排期残影（如改期前的 11/29）
+      if (isFromMeeting && r.meetingId) {
+        var stillInCal = meetingsList.some(function(m) { return String(m.id) === String(r.meetingId); });
+        var hasMinRecord = Boolean(r.hasMinutes || (r.minutes && String(r.minutes).trim()) || (r.reviewOpinion && String(r.reviewOpinion).trim()));
+        if (!stillInCal && !hasMinRecord) {
+          return;
+        }
+      }
+
+      if ((r.isManual === true || isFromMeeting || String(r.id || '').indexOf('rep_') === 0) && rawTime) {
         var rt = String(rawTime).trim();
         if (rt && rt !== 'SITE' && rt !== 'Y' && rt !== 'N' && rt !== 'FBB' && rt !== 'TMO' && rt !== 'NFV') {
           reports.push({
@@ -13150,8 +13165,8 @@ function getNormalizedTaskReports(task, allMeetings) {
             minutes: r.minutes || r.reviewOpinion || '',
             reviewOpinion: r.reviewOpinion || r.minutes || '',
             meetingId: r.meetingId || null,
-            meetingSubject: r.meetingSubject || r.subject || '',
-            isManual: true,
+            meetingSubject: rSub,
+            isManual: !isFromMeeting,
             reporter: r.reporter || task.owner || ''
           });
         }
@@ -14644,9 +14659,18 @@ function archiveLegacyTaskReportsToMemory(tasksList) {
     var key = normalizeLegacyTaskMemoryKey(task.title);
     if (!key) return;
     var bKey = getLegacyTaskBracketKey(task.title);
-    var normReps = getNormalizedTaskReports(task, allMeetings);
-    var hasRepData = normReps.length > 0 || (task.reportTime && String(task.reportTime).trim()) || task.hasMinutes;
-    if (!hasRepData) return;
+    // 仅归档已经实际开过会（非未来待汇报，或已输出纪要，或手动登记）的记录，绝不把未来待开的日历排期固化到历史记忆库中
+    var normReps = getNormalizedTaskReports(task, allMeetings).filter(function(r) {
+      var isFromMtg = Boolean(r.meetingId || String(r.id || '').indexOf('rep_m_') === 0 || String(r.id || '').indexOf('rep_mtg_') === 0);
+      var hasMin = Boolean(r.hasMinutes || (r.minutes && String(r.minutes).trim()) || (r.reviewOpinion && String(r.reviewOpinion).trim()));
+      if (isFromMtg && isReportPending(r) && !hasMin) return false;
+      return true;
+    });
+    if (normReps.length === 0) {
+      if (mem[key]) { delete mem[key]; changed = true; }
+      if (bKey && mem[bKey]) { delete mem[bKey]; changed = true; }
+      return;
+    }
 
     var existing = mem[key] || (bKey && mem[bKey]) || {
       title: task.title,
@@ -14656,10 +14680,22 @@ function archiveLegacyTaskReportsToMemory(tasksList) {
       reviewOpinion: ''
     };
 
-    var mergedReps = Array.isArray(existing.reports) ? existing.reports.slice() : [];
+    var mergedReps = (Array.isArray(existing.reports) ? existing.reports : []).filter(function(er) {
+      var erSub = String(er.meetingSubject || er.subject || '').trim();
+      var erFromMtg = Boolean(er.meetingId || String(er.id || '').indexOf('rep_m_') === 0 || String(er.id || '').indexOf('rep_mtg_') === 0);
+      if (erFromMtg && erSub && !doesMeetingMatchLegacyTask({ subject: erSub }, task)) return false;
+      var erHasMin = Boolean(er.hasMinutes || (er.minutes && String(er.minutes).trim()) || (er.reviewOpinion && String(er.reviewOpinion).trim()));
+      if (erFromMtg && er.meetingId && !erHasMin) {
+        var stillInCal = allMeetings.some(function(m) { return String(m.id) === String(er.meetingId); });
+        if (!stillInCal || isReportPending(er)) return false;
+      }
+      return true;
+    });
+
     normReps.forEach(function(r) {
       var rTime = String(r.reportTime || r.time || '').trim();
       var rMin = r.minutes || r.reviewOpinion || '';
+      var isFromMtg = Boolean(r.meetingId || String(r.id || '').indexOf('rep_m_') === 0 || String(r.id || '').indexOf('rep_mtg_') === 0);
       var dup = mergedReps.some(function(er) {
         var erTime = String(er.reportTime || er.time || '').trim();
         if (r.meetingId && er.meetingId && String(r.meetingId) === String(er.meetingId)) return true;
@@ -14677,7 +14713,7 @@ function archiveLegacyTaskReportsToMemory(tasksList) {
           meetingId: r.meetingId || null,
           meetingSubject: r.meetingSubject || r.subject || '',
           subject: r.meetingSubject || r.subject || '',
-          isManual: true
+          isManual: !isFromMtg
         });
       } else {
         mergedReps.forEach(function(er) {
@@ -14695,16 +14731,18 @@ function archiveLegacyTaskReportsToMemory(tasksList) {
       }
     });
 
+    if (mergedReps.length === 0) return;
+
     mergedReps.sort(function(a, b) {
       return String(a.reportTime || a.time || '').localeCompare(String(b.reportTime || b.time || ''));
     });
 
-    var latestRepTime = mergedReps.length > 0 ? (mergedReps[mergedReps.length - 1].reportTime || mergedReps[mergedReps.length - 1].time || '') : '';
+    var latestRepTime = mergedReps[mergedReps.length - 1].reportTime || mergedReps[mergedReps.length - 1].time || '';
     var record = {
       title: task.title,
       reports: mergedReps,
-      reportTime: latestRepTime || task.reportTime || existing.reportTime || '',
-      hasMinutes: mergedReps.some(function(r) { return r.hasMinutes || (r.minutes && r.minutes.trim()); }) || !!task.hasMinutes || !!existing.hasMinutes,
+      reportTime: latestRepTime,
+      hasMinutes: mergedReps.some(function(r) { return r.hasMinutes || (r.minutes && r.minutes.trim()); }),
       reviewOpinion: (task.reviewOpinion && String(task.reviewOpinion).trim()) ? task.reviewOpinion : (existing.reviewOpinion || ''),
       updatedAt: Date.now()
     };
@@ -14738,10 +14776,33 @@ function restoreLegacyTaskReportFromMemory(task, mem, allMeetings) {
   var rec = findMemoryRecordForTask(task, memoryMap);
   var restored = false;
 
+  // 先清理 task.reports 中可能被旧版本误关联或已改期失效的日历会议残影
+  if (Array.isArray(task.reports) && task.reports.length > 0) {
+    task.reports = task.reports.filter(function(tr) {
+      var trSub = String(tr.meetingSubject || tr.subject || '').trim();
+      var trFromMtg = Boolean(tr.meetingId || String(tr.id || '').indexOf('rep_m_') === 0 || String(tr.id || '').indexOf('rep_mtg_') === 0);
+      if (trFromMtg && trSub && !doesMeetingMatchLegacyTask({ subject: trSub }, task)) return false;
+      var trHasMin = Boolean(tr.hasMinutes || (tr.minutes && String(tr.minutes).trim()) || (tr.reviewOpinion && String(tr.reviewOpinion).trim()));
+      if (trFromMtg && tr.meetingId && !trHasMin) {
+        var stillInCal = meetings.some(function(m) { return String(m.id) === String(tr.meetingId); });
+        if (!stillInCal) return false;
+      }
+      return true;
+    });
+  }
+
   if (rec) {
     if (!Array.isArray(task.reports)) task.reports = [];
     if (Array.isArray(rec.reports) && rec.reports.length > 0) {
       rec.reports.forEach(function(r) {
+        var rSub = String(r.meetingSubject || r.subject || '').trim();
+        var isFromMtg = Boolean(r.meetingId || String(r.id || '').indexOf('rep_m_') === 0 || String(r.id || '').indexOf('rep_mtg_') === 0);
+        if (isFromMtg && rSub && !doesMeetingMatchLegacyTask({ subject: rSub }, task)) return;
+        var rHasMin = Boolean(r.hasMinutes || (r.minutes && String(r.minutes).trim()) || (r.reviewOpinion && String(r.reviewOpinion).trim()));
+        if (isFromMtg && r.meetingId && !rHasMin) {
+          var stillInCal = meetings.some(function(m) { return String(m.id) === String(r.meetingId); });
+          if (!stillInCal) return;
+        }
         var rTime = String(r.reportTime || r.time || '').trim();
         var rMin = r.minutes || r.reviewOpinion || '';
         var dup = task.reports.some(function(tr) {
@@ -14756,32 +14817,25 @@ function restoreLegacyTaskReportFromMemory(task, mem, allMeetings) {
             time: rTime,
             minutes: rMin,
             reviewOpinion: rMin,
-            isManual: true
+            isManual: !isFromMtg
           }));
           restored = true;
         }
       });
     }
-    if ((!task.reportTime || !String(task.reportTime).trim()) && rec.reportTime) {
-      task.reportTime = rec.reportTime;
-      restored = true;
-    }
-    if (!task.hasMinutes && rec.hasMinutes) {
-      task.hasMinutes = true;
-      restored = true;
-    }
     if ((!task.reviewOpinion || !String(task.reviewOpinion).trim()) && rec.reviewOpinion) {
       task.reviewOpinion = rec.reviewOpinion;
-      restored = true;
     }
   }
 
   var norm = getNormalizedTaskReports(task, meetings);
   if (norm.length > 0) {
-    if (!task.reportTime || !String(task.reportTime).trim()) {
-      task.reportTime = norm[norm.length - 1].reportTime || norm[norm.length - 1].time || '';
-    }
+    task.reportTime = norm[norm.length - 1].reportTime || norm[norm.length - 1].time || '';
+    task.hasMinutes = norm.some(function(r) { return r.hasMinutes || (r.minutes && String(r.minutes).trim()); });
     restored = true;
+  } else {
+    task.reportTime = '';
+    task.hasMinutes = false;
   }
   return restored;
 }
