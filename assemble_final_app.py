@@ -8034,118 +8034,34 @@ body.is-desktop-forced .floating-back-to-mobile {
 
   <!-- ================= MODAL: IMPORT LEGACY TASKS ================= -->
   <div class="modal-overlay" id="legacyImportModal">
-    <div class="modal-box" style="max-width: 780px; width: 95vw;">
+    <div class="modal-box" style="max-width: 420px; width: 92vw;">
       <div class="modal-header">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:20px;">📥</span>
-          <div class="modal-title">智能导入部门遗留任务清单</div>
+          <span style="font-size:18px;">📥</span>
+          <div class="modal-title">导入遗留任务</div>
         </div>
         <button class="btn btn-sm btn-ghost" onclick="closeModal('legacyImportModal')">✕</button>
       </div>
-      <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="modal-body" style="padding: 28px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <input type="file" id="legacyTaskFileInput" accept=".xlsx, .xls, .csv, .txt" style="display:none;" onchange="handleLegacyFileInput(event)" />
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('legacyTaskFileInput').click()" style="width:100%; max-width:260px; padding:12px 20px; font-size:14px; font-weight:700; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 12px rgba(217,119,6,0.2);">
+          📂 从电脑导入数据
+        </button>
 
-        <!-- 顶部指引与模板下载工具条 -->
-        <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div>
-            <div style="font-size:12.5px; font-weight:700; color:#92400e; margin-bottom:2px;">
-              💡 支持从 Excel / 飞书 / 钉钉 / WPS 表格直接全选复制粘贴，或上传 CSV / XLSX 文件
-            </div>
-            <div style="font-size:11.5px; color:#b45309;">
-              标准 14 列：问题状态、*问题描述、*责任人、提出时间、*要求完成日期、更新完成时间、问题进展、审核意见、备注、汇报时间、逾期任务、本期新增、本期关闭、领域
-            </div>
-            <div style="margin-top:4px; font-size:11.5px; color:#1e40af; background:#eff6ff; padding:2px 8px; border-radius:4px; display:inline-block; font-weight:700; border:1px solid #bfdbfe;">
-              🎯 Excel 文件导入规则：系统已设定仅提取「NIS重点遗留任务」Sheet 的数据，自动过滤其他无关工作表。
-            </div>
+        <!-- 隐藏内部容器以保持脚本兼容 -->
+        <div style="display:none !important;">
+          <div id="legacySheetSelectorContainer">
+            <span id="legacySheetTargetBadge"></span>
+            <select id="legacyImportSheetSelect" onchange="onLegacySheetSelected(this.value)"></select>
           </div>
-          <div style="display:flex; gap:8px; flex-shrink:0;">
-            <button type="button" class="btn btn-sm" onclick="copyLegacyTaskHeader()" style="background:#ffffff; border:1px solid #cbd5e1; font-size:11.5px; font-weight:600; color:#475569;" title="复制标准表头到剪贴板">
-              📋 复制标准表头
-            </button>
-            <button type="button" class="btn btn-sm btn-primary" onclick="downloadLegacyTaskTemplate()" style="font-size:11.5px; font-weight:700;" title="下载带有示例数据的 CSV 模板">
-              💾 下载 Excel 模板
-            </button>
-            <button type="button" class="btn btn-sm btn-ghost" onclick="clearAllLegacyTasks()" style="color:#dc2626; border:1px solid #fecaca; background:#fff; font-size:11.5px; font-weight:600;" title="清空现有全部遗留任务">
-              🗑️ 清空现有清单
-            </button>
+          <textarea id="inputLegacyImportText"></textarea>
+          <div id="legacyImportEmptyTip"></div>
+          <div id="legacyImportPreviewArea">
+            <span id="legacyImportCountBadge"></span>
+            <input type="radio" name="legacyImportModeRadio" value="replace" checked />
+            <table><tbody id="legacyImportPreviewTableBody"></tbody></table>
           </div>
-        </div>
-
-        <!-- Excel 多工作表定位与选择指示条 (只提取 NIS重点遗留任务) -->
-        <div id="legacySheetSelectorContainer" style="display:none; margin-bottom:4px; padding:7px 12px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; font-size:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:14px;">📑</span>
-            <span style="color:#0369a1; font-weight:700;">工作表范围：</span>
-            <span id="legacySheetTargetBadge" style="background:#e0f2fe; color:#0284c7; font-size:11.5px; padding:2px 8px; border-radius:4px; font-weight:700; border:1px solid #7dd3fc;">🎯 已锁定提取「NIS重点遗留任务」</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="color:#64748b; font-size:11.5px;">切换工作表:</span>
-            <select id="legacyImportSheetSelect" onchange="onLegacySheetSelected(this.value)" style="padding:3px 8px; font-size:12px; border-radius:4px; border:1px solid #93c5fd; background:#fff; font-weight:700; color:#1d4ed8; cursor:pointer; outline:none;"></select>
-          </div>
-        </div>
-
-        <!-- 文本粘贴与文件选择区域 -->
-        <div class="form-group" style="margin-bottom:0;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="font-weight:700; color:#0f172a; margin-bottom:0; font-size:12.5px;">
-              直接粘贴表格内容（Ctrl+V）：
-            </label>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <button type="button" class="btn btn-sm btn-ghost" onclick="fillLegacyImportSample()" style="color:#d97706; border:1px solid #fde68a; background:#fffbeb; font-size:11.5px; font-weight:600;">
-                ✨ 填入示例数据体验
-              </button>
-              <input type="file" id="legacyTaskFileInput" accept=".csv, .xlsx, .txt" style="display:none;" onchange="handleLegacyFileInput(event)" />
-              <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('legacyTaskFileInput').click()" style="color:#0284c7; border:1px solid #bae6fd; background:#f0f9ff; font-size:11.5px; font-weight:600;">
-                📂 从电脑选择文件...
-              </button>
-            </div>
-          </div>
-          <textarea id="inputLegacyImportText" rows="7" placeholder="请在 Excel / 飞书 / WPS 表格中选中整张任务清单，按 Ctrl+C 复制后直接在此粘贴（Ctrl+V），或点击右上角「📂 从电脑选择文件...」上传 Excel 文件。&#10;&#10;📌 上传 Excel (.xlsx) 时，系统将自动定位并仅提取「NIS重点遗留任务」工作表的数据。&#10;&#10;标准 14 列：问题状态 | *问题描述 | *责任人 | 提出时间 | *要求完成日期 | 更新完成时间 | 问题进展 | 审核意见 | 备注 | 汇报时间 | 逾期任务 | 本期新增 | 本期关闭 | 领域" style="font-family:monospace; font-size:12px; line-height:1.45; border-radius:8px;" oninput="handleLegacyImportTextChange()" onpaste="setTimeout(handleLegacyImportTextChange, 50)" onchange="handleLegacyImportTextChange()"></textarea>
-          <!-- 未识别到数据时的友好提示 -->
-          <div id="legacyImportEmptyTip" style="display:none; margin-top:8px; padding:10px 12px; background:#fff1f2; border:1px solid #fecdd3; border-radius:6px; font-size:12px; color:#9f1239;">
-            ⚠️ 暂未能解析出任务行。提示：请确保复制的内容包含「*问题描述」与「*责任人」两项核心内容；或点击上方「✨ 填入示例数据体验」查看标准格式。
-          </div>
-        </div>
-
-        <!-- 实时数据预览区域 -->
-        <div id="legacyImportPreviewArea" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span id="legacyImportCountBadge" style="font-size:12.5px; font-weight:700; color:#16a34a; background:#dcfce7; padding:2px 8px; border-radius:12px; border:1px solid #bbf7d0;"></span>
-              <span style="font-size:11.5px; color:#64748b;">(请核对下方识别数据)</span>
-            </div>
-            <!-- 导入模式单选开关 -->
-            <div style="display:flex; align-items:center; gap:12px; font-size:12px;">
-              <label style="display:flex; align-items:center; gap:4px; cursor:pointer; font-weight:600; color:#0f172a;">
-                <input type="radio" name="legacyImportModeRadio" value="append" checked /> ➕ 追加合并 (保留现有任务)
-              </label>
-              <label style="display:flex; align-items:center; gap:4px; cursor:pointer; font-weight:600; color:#b91c1c;">
-                <input type="radio" name="legacyImportModeRadio" value="replace" /> ⚠️ 覆盖替换 (清空后全量替换)
-              </label>
-            </div>
-          </div>
-
-          <!-- 预览表格 -->
-          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 6px; background:#fff;">
-            <table style="width:100%; border-collapse:collapse; font-size:11.5px; text-align:left;">
-              <thead style="position:sticky; top:0; background:#f1f5f9; z-index:1;">
-                <tr>
-                  <th style="padding:6px 8px; border-bottom:1px solid #cbd5e1; width:36%;">遗留任务 (*问题描述)</th>
-                  <th style="padding:6px 8px; border-bottom:1px solid #cbd5e1; width:16%;">责任人 (*责任人)</th>
-                  <th style="padding:6px 8px; border-bottom:1px solid #cbd5e1; width:20%;">是否汇报 (汇报日期)</th>
-                  <th style="padding:6px 8px; border-bottom:1px solid #cbd5e1; width:14%;">是否输出纪要</th>
-                  <th style="padding:6px 8px; border-bottom:1px solid #cbd5e1; width:14%;">状态</th>
-                </tr>
-              </thead>
-              <tbody id="legacyImportPreviewTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="modal-footer" style="padding-top:10px; margin-top:4px; display:flex; justify-content:space-between; align-items:center;">
-          <button type="button" class="btn" onclick="closeModal('legacyImportModal')">取消</button>
-          <button type="button" class="btn btn-primary" id="btnConfirmLegacyImport" onclick="confirmImportLegacyTasks()" disabled style="font-weight:700; padding:8px 18px; font-size:13px;">
-            🚀 确认导入至遗留任务清单
-          </button>
+          <button type="button" id="btnConfirmLegacyImport" onclick="confirmImportLegacyTasks()"></button>
         </div>
       </div>
     </div>
@@ -14378,8 +14294,8 @@ async function handleLegacyFileInput(event) {
   if (!file) return;
 
   const ext = file.name.split('.').pop().toLowerCase();
-  if (ext === 'xlsx') {
-    showToast('正在解析 Excel 并精准定位「NIS重点遗留任务」工作表...');
+  if (ext === 'xlsx' || ext === 'xls') {
+    showToast('正在从电脑导入 Excel 数据...');
     try {
       const res = await readXlsxFile(file, { targetSheet: 'NIS重点遗留任务', returnDetails: true });
       if (!res || !res.text || !res.text.trim()) {
@@ -14390,19 +14306,24 @@ async function handleLegacyFileInput(event) {
       updateLegacySheetSelector(res.sheetName, _currentLegacyWorkbookSheets);
       document.getElementById('inputLegacyImportText').value = res.text;
       handleLegacyImportTextChange();
-      if (res.matched) {
-        showToast(`✅ 成功定位并提取工作表【${res.sheetName}】（共 ${res.rowCount || 0} 行）！`);
+      if (parsedLegacyImportTasks && parsedLegacyImportTasks.length > 0) {
+        confirmImportLegacyTasks(true);
       } else {
-        showToast(`ℹ️ 未检测到「NIS重点遗留任务」，已提取【${res.sheetName}】（可在上方切换工作表）`);
+        showToast('⚠️ 未能从文件中识别出有效的遗留任务数据');
       }
     } catch (e) {
-      alert('解析 XLSX 失败，建议在 Excel 中复制后直接粘贴到文本框：' + e.message);
+      alert('解析 Excel 文件失败：' + e.message);
     }
   } else {
     const reader = new FileReader();
     reader.onload = function(e) {
       document.getElementById('inputLegacyImportText').value = e.target.result;
       handleLegacyImportTextChange();
+      if (parsedLegacyImportTasks && parsedLegacyImportTasks.length > 0) {
+        confirmImportLegacyTasks(true);
+      } else {
+        showToast('⚠️ 未能从文件中识别出有效的遗留任务数据');
+      }
     };
     reader.readAsText(file, 'utf-8');
   }
@@ -14947,13 +14868,13 @@ function handleLegacyImportTextChange() {
 }
 
 
-function confirmImportLegacyTasks() {
+function confirmImportLegacyTasks(skipConfirm) {
   if (!parsedLegacyImportTasks || parsedLegacyImportTasks.length === 0) {
     showToast('未检测到有效的遗留任务数据');
     return;
   }
 
-  const mode = document.querySelector('input[name="legacyImportModeRadio"]:checked') ? document.querySelector('input[name="legacyImportModeRadio"]:checked').value : 'append';
+  const mode = document.querySelector('input[name="legacyImportModeRadio"]:checked') ? document.querySelector('input[name="legacyImportModeRadio"]:checked').value : 'replace';
   let currentTasks = getData(STORAGE_KEYS.LEGACY_TASKS, []);
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
 
@@ -14969,8 +14890,8 @@ function confirmImportLegacyTasks() {
     return taskCopy;
   });
 
-  if (mode === 'replace') {
-    if (currentTasks.length > 0 && !confirm(`确定要覆盖替换现有全部 ${currentTasks.length} 项遗留任务吗？\\n（之前已登记的开会/汇报记录已自动备份，同名任务将自动继承历史开会记录）`)) {
+  if (mode === 'replace' || skipConfirm) {
+    if (!skipConfirm && currentTasks.length > 0 && !confirm(`确定要覆盖替换现有全部 ${currentTasks.length} 项遗留任务吗？\\n（之前已登记的开会/汇报记录已自动备份，同名任务将自动继承历史开会记录）`)) {
       return;
     }
     currentTasks = [...importedTasks];
