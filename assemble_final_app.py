@@ -16797,7 +16797,8 @@ function exportExecutiveScheduleBriefing() {
 
           const timeStr = `${dtInfo.start}–${dtInfo.end}`;
           const subject = mItem.subject || mItem.title || '待定会议';
-          lines.push(`${icon} ${timeStr}｜${subject}`);
+          const pendingTag = (mItem.status === 'pending') ? '（待领导确认）' : '';
+          lines.push(`${icon} ${timeStr}｜${subject}${pendingTag}`);
 
           // 严格规则：未注明、默认秘书处等缺失信息全部删除不展示，格式参照“提醒领导明日会议”
           const noteText = (mItem.decision || mItem.notes || mItem.background || '').trim();
@@ -16854,7 +16855,7 @@ function updateTomorrowReminderPreview() {
   const isTomorrow = (targetDateStr === tmStr);
 
   const allMeetings = getData(STORAGE_KEYS.MEETINGS, []);
-  const dayMeetings = allMeetings.filter(m => m.date === targetDateStr && m.status === 'scheduled');
+  const dayMeetings = allMeetings.filter(m => m.date === targetDateStr && m.status !== 'cancelled' && m.status !== 'deleted');
   dayMeetings.sort((a, b) => (a.startTime || a.time || '10:00').localeCompare(b.startTime || b.time || '10:00'));
 
   const trip = getTripForDate(targetDateStr);
@@ -16896,7 +16897,8 @@ function updateTomorrowReminderPreview() {
       }
 
       const subject = mItem.subject || mItem.title || '待定会议';
-      lines.push(`${icon} ${timeStr}｜${subject}`);
+      const pendingTag = (mItem.status === 'pending') ? '（待领导确认）' : '';
+      lines.push(`${icon} ${timeStr}｜${subject}${pendingTag}`);
 
       const noteText = (mItem.decision || mItem.notes || mItem.background || '').trim();
       if (noteText) {
